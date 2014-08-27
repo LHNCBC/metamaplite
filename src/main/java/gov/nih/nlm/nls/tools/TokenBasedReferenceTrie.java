@@ -59,7 +59,7 @@ public class TokenBasedReferenceTrie implements Serializable {
     t.insert(Tokenize.mmPosTokenize("fas antigen", 0), new Integer(355));
     t.insert(Tokenize.mmPosTokenize("Fas ligand",  0), new Integer(356));
     t.insert(Tokenize.mmPosTokenize("fas ligand",  0), new Integer(356));
-    // t.insert(Tokenize.mmPosTokenize("dopamine d1 receptor", 0), new Integer(33007));
+    t.insert(Tokenize.mmPosTokenize("dopamine d1 receptor", 0), new Integer(33007));
     // t.insert(Tokenize.mmPosTokenize("dopamine d2 receptor", 0));
     // t.insert(Tokenize.mmPosTokenize("dopamine d3 receptor", 0));
     // t.insert(Tokenize.mmPosTokenize("dopamine d4 receptor", 0));
@@ -100,16 +100,29 @@ public class TokenBasedReferenceTrie implements Serializable {
     
     System.out.println("dopamine beta-hydroxylase (dopamine beta-monooxygenase): " +
 		       t.has(Tokenize.mmPosTokenize
-			     ("dopamine beta-hydroxylase (dopamine beta-monooxygenase)", 0)));
+			     ("dopamine beta-hydroxylase (dopamine beta-monooxygenase)", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize
+							("dopamine beta-hydroxylase (dopamine beta-monooxygenase)", 0)));
     System.out.println("dopamine-responsive gene 1 protein: " +
-		       t.has(Tokenize.mmPosTokenize("dopamine-responsive gene 1 protein", 0)));
-    System.out.println("d2dr: " + t.has(Tokenize.mmPosTokenize("d2dr", 0)));
-    System.out.println("aids: " + t.has(Tokenize.mmPosTokenize("aids", 0)));
-    System.out.println("fas ligand: " + t.has(Tokenize.mmPosTokenize("fas ligand", 0)));
-    System.out.println("Fas ligand: " + t.has(Tokenize.mmPosTokenize("Fas ligand", 0)));
-    System.out.println("cytotoxicity of fas ligand: " + t.has(Tokenize.mmPosTokenize("cytotoxicity of fas ligand", 0)));
-    System.out.println("Cytotoxicity of Fas ligand: " + t.has(Tokenize.mmPosTokenize("Cytotoxicity of Fas ligand", 0)));
+		       t.has(Tokenize.mmPosTokenize("dopamine-responsive gene 1 protein", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("dopamine-responsive gene 1 protein", 0)));
+    System.out.println("d2dr: " + t.has(Tokenize.mmPosTokenize("d2dr", 0)) + 
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("d2dr", 0)));
+    System.out.println("aids: " + t.has(Tokenize.mmPosTokenize("aids", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("aids", 0)));
+    System.out.println("fas ligand: " + t.has(Tokenize.mmPosTokenize("fas ligand", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("fas ligand", 0)));
+    System.out.println("Fas ligand: " + t.has(Tokenize.mmPosTokenize("Fas ligand", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("Fas ligand", 0)));
+    System.out.println("cytotoxicity of fas ligand: " + t.has(Tokenize.mmPosTokenize("cytotoxicity of fas ligand", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("cytotoxicity of fas ligand", 0)));
+    System.out.println("Cytotoxicity of Fas ligand: " + t.has(Tokenize.mmPosTokenize("Cytotoxicity of Fas ligand", 0)) +
+		       ", reference: " + t.hasReference(Tokenize.mmPosTokenize("Cytotoxicity of Fas ligand", 0)));
     System.out.println("of Fas ligand: " + t.has(Tokenize.mmPosTokenize("of Fas ligand", 0)));
     System.out.println("of Fas: " + t.has(Tokenize.mmPosTokenize("of Fas", 0)));
+
+    System.out.println("has prefix for Fas: " + t.hasPrefix(Tokenize.mmPosTokenize("Fas", 0)));    
+    System.out.println("has prefix for Fas ligand: " + t.hasPrefix(Tokenize.mmPosTokenize("Fas ligand", 0)));    
+    System.out.println("has prefix for carbon: " + t.hasPrefix(Tokenize.mmPosTokenize("carbon", 0)));    
   }
 }

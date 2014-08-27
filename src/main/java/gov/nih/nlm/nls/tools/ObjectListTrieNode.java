@@ -102,6 +102,30 @@ public class ObjectListTrieNode extends ListTrieNode implements TrieNode, Refere
     return false;
   }
 
+  public boolean hasPrefix(List<Token> tokenList) {
+    Map<String,ObjectListTrieNode> currentChildMap = this.childMap;
+    int i = 0;
+    for (Token token: tokenList) {
+      String key = token.getTokenText();
+      if (currentChildMap.containsKey(key)) {
+	  // found token match, return true;
+	  return true;
+      } else {
+	if (i == (tokenList.size() - 1)) {
+	  if (currentChildMap.containsKey(key)) {
+	    if (currentChildMap.get(key).getEndFlag()) {
+	      return currentChildMap.get(key).getReference() != null;
+	    }
+	  } else {
+	    return false;
+	  }
+	}
+      }
+      i++;
+    }
+    return false;
+  }
+
   public boolean getEndFlag() { return this.endFlag; }
   public void setEndFlag(boolean value) { this.endFlag = value; }
   public Object getReference() { return this.reference; }
