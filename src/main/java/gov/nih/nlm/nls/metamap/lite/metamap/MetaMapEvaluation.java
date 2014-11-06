@@ -23,11 +23,11 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
  *
  */
 
-public class MetaMap {
+public class MetaMapEvaluation {
 
   public MetaMapIndexes mmIndexes;
   
-  public MetaMap(MetaMapIndexes indexes) {
+  public MetaMapEvaluation(MetaMapIndexes indexes) {
     this.mmIndexes = indexes;
   }
 

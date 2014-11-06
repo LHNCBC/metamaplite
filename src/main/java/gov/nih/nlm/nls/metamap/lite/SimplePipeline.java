@@ -42,7 +42,7 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreComparator;
 import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreConceptNameComparator;
 import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
-import gov.nih.nlm.nls.metamap.lite.metamap.MetaMap;
+import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapEvaluation;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIndexes;
 
 import gov.nih.nlm.nls.utils.StringUtils;
@@ -58,7 +58,7 @@ public class SimplePipeline {
   public Tokenizer tokenizer;
   public POSModel posModel;
   public POSTaggerME tagger;
-  public MetaMap metaMapInst;
+  public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
 
 
@@ -139,7 +139,7 @@ public class SimplePipeline {
     initPOSTagger();
 
     this.mmIndexes = new MetaMapIndexes();
-    this.metaMapInst = new MetaMap(this.mmIndexes);
+    this.metaMapEvalInst = new MetaMapEvaluation(this.mmIndexes);
   }
 
   public List<String> loadFile(String inputFilename)
@@ -242,7 +242,7 @@ public class SimplePipeline {
     }
     for (Entity candidate: candidateList) {
       candidate.setScore
-	(this.metaMapInst.calculateScore(candidate.getConceptName(),
+	(this.metaMapEvalInst.calculateScore(candidate.getConceptName(),
 					 candidate.getPreferredName(),
 					 candidate.getCUI(),
 					 candidate.getInputTextTokenList(),
