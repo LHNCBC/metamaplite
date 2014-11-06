@@ -37,9 +37,10 @@ public class MetaMapEvaluation {
     List<Document> hitList = this.mmIndexes.varsIndex.lookup(variant,
 							     this.mmIndexes.varQueryParser,
 							     100);
-    int distance = 0;
+    int distance = 4;		// maximum distance: doesn't match at all.
     for (Document hit: hitList) {
-      if (word.equals(hit.get("word"))) {
+      if ((word.equals(hit.get("word"))) &&
+	  (variant.equals(hit.get("var")))) {
 	distance = Integer.parseInt(hit.get("dist"));
       }
     }
