@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite.metamap;
 
@@ -14,7 +13,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 
 /**
- *
+ * Tables from MetaMap imported into lucene core indices.
  */
 
 public class MetaMapIndexes {
@@ -24,6 +23,8 @@ public class MetaMapIndexes {
   public SearchIndex firstWordsOfOneWideIndex;
   /** cui -> source info index */
   public SearchIndex cuiSourceInfoIndex;
+  /** cui -> semantic type index */
+  public SearchIndex cuiSemanticTypeIndex;
   /** variants index */
   public SearchIndex varsIndex;
 
@@ -41,7 +42,9 @@ public class MetaMapIndexes {
     this.cuiConceptIndex = new SearchIndex("/rhome/wjrogers/lucenedb/cuiconcept");
     this.firstWordsOfOneWideIndex = new SearchIndex("/rhome/wjrogers/lucenedb/first_words_of_one_WIDE");
     this.cuiSourceInfoIndex = new SearchIndex("/rhome/wjrogers/lucenedb/cui_sourceinfo");
+    this.cuiSemanticTypeIndex = new SearchIndex("/rhome/wjrogers/lucenedb/cui_st");
     this.varsIndex = new SearchIndex("/rhome/wjrogers/lucenedb/vars");
+
     // query parsers for various fields
     this.conceptQueryParser = SearchIndex.newQueryParser("concept");
     this.strQueryParser = SearchIndex.newQueryParser("str");
