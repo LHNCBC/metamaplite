@@ -120,7 +120,7 @@ public class Tokenize {
 	      {
 		if (currentWord.length() > 0)
 		  {
-		    wl.add(new PosToken(currentWord.toString(), position));
+		    wl.add(new PosTokenImpl(currentWord.toString(), position));
 		    position = aptr;
 		  }
 		currentWord.setLength(0);
@@ -134,7 +134,7 @@ public class Tokenize {
 		  {
 		    if (currentWord.length() > 0) 
 		      {
-			wl.add(new PosToken(currentWord.toString(), position));
+			wl.add(new PosTokenImpl(currentWord.toString(), position));
 			position = aptr;
 		      }
 		    currentWord.setLength(0);
@@ -160,7 +160,7 @@ public class Tokenize {
 	      {
 		if ( currentWord.length() > 0 )
 		  {
-		    wl.add(new PosToken(currentWord.toString(), position));
+		    wl.add(new PosTokenImpl(currentWord.toString(), position));
 		    position = aptr;
 		  }
 		currentWord.setLength(0);
@@ -172,7 +172,7 @@ public class Tokenize {
 	    x++;
 	  }
       }
-    wl.add(new PosToken(currentWord.toString().intern(), position));
+    wl.add(new PosTokenImpl(currentWord.toString().intern(), position));
     currentWord.setLength(0);
     return wl;
   }
@@ -183,11 +183,11 @@ public class Tokenize {
    *
    * @return text generated from tokens.
    */
-  public static String getTextFromTokenList(List<Token> tokenList)
+  public static String getTextFromTokenList(List<? extends Token> tokenList)
   {
     StringBuilder sb = new StringBuilder();
     for (Token token: tokenList) {
-      sb.append(token.getTokenText());
+      sb.append(token.getText());
     }      
     return sb.toString();
   }
@@ -207,11 +207,11 @@ public class Tokenize {
     return sb.toString();
   }
 
-  public static String[] stringArrayFromTokenList(List<Token> tokenList) {
+  public static String[] stringArrayFromTokenList(List<? extends Token> tokenList) {
     String[] stringArray = new String[tokenList.size()];
     int i = 0;
     for (Token token: tokenList) {
-      stringArray[i] = token.getTokenText();
+      stringArray[i] = token.getText();
       i++;
     }
     return stringArray;
@@ -219,7 +219,7 @@ public class Tokenize {
 
   public static boolean isWhiteSpaceToken(Token token)
   {
-    String text = token.getTokenText();
+    String text = token.getText();
     int i = 0;
     while (i < text.length()) {
       if (! CharUtils.isWhiteSpace(text.charAt(i))) {
@@ -232,7 +232,7 @@ public class Tokenize {
 
   public static boolean isSemicolonToken(Token token)
   {
-    String text = token.getTokenText();
+    String text = token.getText();
     int i = 0;
     while (i < text.length()) {
       if (text.charAt(i) != ';') {
@@ -241,6 +241,13 @@ public class Tokenize {
       i++;
     }
     return true;
+  }
+
+  public static void displayTokenList(List<? extends Token> tokenList) {
+    for (Token token: tokenList) {
+      System.out.print("\"" + token + "\" ");
+    }
+    System.out.println();
   }
 
 }

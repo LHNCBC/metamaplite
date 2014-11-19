@@ -32,7 +32,7 @@ public class ListTrieNode implements TrieNode, Serializable {
 
   public void insert(List<Token> tokenList) {
     // System.out.println("insert> " + Tokenize.getTextFromTokenList(tokenList));
-    String key = tokenList.get(0).getTokenText();
+    String key = tokenList.get(0).getText();
 
     // if node for key is not present, then add it.
     if (! this.childMap.containsKey(key)) {
@@ -50,7 +50,7 @@ public class ListTrieNode implements TrieNode, Serializable {
 
   public boolean has(List<Token> tokenList) {
 
-    String key = tokenList.get(0).getTokenText();
+    String key = tokenList.get(0).getText();
     // System.out.println("has (key:" + key + ") (seq len: " + tokenList.size() 
     // + ")> input:" + Tokenize.getTextFromTokenList(tokenList));
 
@@ -69,7 +69,7 @@ public class ListTrieNode implements TrieNode, Serializable {
   }
 
   public boolean hasPrefix(List<Token> tokenList) {
-    String key = tokenList.get(0).getTokenText();
+    String key = tokenList.get(0).getText();
     if (this.childMap.containsKey(key)) {
 	if (tokenList.size() > 1) {
 	  // found token match, check rest of tokenlist

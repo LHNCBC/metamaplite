@@ -1,7 +1,5 @@
 package gov.nih.nlm.nls.metamap.prefix;
 
-import java.io.Serializable;
-
 /**
  * Describe interface Token here.
  *
@@ -11,6 +9,6 @@ import java.io.Serializable;
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public interface Token extends Serializable {
-  String getTokenText();
+public interface Token {
+  String getText();
 }

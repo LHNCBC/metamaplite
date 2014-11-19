@@ -27,13 +27,13 @@ public class TokenListMatch {
     boolean status = true;
     for (int i = 0; i < tokenlist0.size(); i++) {
       if (compUpperCase) {
-	if (! tokenlist0.get(i).getTokenText().equals
-	    (tokenlist1.get(i).getTokenText())) {
+	if (! tokenlist0.get(i).getText().equals
+	    (tokenlist1.get(i).getText())) {
 	  status = false;
 	}
       } else {
-	if (! tokenlist0.get(i).getTokenText().toLowerCase().equals
-	    (tokenlist1.get(i).getTokenText().toLowerCase())) {
+	if (! tokenlist0.get(i).getText().toLowerCase().equals
+	    (tokenlist1.get(i).getText().toLowerCase())) {
 	  status = false;
 	}
       }

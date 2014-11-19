@@ -14,34 +14,34 @@ import java.util.List;
 public class TokenUtils {
   public static boolean isNumber(Token token) {
     try {
-      Integer.parseInt(token.getTokenText());
+      Integer.parseInt(token.getText());
       return true;
     } catch (NumberFormatException nfe) {
       return false;
     }
   }
   public static boolean isLeftParen(Token token) {
-    return token.getTokenText().equals("(");
+    return token.getText().equals("(");
   }
   public static boolean isRightParen(Token token) {
-    return token.getTokenText().equals(")");
+    return token.getText().equals(")");
   }
   public static boolean isSpace(Token token) {
-    return token.getTokenText().equals(" ") ||
-      token.getTokenText().equals("\t") ||
-      token.getTokenText().equals("\n");
+    return token.getText().equals(" ") ||
+      token.getText().equals("\t") ||
+      token.getText().equals("\n");
   }
 
 
   public static boolean isTokenContentEqual(String content, Token token) {
-    return token.getTokenText().equals(content);
+    return token.getText().equals(content);
   }
 
   /** return next printable token in tokenlist */
   public static Token nextPrintableToken(List<Token> tokenList, int start) {
     int i = start;
     while (i < tokenList.size()) {
-      if (CharUtils.isWhiteSpace(tokenList.get(i).getTokenText().charAt(0))) {
+      if (CharUtils.isWhiteSpace(tokenList.get(i).getText().charAt(0))) {
 	i++;
       } else {
 	break;
@@ -53,7 +53,7 @@ public class TokenUtils {
   public static int nextPrintableTokenPosition(List<Token> tokenList, int start) {
     int i = start;
     while (i < tokenList.size()) {
-      if (CharUtils.isWhiteSpace(tokenList.get(i).getTokenText().charAt(0))) {
+      if (CharUtils.isWhiteSpace(tokenList.get(i).getText().charAt(0))) {
 	i++;
       } else {
 	break;

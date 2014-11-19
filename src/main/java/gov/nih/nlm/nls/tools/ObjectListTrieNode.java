@@ -37,7 +37,7 @@ public class ObjectListTrieNode extends ListTrieNode implements TrieNode, Refere
     Map<String,ObjectListTrieNode> parentChildMap = null;
     String lastKey = "";
     for (Token token: tokenList) {
-      String key = token.getTokenText();
+      String key = token.getText();
       if (! currentChildMap.containsKey(key)) {
 	// System.out.println("insert: put key: \"" + key + "\"");
 	currentChildMap.put(key, new ObjectListTrieNode(null));
@@ -58,7 +58,7 @@ public class ObjectListTrieNode extends ListTrieNode implements TrieNode, Refere
     Map<String,ObjectListTrieNode> currentChildMap = this.childMap;
     int i = 0;
     for (Token token: tokenList) {
-      String key = token.getTokenText();
+      String key = token.getText();
       if (i == (tokenList.size() - 1)) {
 	if (currentChildMap.containsKey(key)) {
 	  if (currentChildMap.get(key).getEndFlag()) {
@@ -82,7 +82,7 @@ public class ObjectListTrieNode extends ListTrieNode implements TrieNode, Refere
     Map<String,ObjectListTrieNode> currentChildMap = this.childMap;
     int i = 0;
     for (Token token: tokenList) {
-      String key = token.getTokenText();
+      String key = token.getText();
       if (i == (tokenList.size() - 1)) {
 	if (currentChildMap.containsKey(key)) {
 	  if (currentChildMap.get(key).getEndFlag()) {
@@ -106,7 +106,7 @@ public class ObjectListTrieNode extends ListTrieNode implements TrieNode, Refere
     Map<String,ObjectListTrieNode> currentChildMap = this.childMap;
     int i = 0;
     for (Token token: tokenList) {
-      String key = token.getTokenText();
+      String key = token.getText();
       if (currentChildMap.containsKey(key)) {
 	  // found token match, return true;
 	  return true;

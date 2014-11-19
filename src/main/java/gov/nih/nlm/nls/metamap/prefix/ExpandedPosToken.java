@@ -1,7 +1,6 @@
 package gov.nih.nlm.nls.metamap.prefix;
 
 import java.io.Serializable;
-import gov.nih.nlm.nls.metamap.prefix.PosToken;
 
 /**
  * Describe class ExpandedPosToken here.
@@ -12,28 +11,7 @@ import gov.nih.nlm.nls.metamap.prefix.PosToken;
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public class ExpandedPosToken extends PosToken implements Token, Serializable {
-  /** token text before expansion */
-  String originalText;
-  /** position before expansion */
-  int originalPosition;
-  /**
-   * Creates a new <code>ExpandedPosToken</code> instance.
-   *
-   */
-  public ExpandedPosToken(String tokenText, int position, 
-			  String originalText, int originalPosition) {
-    super(tokenText, position);
-    this.originalText = originalText;
-    this.originalPosition = originalPosition;
-  }
-  public String getOriginalText() { return this.originalText; }
-  public int getOriginalPosition() { return this.originalPosition; }
-
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("\"").append(super.toString()).append("\"|").append(this.position);;
-    sb.append("|\"").append(this.originalText).append("\"|").append(this.originalPosition);
-    return sb.toString();
-  }
+public interface ExpandedPosToken extends Token, PosToken, Serializable {
+  String getOriginalText();
+  int getOriginalPosition();
 }
