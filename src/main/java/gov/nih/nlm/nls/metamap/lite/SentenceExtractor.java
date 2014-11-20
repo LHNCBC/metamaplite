@@ -18,12 +18,16 @@ import opennlp.tools.sentdetect.SentenceDetectorME;
 import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.types.Annotation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  *
  */
 
 public class SentenceExtractor 
 {
+  private static final Logger logger = LogManager.getLogger("SentenceExtractor");
 
   public static SentenceModel sentenceModel;
   public static SentenceDetectorME sentenceDetector;
@@ -73,7 +77,7 @@ public class SentenceExtractor
   }
   
   public static List<Sentence> createSentenceList(String text) {
-    System.out.println("createSentenceList");
+    logger.debug("createSentenceList");
     int offset = 0;
     String[] sentenceArray = sentenceDetector.sentDetect(text);
     List<Sentence> sentenceList = new ArrayList<Sentence>();

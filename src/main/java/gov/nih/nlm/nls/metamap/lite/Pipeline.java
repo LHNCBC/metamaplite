@@ -28,8 +28,12 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
+import gov.nih.nlm.nls.metamap.document.ChemDNER;
 
 import gov.nih.nlm.nls.types.Sentence;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * What should a pipeline look-like?
@@ -59,11 +63,12 @@ import gov.nih.nlm.nls.types.Sentence;
  */
 
 public class Pipeline {
+  private static final Logger logger = LogManager.getLogger("Pipeline");
 
   public Object processSentence(Sentence sentence)
     throws IllegalAccessException, InvocationTargetException
   {
-    System.out.println("processSentence");
+    logger.debug("processSentence");
     List<Plugin> pipeSequence = PipelineRegistry.get("simple.sentence");
     Object current = sentence;
     Object result = null;
@@ -77,7 +82,7 @@ public class Pipeline {
   public List<Object> processSentenceList(List<Sentence> sentenceList) 
     throws IllegalAccessException, InvocationTargetException
   {
-    System.out.println("processSentenceList");
+    logger.debug("processSentenceList");
     List<Object> resultList = new ArrayList<Object>();
     for (Sentence sentence: sentenceList) {
       resultList.add(this.processSentence(sentence));
@@ -91,8 +96,10 @@ public class Pipeline {
 	   NoSuchMethodException, IllegalAccessException {
     Properties properties = new Properties();
     properties.load(new FileReader("metamaplite.properties"));
-    for (Map.Entry<Object,Object> entry: properties.entrySet()) {
-      System.out.println(entry.getKey() + " -> " + entry.getValue());
+    if (logger.isDebugEnabled()) {
+      for (Map.Entry<Object,Object> entry: properties.entrySet()) {
+	logger.debug(entry.getKey() + " -> " + entry.getValue());
+      }
     }
     Pipeline pipeline = new Pipeline();
     PluginRegistry.registerPlugins(properties);
@@ -105,8 +112,6 @@ public class Pipeline {
     for (String content: PipelineRegistry.listPipeContents()) {
       System.out.println(" " + content);
     }
-
-
     return pipeline;
   }
 
@@ -145,19 +150,14 @@ public class Pipeline {
 	   ParseException , InvocationTargetException {
     if (args.length > 0) {
       Pipeline pipeline = initPipeline();
-      List<String> documentList = pipeline.loadFile(args[0]);
+      List<String> documentTextList = pipeline.loadFile(args[0]);
       
-      /*CHEMDNER style documents*/
-      for (String doc: documentList) {
-	String[] docFields = doc.split("\\|");
-	String docId = docFields[0];
-	String docBody = docFields[1];
-	String[] bodyFields = docBody.split("\t");
-	String docTitle = bodyFields[0];
-	String docAbstract = bodyFields[1];
+      /*CHEMDNER SLDI style documents*/
+      for (String docText: documentTextList) {
+	ChemDNER document = ChemDNER.instantiateSLDIDocument(docText);
 
-	pipeline.processText(docTitle);
-	pipeline.processText(docAbstract);
+	pipeline.processText(document.getTitle());
+	pipeline.processText(document.getAbstract());
       }
     } else {
       System.err.println("usage: filename");

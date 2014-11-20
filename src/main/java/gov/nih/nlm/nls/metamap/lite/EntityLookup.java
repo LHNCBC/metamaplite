@@ -31,11 +31,15 @@ import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
  */
 public class EntityLookup {
+  private static final Logger logger = LogManager.getLogger("EntityLookup");
+
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
 
@@ -118,20 +122,20 @@ public class EntityLookup {
 				       List<ERToken> tokenList)
     throws FileNotFoundException, IOException, ParseException
   {
-    System.out.println("findLongestMatch");
+    logger.debug("findLongestMatch");
     Map<String,Entity> candidateMap = new HashMap<String,Entity>();
-    System.out.println("tokenlist text: " + Tokenize.getTextFromTokenList(tokenList));
+    logger.debug("tokenlist text: " + Tokenize.getTextFromTokenList(tokenList));
     for (int i = tokenList.size(); i > 0; i--) { 
       // List<ERToken> tokenSubList = removePunctuation(tokenList.subList(0, i));
       List<ERToken> tokenSubList = tokenList.subList(0, i);
-      System.out.println("token sublist text: " + Tokenize.getTextFromTokenList(tokenSubList));
+      logger.debug("token sublist text: " + Tokenize.getTextFromTokenList(tokenSubList));
       List<String> tokenTextSubList = new ArrayList<String>();
       for (ERToken token: tokenSubList) {
 	tokenTextSubList.add(token.getText());
       }
       String term = StringUtils.join(tokenTextSubList, "");
       for (Document doc: documentList) {
-	System.out.println("term: \"" + term + 
+	logger.debug("term: \"" + term + 
 			   "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
 			   term.toLowerCase().equals(doc.get("str").toLowerCase()));
 
@@ -168,6 +172,7 @@ public class EntityLookup {
   }
 
   void displayHits(List<Document> hitList) {
+    logger.debug("displayHits");
     for (Document hit: hitList) {
       // System.out.println(hit);
       System.out.println(hit.get("cui") + "|" + hit.get("str") + "|" + hit.get("src"));
@@ -188,12 +193,12 @@ public class EntityLookup {
     for (int i = 0; i<sentenceTokenList.size(); i++) {
       String prefix = sentenceTokenList.get(i).getText();
       if (prefix.trim().length() > 1) {
-	System.out.println("processSentenceTokenList: prefix term: " + prefix);
+	logger.debug("processSentenceTokenList: prefix term: " + prefix);
 	List<Document> hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix,
 									  this.mmIndexes.strQueryParser,
 									  10);
 	if (hitList.size() > 0) {
-	  System.out.println("processSentenceTokenList: hit size: " + hitList.size());
+	  logger.debug("processSentenceTokenList: hit size: " + hitList.size());
 	  displayHits(hitList);
 	  for (Entity entity: this.findLongestMatch
 		 (hitList,
@@ -209,13 +214,13 @@ public class EntityLookup {
   public static Set<Entity> generateEntitySet(List<ERToken> sentenceTokenList)
     throws IOException, FileNotFoundException, ParseException
   {
-    System.out.println("generateEntitySet: ");
+    logger.debug("generateEntitySet: ");
     EntityLookup entityLookup = new EntityLookup();
     return entityLookup.processSentenceTokenList(sentenceTokenList);
   }
   
   public static void displayEntitySet(Set<Entity> entitySet) {
-    System.out.println("displayEntitySet");
+    logger.debug("displayEntitySet");
     for (Entity entity: entitySet) {
       System.out.println(entity + ", ");
     }
