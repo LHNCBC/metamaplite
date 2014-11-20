@@ -64,6 +64,8 @@ import org.apache.logging.log4j.Logger;
 
 public class Pipeline {
   private static final Logger logger = LogManager.getLogger("Pipeline");
+  static String configPropertyFilename =
+    System.getProperty("metamaplite.property.file", "config/metamaplite.properties");
 
   public Object processSentence(Sentence sentence)
     throws IllegalAccessException, InvocationTargetException
@@ -95,7 +97,7 @@ public class Pipeline {
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException {
     Properties properties = new Properties();
-    properties.load(new FileReader("metamaplite.properties"));
+    properties.load(new FileReader(configPropertyFilename));
     if (logger.isDebugEnabled()) {
       for (Map.Entry<Object,Object> entry: properties.entrySet()) {
 	logger.debug(entry.getKey() + " -> " + entry.getValue());
@@ -156,7 +158,9 @@ public class Pipeline {
       for (String docText: documentTextList) {
 	ChemDNER document = ChemDNER.instantiateSLDIDocument(docText);
 
+	System.out.println(document.getTitle());
 	pipeline.processText(document.getTitle());
+	System.out.println(document.getAbstract());
 	pipeline.processText(document.getAbstract());
       }
     } else {
