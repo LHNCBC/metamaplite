@@ -26,5 +26,5 @@ public class PubMedDocumentImpl implements PubMedDocument {
   public String getId() { return id; }
   public String getTitle() { return titleText; }
   public String getAbstract() { return abstractText; }
-
+  public String getText() { return titleText + " " + abstractText; }
 }

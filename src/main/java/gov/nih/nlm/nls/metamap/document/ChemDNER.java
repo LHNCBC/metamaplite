@@ -2,11 +2,18 @@
 //
 package gov.nih.nlm.nls.metamap.document;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  *
  */
-
-public class ChemDNER extends PubMedDocumentImpl implements PubMedDocument  {
+public class ChemDNER extends PubMedDocumentImpl implements PubMedDocument {
 
   public ChemDNER(String docId, String docTitle, String docAbstract) {
     super(docId, docTitle, docAbstract);
@@ -55,6 +62,42 @@ public class ChemDNER extends PubMedDocumentImpl implements PubMedDocument  {
   {
     String[] docFields = docText.split("\\t");
     return new ChemDNER(docFields[0], docFields[1], docFields[2]);
+  }
+
+  /**
+   * Load list of ChemDNER documents
+   * @param inputFilename input text filename
+   * @return List of strings, one document per line.
+   */
+  public static List<ChemDNER> loadSLDIFile(String inputFilename)
+    throws FileNotFoundException, IOException
+  {
+    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    List<ChemDNER> documentList = new ArrayList<ChemDNER>();
+    String line;
+    while ((line = br.readLine()) != null) {
+      documentList.add(ChemDNER.instantiateSLDIDocument(line));
+    }
+    br.close();
+    return documentList;
+  }
+
+  /**
+   * Load list of ChemDNER documents
+   * @param inputFilename input text filename
+   * @return List of strings, one document per line.
+   */
+  public static List<ChemDNER> loadFile(String inputFilename)
+    throws FileNotFoundException, IOException
+  {
+    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    List<ChemDNER> documentList = new ArrayList<ChemDNER>();
+    String line;
+    while ((line = br.readLine()) != null) {
+      documentList.add(ChemDNER.instantiateDocument(line));
+    }
+    br.close();
+    return documentList;
   }
 
 }

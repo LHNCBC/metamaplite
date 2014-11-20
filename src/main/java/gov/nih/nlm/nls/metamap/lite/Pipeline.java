@@ -29,6 +29,8 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
+import gov.nih.nlm.nls.metamap.document.Document;
+import gov.nih.nlm.nls.metamap.document.FreeText;
 
 import gov.nih.nlm.nls.types.Sentence;
 
@@ -63,10 +65,17 @@ import org.apache.logging.log4j.Logger;
  */
 
 public class Pipeline {
+  /** log4j logger instance */
   private static final Logger logger = LogManager.getLogger("Pipeline");
+  /** location of metamaplite.properties configuration file */
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");
 
+  /**
+   * Apply processing pipeline to sentence.
+   * @param sentence String containing a properly segmented sentence.
+   * @return result from final plugin in processing pipeline.
+   */
   public Object processSentence(Sentence sentence)
     throws IllegalAccessException, InvocationTargetException
   {
@@ -81,6 +90,11 @@ public class Pipeline {
     return result;
   }
 
+  /**
+   * Invoke sentence processing pipeline on each sentence in supplied sentence list.
+   * @param sentenceList list of strings, one sentence per string.
+   * @return list of results from sentence processing pipeline, one per sentence in input list.
+   */
   public List<Object> processSentenceList(List<Sentence> sentenceList) 
     throws IllegalAccessException, InvocationTargetException
   {
@@ -92,6 +106,10 @@ public class Pipeline {
     return resultList;
   }
 
+  /**
+   * Initialize pipeline application.
+   * @return pipeline application instance
+   */
   static Pipeline initPipeline()
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
@@ -117,6 +135,10 @@ public class Pipeline {
     return pipeline;
   }
 
+  /**
+   * Apply text processing pipeline to input text.
+   * @param text input text
+   */
   public void processText(String text)
     throws IllegalAccessException, InvocationTargetException
   {
@@ -128,21 +150,8 @@ public class Pipeline {
     }
   }
 
-  public List<String> loadFile(String inputFilename)
-    throws FileNotFoundException, IOException
-  {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
-    List<String> lineList = new ArrayList<String>();
-    String line;
-    while ((line = br.readLine()) != null) {
-      lineList.add(line);
-    }
-    br.close();
-    return lineList;
-  }
-
   /**
-   *
+   * Pipeline application commandline.
    * @param args - Arguments passed from the command line
    */
   public static void main(String[] args)
@@ -152,19 +161,48 @@ public class Pipeline {
 	   ParseException , InvocationTargetException {
     if (args.length > 0) {
       Pipeline pipeline = initPipeline();
-      List<String> documentTextList = pipeline.loadFile(args[0]);
-      
-      /*CHEMDNER SLDI style documents*/
-      for (String docText: documentTextList) {
-	ChemDNER document = ChemDNER.instantiateSLDIDocument(docText);
-
-	System.out.println(document.getTitle());
-	pipeline.processText(document.getTitle());
-	System.out.println(document.getAbstract());
-	pipeline.processText(document.getAbstract());
+      String filename = null;
+      String option = "--freetext";
+      int i = 0;
+      while (i < args.length) {
+	if (args[i].equals("--chemdnersldi")) {
+	  option = args[i];
+	} else if (args[i].equals("--chemdner")) {
+	  option = args[i];
+	} else if (args[i].equals("--freetext")) {
+	  option = args[i];
+	} else {
+	  filename = args[i];
+	}
+	i++;
       }
+
+      if (option.equals("--chemdnersldi")) {
+	List<ChemDNER> documentList = ChemDNER.loadSLDIFile(filename);
+	/*CHEMDNER SLDI style documents*/
+	for (ChemDNER document: documentList) {
+	  System.out.println(document.getTitle());
+	  pipeline.processText(document.getTitle());
+	  System.out.println(document.getAbstract());
+	  pipeline.processText(document.getAbstract());
+	}
+      } else if (option.equals("--chemdner")) {
+	List<ChemDNER> documentList = ChemDNER.loadFile(filename);
+	/*CHEMDNER SLDI style documents*/
+	for (ChemDNER document: documentList) {
+	  System.out.println(document.getTitle());
+	  pipeline.processText(document.getTitle());
+	  System.out.println(document.getAbstract());
+	  pipeline.processText(document.getAbstract());
+	} 
+      } else if (option.equals("--freetext")) {
+	String inputtext = FreeText.loadFile(filename);
+	System.out.println(inputtext);
+	pipeline.processText(inputtext);
+      }
+
     } else {
-      System.err.println("usage: filename");
+      System.err.println("usage: [options] filename");
     }   
   }
     
