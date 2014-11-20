@@ -222,7 +222,7 @@ public class EntityLookup {
   public static void displayEntitySet(Set<Entity> entitySet) {
     logger.debug("displayEntitySet");
     for (Entity entity: entitySet) {
-      System.out.println(entity + ", ");
+      System.out.println(entity);
     }
   }
 }
