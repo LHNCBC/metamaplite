@@ -12,8 +12,9 @@ JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$LOG4JAPI:$L
 
 OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
 
-PROPERTIES="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
+JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Den-token.bin.path=$OPENNLP_MODELS/en-token.bin \
-    -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin" \
+    -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin \
+    -Dlog4j.configurationFile=$PWD/config/log4j2.xml"
 
-java -cp target/classes:$JARSPATH $PROPERTIES gov.nih.nlm.nls.metamap.lite.Pipeline $* 
+java -cp target/classes:$JARSPATH $JVMOPTS gov.nih.nlm.nls.metamap.lite.Pipeline $* 

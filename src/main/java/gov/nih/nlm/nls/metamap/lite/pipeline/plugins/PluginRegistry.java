@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
  */
 
 public class PluginRegistry {
-  private static final Logger logger = LogManager.getLogger("PluginRegistry");
+  private static final Logger logger = LogManager.getLogger(PluginRegistry.class);
 
   /** Map of plugins by plugin name */
   static Map<String,Plugin> pluginMap = new HashMap<String,Plugin>();

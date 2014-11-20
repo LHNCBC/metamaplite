@@ -66,7 +66,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Pipeline {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger("Pipeline");
+  private static final Logger logger = LogManager.getLogger(Pipeline.class);
   /** location of metamaplite.properties configuration file */
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");

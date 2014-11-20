@@ -38,7 +38,7 @@ import org.apache.logging.log4j.Logger;
  *
  */
 public class EntityLookup {
-  private static final Logger logger = LogManager.getLogger("EntityLookup");
+  private static final Logger logger = LogManager.getLogger(EntityLookup.class);
 
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;

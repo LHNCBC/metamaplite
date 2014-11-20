@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 
 public class SentenceExtractor 
 {
-  private static final Logger logger = LogManager.getLogger("SentenceExtractor");
+  private static final Logger logger = LogManager.getLogger(SentenceExtractor.class);
 
   public static SentenceModel sentenceModel;
   public static SentenceDetectorME sentenceDetector;

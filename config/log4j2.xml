@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Appenders>
+    <File name="MetaMapLitePipeline" fileName="logs/MetaMapLitePipeline.log" append="false">
+      <PatternLayout pattern="%t %-5p %c{2} - %m%n"/>
+    </File>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="org.apache.log4j.xml" level="warn">
+      <AppenderRef ref="MetaMapLitePipeline"/>
+    </Logger>
+    <Root level="warn">
+      <AppenderRef ref="MetaMapLitePipeline"/>
+    </Root>
+  </Loggers>
+</Configuration>
+
+<!--  LocalWords:  Appenders
+-->
