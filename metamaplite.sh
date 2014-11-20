@@ -16,4 +16,4 @@ PROPERTIES="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Den-token.bin.path=$OPENNLP_MODELS/en-token.bin \
     -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin" \
 
-java -cp target/classes:$JARSPATH $PROPERTIES $*
+java -cp target/classes:$JARSPATH $PROPERTIES gov.nih.nlm.nls.metamap.lite.Pipeline $* 
