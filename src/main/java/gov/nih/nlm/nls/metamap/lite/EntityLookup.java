@@ -171,11 +171,9 @@ public class EntityLookup {
     return candidateMap.values();
   }
 
-  void displayHits(List<Document> hitList) {
-    logger.debug("displayHits");
+  void logHits(List<Document> hitList) {
     for (Document hit: hitList) {
-      // System.out.println(hit);
-      System.out.println(hit.get("cui") + "|" + hit.get("str") + "|" + hit.get("src"));
+      logger.debug(hit.get("cui") + "|" + hit.get("str") + "|" + hit.get("src"));
     }
   }
 
@@ -196,10 +194,12 @@ public class EntityLookup {
 	logger.debug("processSentenceTokenList: prefix term: " + prefix);
 	List<Document> hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix,
 									  this.mmIndexes.strQueryParser,
-									  10);
+									  100);
 	if (hitList.size() > 0) {
 	  logger.debug("processSentenceTokenList: hit size: " + hitList.size());
-	  displayHits(hitList);
+	  if (logger.isDebugEnabled()) {
+	    logHits(hitList);
+	  }
 	  for (Entity entity: this.findLongestMatch
 		 (hitList,
 		  sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())))) {
