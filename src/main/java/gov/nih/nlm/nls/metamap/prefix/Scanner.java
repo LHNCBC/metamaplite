@@ -8,11 +8,16 @@ import java.util.regex.Pattern;
 
 import gov.nih.nlm.nls.types.Sentence;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
 /**
  * Tokenize sentence then classify tokens, and add offsets.
  */
 
 public class Scanner {
+  private static final Logger logger = LogManager.getLogger("Scanner");
 
   // compiled regular expressions
   static Pattern wspattern = Pattern.compile("^\\s$");
@@ -116,7 +121,7 @@ public class Scanner {
    * @return tokenlist with token classification and token offsets in input text.
    */
   public static List<ERToken> analyzeText(String text) {
-    System.out.println("analyzeText");
+    logger.debug("analyzeText");
     return addOffsets(classifyTokenList(new ArrayList<Token>(Tokenize.mmPosTokenize(text,0))));
   }
 
@@ -127,7 +132,7 @@ public class Scanner {
    * @return tokenlist with token classification and token offsets in input text.
    */
   public static List<ERToken> analyzeText(Sentence sentence) {
-    System.out.println("analyzeText");
+    logger.debug("analyzeText");
     return addOffsets(classifyTokenList(new ArrayList<Token>(Tokenize.mmPosTokenize(sentence.getText(),0))),
 		      sentence.getOffset());
   }
