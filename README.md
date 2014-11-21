@@ -11,8 +11,8 @@ Set the system property "en-sent.bin.path":
 
     en-sent.bin.path=<location of en-sent.bin>
 
-Modify metamaplite.sh to set the location of the model file. To run
-the test application use the script metamaplite.sh
+Modify metamaplite.sh to set the location of the model file and then
+run it.
 
 
 ## Usage

@@ -152,6 +152,35 @@ public class Pipeline {
 
   /**
    * Pipeline application commandline.
+   * <p>
+   * You'll need the model file for the sentence extractor
+   * "en-sent.bin" which can be downloaded from the opennlp project at
+   * http://opennlp.sourceforge.net/models-1.5
+   * <p>
+   * Set the system property "en-sent.bin.path":
+   * <pre>
+   *  -Den-sent.bin.path=location of en-sent.bin
+   * </pre>
+   * Run the program using a command of the form:
+   * <pre>
+   * java -cp classpath -Den-sent.bin.path={location of en-sent.bin} gov.nih.nlm.nls.metamap.lite.Pipeline [options] input-file
+   * </pre>
+   * Or modify metamaplite.sh to set the location of the model file and then
+   * run the script to the test application.
+   * <pre>
+   * ./metamaplite.sh [options] input-file
+   * </pre>
+   * Current options are:
+   * <dl>
+   * <dt>--freetext
+   * <dd>Text with no markup.
+   * <dt>--chemdner
+   * <dd>CHEMDNER document: tab separated fields: id \t title \t abstract
+   * <dt>--chemdnerSLDI
+   * <dd>CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
+   * </dl>
+   * The application currently only outputs to standard output. (See method: gov.nih.nlm.nls.metamap.lite.EntityLookup.displayEntitySet) 
+   * </pre>
    * @param args - Arguments passed from the command line
    */
   public static void main(String[] args)
