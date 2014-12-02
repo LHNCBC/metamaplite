@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import java.util.Properties;
+
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
@@ -39,11 +41,49 @@ public class MetaMapIndexes {
     throws IOException, FileNotFoundException, ParseException
   {
     // indexes
-    this.cuiConceptIndex = new SearchIndex("/rhome/wjrogers/lucenedb/cuiconcept");
-    this.firstWordsOfOneWideIndex = new SearchIndex("/rhome/wjrogers/lucenedb/first_words_of_one_WIDE");
-    this.cuiSourceInfoIndex = new SearchIndex("/rhome/wjrogers/lucenedb/cui_sourceinfo");
-    this.cuiSemanticTypeIndex = new SearchIndex("/rhome/wjrogers/lucenedb/cui_st");
-    this.varsIndex = new SearchIndex("/rhome/wjrogers/lucenedb/vars");
+    this.cuiConceptIndex =
+      new SearchIndex(System.getProperty("metamaplite.cuiconceptindex",
+					 "/nfsvol/nlsaux15/lucenedb/strict/cuiconcept"));
+    this.firstWordsOfOneWideIndex =
+      new SearchIndex(System.getProperty("metamaplite.firstwordsofonewideindex",
+					 "/nfsvol/nlsaux15/lucenedb/strict/first_words_of_one_WIDE"));
+    this.cuiSourceInfoIndex =
+      new SearchIndex(System.getProperty("metamaplite.cuisourceinfoindex",
+					 "/nfsvol/nlsaux15/lucenedb/strict/cui_sourceinfo"));
+    this.cuiSemanticTypeIndex =
+      new SearchIndex(System.getProperty("metamaplite.cuisemantictypeindex",
+					 "/nfsvol/nlsaux15/lucenedb/strict/cui_st"));
+    this.varsIndex =
+      new SearchIndex(System.getProperty("metamaplite.varsindex",
+					 "/nfsvol/nlsaux15/lucenedb/strict/vars"));
+
+    // query parsers for various fields
+    this.conceptQueryParser = SearchIndex.newQueryParser("concept");
+    this.strQueryParser = SearchIndex.newQueryParser("str");
+    this.nmstrQueryParser = SearchIndex.newQueryParser("nmstr");
+    this.cuiQueryParser = SearchIndex.newQueryParser("cui");
+    this.varQueryParser = SearchIndex.newQueryParser("var");
+  }
+
+  public MetaMapIndexes(Properties properties) 
+    throws IOException, FileNotFoundException, ParseException
+  {
+    // indexes
+    this.cuiConceptIndex =
+      new SearchIndex(properties.getProperty("metamaplite.cuiconceptindex",
+					     "/nfsvol/nlsaux15/lucenedb/strict/cuiconcept"));
+    this.firstWordsOfOneWideIndex =
+      new SearchIndex(properties.getProperty("metamaplite.firstwordsofonewideindex",
+					     "/nfsvol/nlsaux15/lucenedb/strict/first_words_of_one_WIDE"));
+    this.cuiSourceInfoIndex =
+      new SearchIndex(properties.getProperty("metamaplite.cuisourceinfoindex",
+					     "/nfsvol/nlsaux15/lucenedb/strict/cui_sourceinfo"));
+    this.cuiSemanticTypeIndex =
+      new SearchIndex(properties.getProperty("metamaplite.cuisemantictypeindex",
+					     "/nfsvol/nlsaux15/lucenedb/strict/cui_st"));
+    this.varsIndex =
+      new SearchIndex(properties.getProperty("metamaplite.varsindex",
+					     "/nfsvol/nlsaux15/lucenedb/strict/vars"));
 
     // query parsers for various fields
     this.conceptQueryParser = SearchIndex.newQueryParser("concept");
