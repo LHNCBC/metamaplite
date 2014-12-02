@@ -20,4 +20,4 @@ JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin \
     -Dlog4j.configurationFile=$PWD/config/log4j2.xml"
 
-java -cp target/classes:$JARSPATH $JVMOPTS gov.nih.nlm.nls.metamap.lite.Pipeline $* 
+java -cp target/classes:$JARSPATH $JVMOPTS gov.nih.nlm.nls.metamap.lite.BioCPipeline $* 
