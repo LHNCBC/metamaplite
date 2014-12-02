@@ -17,22 +17,32 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
+import bioc.BioCSentence;
+import bioc.BioCAnnotation;
+
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreComparator;
-// import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreConceptNameComparator;
+import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
+
 import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapEvaluation;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIndexes;
 
 import gov.nih.nlm.nls.metamap.prefix.CharUtils;
+import gov.nih.nlm.nls.metamap.prefix.Token;
+import gov.nih.nlm.nls.metamap.prefix.PosToken;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 
+import gov.nih.nlm.nls.types.Sentence;
+
 import gov.nih.nlm.nls.utils.StringUtils;
+
+import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 /**
  *
@@ -43,6 +53,16 @@ public class EntityLookup {
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
 
+  public static EntityLookup singleton;
+  static {
+    try {
+      singleton = new EntityLookup();
+    } catch (IOException ioe) {
+      ioe.printStackTrace(System.err);
+    } catch (ParseException pe) {
+      pe.printStackTrace(System.err);
+    }
+  }
   
   public EntityLookup() 
     throws IOException, FileNotFoundException, ParseException
@@ -97,6 +117,23 @@ public class EntityLookup {
   }
 
   /**
+   * Given the string:
+   *   "cancer of the lung" -> "cancer, lung" -> "lung cancer"
+   *
+   * what it does:
+   *  1. replace "of the" with comma (",")
+   *  2. inversion
+   *
+   * TBD: should be updated for other relevant prepositions.
+   *
+   * @param inputtext input text
+   * @return string with preposition "of the" removed and the term inverted.
+   */
+  public static String transformPreposition(String inputtext) {
+    return MWIUtilities.normalizeMetaString(inputtext.replaceAll(" of the", ","));
+  }
+
+  /**
    * Given Example:
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
    * 
@@ -119,7 +156,7 @@ public class EntityLookup {
    *    ...
    */
   public Collection<Entity> findLongestMatch(List<Document> documentList,
-				       List<ERToken> tokenList)
+				       List<? extends Token> tokenList)
     throws FileNotFoundException, IOException, ParseException
   {
     logger.debug("findLongestMatch");
@@ -127,13 +164,19 @@ public class EntityLookup {
     logger.debug("tokenlist text: " + Tokenize.getTextFromTokenList(tokenList));
     for (int i = tokenList.size(); i > 0; i--) { 
       // List<ERToken> tokenSubList = removePunctuation(tokenList.subList(0, i));
-      List<ERToken> tokenSubList = tokenList.subList(0, i);
+      List<? extends Token> tokenSubList = tokenList.subList(0, i);
       logger.debug("token sublist text: " + Tokenize.getTextFromTokenList(tokenSubList));
       List<String> tokenTextSubList = new ArrayList<String>();
-      for (ERToken token: tokenSubList) {
+      for (Token token: tokenSubList) {
 	tokenTextSubList.add(token.getText());
       }
-      String term = StringUtils.join(tokenTextSubList, "");
+      ERToken firstToken = (ERToken)tokenSubList.get(0);
+      ERToken lastToken = (ERToken)tokenSubList.get(tokenSubList.size() - 1);
+      int termLength = (tokenSubList.size() > 1) ?
+	(lastToken.getPosition() + lastToken.getText().length()) - firstToken.getPosition() : 
+	firstToken.getText().length();
+      String originalTerm = StringUtils.join(tokenTextSubList, "").trim();
+      String term = transformPreposition(originalTerm);
       for (Document doc: documentList) {
 	logger.debug("term: \"" + term + 
 			   "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
@@ -145,18 +188,22 @@ public class EntityLookup {
 	    entity = candidateMap.get(doc.get("cui"));
 	    entity.addMatchedWord(doc.get("str"));
 	  } else {
-	    entity = new Entity(doc.get("cui"), 
-				doc.get("str"), 
-				this.findPreferredName(doc.get("cui")),
-				this.getSourceSet(doc.get("cui")),
-				this.getSemanticTypeSet(doc.get("cui")),
-				tokenTextSubList.toArray(new String[0]),
-				tokenSubList.get(0).getPosition(),
-				tokenSubList.get(0).getText().length(),
-				0.0);
-	    candidateMap.put(doc.get("cui"),entity);
+	    if (tokenSubList.get(0) instanceof PosToken) {
+	      entity = new Entity(doc.get("cui"), 
+				  doc.get("str"), 
+				  this.findPreferredName(doc.get("cui")),
+				  this.getSourceSet(doc.get("cui")),
+				  this.getSemanticTypeSet(doc.get("cui")),
+				  originalTerm,
+				  ((PosToken)tokenSubList.get(0)).getPosition(),
+				  termLength,
+				  0.0);
+	      candidateMap.put(doc.get("cui"),entity);
+	      if (tokenSubList.get(0) instanceof ERToken) {
+		((ERToken)tokenSubList.get(0)).addEntity(entity);
+	      }
+	    }
 	  }
-	  tokenSubList.get(0).addEntity(entity);
 	}
       }
     }
@@ -181,10 +228,10 @@ public class EntityLookup {
    * Given a sentence, tokenize it then lookup any concepts that match
    * token extents with in sentence.
    *
-   * @param sentence sentence to be examined.
+   * @param sentenceTokenList sentence to be examined.
    * @return set of entities found in the sentence.
    */
-  public Set<Entity> processSentenceTokenList(List<ERToken> sentenceTokenList)
+  public Set<Entity> processSentenceTokenList(List<? extends Token> sentenceTokenList)
     throws FileNotFoundException, IOException, ParseException
   {
     Set<Entity> entitySet = new HashSet<Entity>();
@@ -211,18 +258,47 @@ public class EntityLookup {
     return entitySet;
   }
 
-  public static Set<Entity> generateEntitySet(List<ERToken> sentenceTokenList)
+  // static methods
+
+  public static Set<Entity> generateEntitySet(List<? extends Token> sentenceTokenList)
     throws IOException, FileNotFoundException, ParseException
   {
     logger.debug("generateEntitySet: ");
-    EntityLookup entityLookup = new EntityLookup();
+    EntityLookup entityLookup = EntityLookup.singleton;
     return entityLookup.processSentenceTokenList(sentenceTokenList);
   }
-  
+
+
+  public static Set<BioCAnnotation> generateBioCEntitySet(List<? extends Token> sentenceTokenList)
+    throws IOException, FileNotFoundException, ParseException
+  {
+    logger.debug("generateEntitySet: ");
+    EntityLookup entityLookup = EntityLookup.singleton;
+    Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
+    for (Entity entity: entityLookup.processSentenceTokenList(sentenceTokenList)) {
+      bioCEntityList.add((BioCAnnotation)new BioCEntity(entity));
+    }
+    return bioCEntityList;
+  }
+
   public static void displayEntitySet(Set<Entity> entitySet) {
     logger.debug("displayEntitySet");
     for (Entity entity: entitySet) {
       System.out.println(entity);
+    }
+  }
+
+  public static void displayEntitySet(BioCSentence sentence) {
+    for (BioCAnnotation annotation: sentence.getAnnotations()) {
+      if (annotation instanceof BioCEntity) {
+	System.out.print(((BioCEntity)annotation).getEntity().toString());
+	for (Map.Entry<String,String> entry: annotation.getInfons().entrySet()) {
+	  System.out.print(entry.getKey() + ":" + entry.getValue() + "|");
+	}
+	System.out.println();
+      } else {
+	System.out.println(annotation);
+      }
     }
   }
 }
