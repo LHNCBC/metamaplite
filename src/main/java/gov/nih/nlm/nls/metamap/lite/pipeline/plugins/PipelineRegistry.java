@@ -53,7 +53,8 @@ public class PipelineRegistry {
 
   public static void registerPipeSequences(String prefix, Properties properties) {
     for (Map.Entry<Object,Object> entry: properties.entrySet()) {
-      if (((String)entry.getKey()).substring(0,prefix.length()).equals(prefix)) {
+      if ((((String)entry.getKey()).length() > prefix.length()) &&
+	  ((String)entry.getKey()).substring(0,prefix.length()).equals(prefix)) {
 	List<Plugin> pipeSequence = new ArrayList<Plugin>();
 	String[] keyfields = ((String)entry.getKey()).split("\\.");
 	String pipelineName = keyfields[keyfields.length - 2] + "." + keyfields[keyfields.length - 1];

@@ -68,9 +68,11 @@ public class PluginRegistry {
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException
 
- {
+  {
+    String prefix = "metamaplite.pipe.element";
     for (Map.Entry<Object,Object> entry: properties.entrySet()) {
-      if (((String)entry.getKey()).substring(0,"metamaplite.pipe.element".length()).equals("metamaplite.pipe.element")) {
+      if ((((String)entry.getKey()).length() > prefix.length()) &&
+	  ((String)entry.getKey()).substring(0,prefix.length()).equals(prefix)) {
 	String[] keyfields = ((String)entry.getKey()).split("\\.");
 	String pluginName = keyfields[keyfields.length - 1];
 
