@@ -7,8 +7,11 @@ OPENNLPTOOLS=$HOME/.m2/repository/org/apache/opennlp/opennlp-tools/1.5.3/opennlp
 OPENNLPMAXENT=$HOME/.m2/repository/org/apache/opennlp/opennlp-maxent/3.0.3/opennlp-maxent-3.0.3.jar
 LOG4JAPI=$HOME/.m2/repository/org/apache/logging/log4j/log4j-api/2.1/log4j-api-2.1.jar
 LOG4JCORE=$HOME/.m2/repository/org/apache/logging/log4j/log4j-core/2.1/log4j-core-2.1.jar
+BIOC=$HOME/.m2/repository/bioc/bioc/1.0.1/bioc-1.0.1.jar
+NLP=$HOME/.m2/repository/gov/nih/nlm/nls/nlp/2.4.C/nlp-2.4.C.jar
+CONTEXT=$HOME/.m2/repository/context/context/2012/context-2012.jar
 
-JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$LOG4JAPI:$LOG4JCORE
+JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT
 
 OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
 
