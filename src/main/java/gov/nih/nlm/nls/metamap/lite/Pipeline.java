@@ -29,8 +29,10 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
-import gov.nih.nlm.nls.metamap.document.Document;
+import gov.nih.nlm.nls.metamap.document.PubMedDocumentImpl;
+import gov.nih.nlm.nls.metamap.document.PubMedDocument;
 import gov.nih.nlm.nls.metamap.document.FreeText;
+import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
 
 import gov.nih.nlm.nls.types.Sentence;
 
@@ -79,7 +81,7 @@ public class Pipeline {
   public Object processSentence(Sentence sentence)
     throws IllegalAccessException, InvocationTargetException
   {
-    logger.debug("processSentence");
+    logger.debug("enter processSentence");
     List<Plugin> pipeSequence = PipelineRegistry.get("simple.sentence");
     Object current = sentence;
     Object result = null;
@@ -87,6 +89,7 @@ public class Pipeline {
       result = plugin.getMethod().invoke(plugin.getClassInstance(), current);
       current = result;
     }
+    logger.debug("exit processSentence");
     return result;
   }
 
@@ -98,11 +101,12 @@ public class Pipeline {
   public List<Object> processSentenceList(List<Sentence> sentenceList) 
     throws IllegalAccessException, InvocationTargetException
   {
-    logger.debug("processSentenceList");
+    logger.debug("enter processSentenceList");
     List<Object> resultList = new ArrayList<Object>();
     for (Sentence sentence: sentenceList) {
       resultList.add(this.processSentence(sentence));
     }
+    logger.debug("exit processSentenceList");
     return resultList;
   }
 
@@ -114,6 +118,8 @@ public class Pipeline {
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException {
+    logger.debug("enter initPipeline");
+
     Properties properties = new Properties();
     properties.load(new FileReader(configPropertyFilename));
     if (logger.isDebugEnabled()) {
@@ -132,6 +138,7 @@ public class Pipeline {
     for (String content: PipelineRegistry.listPipeContents()) {
       System.out.println(" " + content);
     }
+    logger.debug("exit initPipeline");
     return pipeline;
   }
 
@@ -142,12 +149,23 @@ public class Pipeline {
   public void processText(String text)
     throws IllegalAccessException, InvocationTargetException
   {
+    logger.debug("enter processText");
     List<Plugin> pipeSequence = PipelineRegistry.get("simple.text");
     Object current = text;
     for (Plugin plugin: pipeSequence) {
       Object result = plugin.getMethod().invoke(plugin.getClassInstance(), current);
       current = result;
     }
+    logger.debug("exit processText");
+  }
+
+  public void processDocument(PubMedDocument document)
+    throws IllegalAccessException, InvocationTargetException
+  {
+    System.out.println(document.getTitle());
+    this.processText(document.getTitle());
+    System.out.println(document.getAbstract());
+    this.processText(document.getAbstract());
   }
 
   /**
@@ -207,22 +225,22 @@ public class Pipeline {
       }
 
       if (option.equals("--chemdnersldi")) {
-	List<ChemDNER> documentList = ChemDNER.loadSLDIFile(filename);
+	List<PubMedDocument> documentList = ChemDNER.loadSLDIFile(filename);
 	/*CHEMDNER SLDI style documents*/
-	for (ChemDNER document: documentList) {
-	  System.out.println(document.getTitle());
-	  pipeline.processText(document.getTitle());
-	  System.out.println(document.getAbstract());
-	  pipeline.processText(document.getAbstract());
+	for (PubMedDocument document: documentList) {
+	  pipeline.processDocument(document);
 	}
       } else if (option.equals("--chemdner")) {
-	List<ChemDNER> documentList = ChemDNER.loadFile(filename);
+	List<PubMedDocument> documentList = ChemDNER.loadFile(filename);
 	/*CHEMDNER SLDI style documents*/
-	for (ChemDNER document: documentList) {
-	  System.out.println(document.getTitle());
-	  pipeline.processText(document.getTitle());
-	  System.out.println(document.getAbstract());
-	  pipeline.processText(document.getAbstract());
+	for (PubMedDocument document: documentList) {
+	  pipeline.processDocument(document);
+	} 
+      } else if (option.equals("--ncbicorpus")) {
+	List<PubMedDocument> documentList = NCBICorpusDocument.loadFile(filename);
+	/*CHEMDNER SLDI style documents*/
+	for (PubMedDocument document: documentList) {
+	  pipeline.processDocument(document);
 	} 
       } else if (option.equals("--freetext")) {
 	String inputtext = FreeText.loadFile(filename);
@@ -232,6 +250,11 @@ public class Pipeline {
 
     } else {
       System.err.println("usage: [options] filename");
+      System.err.println("options:");
+      System.err.println("  --freetext (default)");
+      System.err.println("  --ncbicorpus");
+      System.err.println("  --chemdner");
+      System.err.println("  --chemdnersldi");
     }   
   }
     
