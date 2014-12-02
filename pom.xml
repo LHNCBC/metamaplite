@@ -87,23 +87,25 @@
       <version>2.1</version>
     </dependency>
 
-    <!-- Functional Java requires Java 8 -->
-    <!--dependency>
-      <groupId>org.functionaljava</groupId>
-      <artifactId>functionaljava</artifactId>
-      <version>4.2-beta-1</version>
+    <dependency>
+      <groupId>context</groupId>
+      <artifactId>context</artifactId>
+      <version>2012</version>
     </dependency>
+
     <dependency>
-      <groupId>org.functionaljava</groupId>
-      <artifactId>functionaljava-java8</artifactId>
-      <version>4.2-beta-1</version>
-    </dependency -->
-    
-    <dependency>
-      <groupId>ncbi.nlm.nih.gov</groupId>
+      <groupId>bioc</groupId>
       <artifactId>bioc</artifactId>
       <version>1.0.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>gov.nih.nlm.nls</groupId>
+      <artifactId>nlp</artifactId>
+      <version>2.4.C</version>
+    </dependency>
+    
+
     <!-- dependency>
       <groupId>edu.ucdenver.ccp</groupId>
       <artifactId>biolemmatizer-core</artifactId>
@@ -135,6 +137,18 @@
       <version>1.4</version>
     </dependency -->
 
+    <!-- Functional Java requires Java 8 -->
+    <!--dependency>
+      <groupId>org.functionaljava</groupId>
+      <artifactId>functionaljava</artifactId>
+      <version>4.2-beta-1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.functionaljava</groupId>
+      <artifactId>functionaljava-java8</artifactId>
+      <version>4.2-beta-1</version>
+    </dependency -->
+    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
