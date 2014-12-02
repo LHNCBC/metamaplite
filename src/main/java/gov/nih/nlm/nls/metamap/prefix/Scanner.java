@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import gov.nih.nlm.nls.types.Sentence;
+import bioc.BioCSentence;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -125,18 +126,52 @@ public class Scanner {
     return addOffsets(classifyTokenList(new ArrayList<Token>(Tokenize.mmPosTokenize(text,0))));
   }
 
-
   /**
    * Tokenize sentence then classify tokens, and add offsets.
-   * @param text input text
+   * @param sentence input sentence
    * @return tokenlist with token classification and token offsets in input text.
    */
   public static List<ERToken> analyzeText(Sentence sentence) {
     logger.debug("analyzeText");
+    
     return addOffsets(classifyTokenList(new ArrayList<Token>(Tokenize.mmPosTokenize(sentence.getText(),0))),
-		      sentence.getOffset());
+		 sentence.getOffset());
   }
 
+
+
+  /**
+   * Tokenize sentence then classify tokens, and add offsets.
+   * @param sentence input sentence
+   * @return tokenlist with token classification and token offsets in input text.
+   */
+  public static List<ERToken> analyzeText(BioCSentence sentence) {
+    logger.debug("analyzeText");
+    
+    return addOffsets(classifyTokenList(new ArrayList<Token>(Tokenize.mmPosTokenize(sentence.getText(),0))),
+		 sentence.getOffset());
+  }
+
+  /**
+   * Tokenize sentence then classify tokens, and add offsets.
+   * @param sentence input sentence
+   * @return Sentence with attached tokenlist with token classification and token offsets in input text.
+   */
+  public static BioCSentence analyzeSentenceText(BioCSentence sentence) {
+    logger.debug("analyzeText");
+    
+    List<ERToken> tokenlist =
+      addOffsets
+      (classifyTokenList
+       (new ArrayList<Token>(Tokenize.mmPosTokenize(sentence.getText(),0))));
+    return sentence;
+  }
+
+  /**
+   * remove whitespace tokens from tokenlist.
+   * @param tokenlist
+   * @return tokenlist with whitespace tokens removed.
+   */
   public static List<ERToken> removeWhiteSpaceTokens(List<ERToken> tokenlist) {
     List<ERToken> newtokenlist = new ArrayList<ERToken>();
     for (ERToken token: tokenlist) {
