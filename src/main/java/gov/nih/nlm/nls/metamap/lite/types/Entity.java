@@ -5,54 +5,39 @@ import java.util.Comparator;
 import java.util.Collection;
 import java.util.Set;
 import java.util.HashSet;
+import gov.nih.nlm.nls.types.Annotation;
 
 /**
  * Class 
  */
-public class Entity implements Comparable<Entity> {		// for lack of a better name.
+public class Entity implements Annotation, Comparable<Entity>
+{		// for lack of a better name.
   double score;
   String cui;
   Set<String> matchedWordSet = null;
   Set<String> sourceSet = null; 
   Set<String> semanticTypeSet = null; 
-  String[] inputTextTokenList;
+  String matchedText;
   String preferredName;
   // offset in the text
   int start;
-  int end;
-
-  public Entity(String cui, String word, String prefname, String source,
-		String[] textInputTokens, int start, int end,
-		double scoreValue) {
-    this.cui = cui;
-    this.matchedWordSet = new HashSet<String>();
-    this.matchedWordSet.add(word);
-    this.preferredName = prefname; 
-    this.sourceSet = new HashSet<String>();
-    this.sourceSet.add(source);
-    this.semanticTypeSet = new HashSet<String>();
-    this.inputTextTokenList = textInputTokens;
-    this.score = scoreValue;
-    this.start = start;
-    this.end = end;
-  }
-
+  int length;
 
   public Entity(String cui, String word, String prefname, 
 		Set<String> newSourceSet,
 		Set<String> newSemanticTypeSet,
-		String[] textInputTokens, int start, int end,
+		String matchedText, int start, int length,
 		double scoreValue) {
     this.cui = cui;
     this.matchedWordSet = new HashSet<String>();
     this.matchedWordSet.add(word);
+    this.matchedText = matchedText;
     this.preferredName = prefname; 
     this.sourceSet = newSourceSet;
     this.semanticTypeSet = newSemanticTypeSet;
-    this.inputTextTokenList = textInputTokens;
     this.score = scoreValue;
     this.start = start;
-    this.end = end;
+    this.length = length;
   }
 
   public int compareTo(Entity o) {
@@ -66,9 +51,7 @@ public class Entity implements Comparable<Entity> {		// for lack of a better nam
   public void addMatchedWord(String word) { this.matchedWordSet.add(word); }
   public Set<String> getMatchedWordSet() { return this.matchedWordSet; }
   public String getPreferredName() { return this.preferredName; }
-  public String[] getInputTextTokenList() { return this.inputTextTokenList; }
   public int getStart() { return this.start; }
-  public int getEnd() { return this.end; }
   public void setScore(double value) { this.score = value; }
   public void setPreferredName(String name) { this.preferredName = name; }
 
@@ -105,15 +88,46 @@ public class Entity implements Comparable<Entity> {		// for lack of a better nam
 
   public Set<String> getSemanticTypeSet() { return this.semanticTypeSet; }
 
+  @Override
+    public String getId() {
+    return this.cui;
+  }
+
+  @Override
+    public String getType() {
+    return "concept";
+  }
+
+  @Override
+    public int getOffset() {
+    return this.start;
+  }
+
+  @Override
+  public int getLength() {
+    return this.length;
+  }
+
+  @Override
+  public String getText() {
+    return this.matchedText;
+  }
+
+  public String getMatchedText() {
+    return this.matchedText;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(this.cui).append("|").append(this.preferredName).append("|");
     sb.append(Arrays.toString(this.matchedWordSet.toArray()).replaceAll("(^\\[)|(\\]$)", ""));
     sb.append("|");
+    sb.append(this.matchedText);
+    sb.append("|");
     sb.append(Arrays.toString(this.semanticTypeSet.toArray()).replaceAll("(^\\[)|(\\]$)", ""));
     sb.append("|");
     sb.append(Arrays.toString(this.sourceSet.toArray()).replaceAll("(^\\[)|(\\]$)", ""));
-    sb.append("|").append(this.start).append(":").append(this.end).append("|");
+    sb.append("|").append(this.start).append(":").append(this.length).append("|");
 
     return sb.toString();
   }
