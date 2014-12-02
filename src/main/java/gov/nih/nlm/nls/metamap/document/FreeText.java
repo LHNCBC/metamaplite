@@ -12,7 +12,7 @@ import java.io.FileReader;
  * Unstructured text.
  */
 
-public class FreeText implements Document {
+public class FreeText {
   String text;
   public FreeText(String text) { this.text = text; }
   public String getText() {
@@ -26,7 +26,7 @@ public class FreeText implements Document {
     StringBuilder sb = new StringBuilder();
     String line;
     while ((line = br.readLine()) != null) {
-      sb.append(line);
+      sb.append(line).append(" ");
     }
     br.close();
     return sb.toString();
