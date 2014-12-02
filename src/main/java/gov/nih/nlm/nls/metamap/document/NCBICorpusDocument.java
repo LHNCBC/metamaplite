@@ -71,13 +71,14 @@ public class NCBICorpusDocument  {
     title.setText(removeCategoryTags(docFields[1]));
     title.setOffset(0);
     title.putInfon("title","title");
+    doc.addPassage(title);
     BioCPassage abstractPassage = new BioCPassage();
     abstractPassage.setText(removeCategoryTags(docFields[2]));
     abstractPassage.putInfon("abstract","abstract");
     abstractPassage.setOffset(0);
+    doc.addPassage(abstractPassage);
     return doc;
   }
-
 
   /**
    * Load list of PubMed documents

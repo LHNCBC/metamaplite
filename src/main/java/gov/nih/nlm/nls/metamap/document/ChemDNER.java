@@ -91,10 +91,12 @@ public class ChemDNER {
     title.setText(bodyFields[0]);
     title.setOffset(0);
     title.putInfon("title","title");
+    doc.addPassage(title);
     BioCPassage abstractPassage = new BioCPassage();
     abstractPassage.setText(bodyFields[1]);
     abstractPassage.putInfon("abstract","abstract");
     abstractPassage.setOffset(0);
+    doc.addPassage(abstractPassage);
     return doc;
   }
  
@@ -122,10 +124,12 @@ public class ChemDNER {
     title.setText(docFields[1]);
     title.setOffset(0);
     title.putInfon("title","title");
+    doc.addPassage(title);
     BioCPassage abstractPassage = new BioCPassage();
     abstractPassage.setText(docFields[2]);
     abstractPassage.putInfon("abstract","abstract");
     abstractPassage.setOffset(0);
+    doc.addPassage(abstractPassage);
     return doc;
   }
 
