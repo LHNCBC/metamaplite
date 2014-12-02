@@ -17,9 +17,16 @@ mvn install:install-file  -Dfile=/usr/local/pub/nlp/BioC/BioC_Java_1.0.1/lib/bio
 
 
 mvn install:install-file  -Dfile=/usr/local/pub/nlp/BioC/BioC_Java_1.0.1/lib/bioc.jar \
-                          -DgroupId=ncbi.nlm.nih.gov \
+                          -DgroupId=bioc \
                           -DartifactId=bioc \
                           -Dversion=1.0.1 \
+                          -Dpackaging=jar 
+
+
+mvn install:install-file  -Dfile=/usr/local/pub/nlp/JavaConText/Context.jar \
+                          -DgroupId=context \
+                          -DartifactId=context \
+                          -Dversion=2012 \
                           -Dpackaging=jar 
 
 
