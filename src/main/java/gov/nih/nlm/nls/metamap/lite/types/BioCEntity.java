@@ -25,6 +25,12 @@ public class BioCEntity extends BioCAnnotation {
   public  BioCEntity(Entity entity) {
     super();
     this.entity = entity;
+    this.setID(entity.getCUI());
+    this.setText(entity.getMatchedText());
+    BioCLocation location = new BioCLocation();
+    location.setLength(entity.getLength());
+    location.setOffset(entity.getOffset());
+    this.addLocation(location);
   }
 
   public Entity getEntity() { return this.entity; }
