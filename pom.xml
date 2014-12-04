@@ -29,6 +29,21 @@
           <debuglevel>lines,vars,source</debuglevel> 
 	</configuration>
       </plugin>
+       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.3.2</version>
+        <configuration>
+            <executable>java</executable>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+       </plugin>
     </plugins>
   </build>
   <dependencies>
