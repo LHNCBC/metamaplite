@@ -42,7 +42,8 @@ import gov.nih.nlm.nls.metamap.prefix.CharUtils;
 
 
 /**
- *
+ * Index representation for MetaMap Lite; the representation consists
+ * index, index reader, and index searcher.
  */
 
 public class SearchIndex {
@@ -61,7 +62,7 @@ public class SearchIndex {
   {
     // Directory index = getMemoryIndex();
     // To store an index on disk, use this instead:
-    // Directory index = getDiskIndex("/rhome/wjrogers/lucenedb/example");
+    // Directory index = getDiskIndex("/rhome/wjrogers/lucenedb/strict");
     this.index = FSDirectory.open(new File(indexDirectoryName));
     // Now search the index:
     this.ireader = DirectoryReader.open(index);
@@ -99,19 +100,24 @@ public class SearchIndex {
    * @param resultLength expected size of query result.
    */
   public static List<Document> lookup(String term,
-			       QueryParser queryParser,
-			       IndexSearcher indexSearcher,
-			       int resultLength)
+				      QueryParser queryParser,
+				      IndexSearcher indexSearcher,
+				      int resultLength)
     throws IOException, ParseException
   {
     List<Document> documentList = new ArrayList<Document>();
-    if (CharUtils.isAlphaNumeric(term.charAt(0))) {
-      Query query = queryParser.parse(term);
-      ScoreDoc[] hits = indexSearcher.search(query, null, resultLength).scoreDocs;
-      // Iterate through the results:
-      for (int i = 0; i < hits.length; i++) {
-	documentList.add(indexSearcher.doc(hits[i].doc));
+    try {
+      if (CharUtils.isAlphaNumeric(term.charAt(0))) {
+	Query query = queryParser.parse(term.toLowerCase());
+	ScoreDoc[] hits = indexSearcher.search(query, null, resultLength).scoreDocs;
+	// Iterate through the results:
+	for (int i = 0; i < hits.length; i++) {
+	  documentList.add(indexSearcher.doc(hits[i].doc));
+	}
       }
+    } catch (ParseException pe) {
+      System.err.println("term causing error is: " + term);
+      throw pe;
     }
     return documentList;
   }

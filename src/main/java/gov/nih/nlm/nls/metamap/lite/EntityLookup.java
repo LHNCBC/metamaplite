@@ -49,6 +49,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup.class);
+  int resultLength = 
+    Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","95"));
 
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
@@ -239,9 +241,16 @@ public class EntityLookup {
       String prefix = sentenceTokenList.get(i).getText();
       if (prefix.trim().length() > 1) {
 	logger.debug("processSentenceTokenList: prefix term: " + prefix);
-	List<Document> hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix,
-									  this.mmIndexes.strQueryParser,
-									  100);
+	List<Document> hitList;
+	try {
+	  hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix,
+							     this.mmIndexes.strQueryParser,
+							     resultLength);
+	} catch (ParseException pe) {
+	  System.err.println("errant term prefix: " + prefix);
+	  System.err.println("tokenlist: " + Tokenize.getTextFromTokenList(sentenceTokenList));
+	  hitList = new ArrayList<Document>(); // empty array list
+	}
 	if (hitList.size() > 0) {
 	  logger.debug("processSentenceTokenList: hit size: " + hitList.size());
 	  if (logger.isDebugEnabled()) {
