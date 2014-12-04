@@ -111,7 +111,7 @@ public class BioCPipeline {
     throws IllegalAccessException, InvocationTargetException
   {
     for (BioCPassage passage: document.getPassages()) {
-      System.out.println(passage.getText());
+      logger.info(passage.getText());
       this.processPassage(passage);
     }
     return document;
@@ -136,20 +136,28 @@ public class BioCPipeline {
     }
     BioCPipeline pipeline = new BioCPipeline();
     PluginRegistry.registerPlugins(properties);
-    System.out.println("plugins:");
+    logger.info("plugins:");
     for (String name: PluginRegistry.listPlugins()) {
-      System.out.println(" " + name);
+      logger.info(" " + name);
     }
-    System.out.println("pipesequence keys:");
+    logger.info("pipesequence keys:");
     PipelineRegistry.registerPipeSequences("metamaplite.pipeline", properties);
     for (String content: PipelineRegistry.listPipeContents()) {
-      System.out.println(" " + content);
+      logger.info(" " + content);
     }
     logger.debug("exit initPipeline");
     return pipeline;
   }
 
-  
+  static void displayHelp() {
+    System.err.println("usage: [options] filename");
+    System.err.println("options:");
+    System.err.println("  --freetext (default)");
+    System.err.println("  --ncbicorpus");
+    System.err.println("  --chemdner");
+    System.err.println("  --chemdnersldi");
+  }
+
   /**
    * Pipeline application commandline.
    * <p>
@@ -194,11 +202,7 @@ public class BioCPipeline {
       String option = "--freetext";
       int i = 0;
       while (i < args.length) {
-	if (args[i].equals("--chemdnersldi")) {
-	  option = args[i];
-	} else if (args[i].equals("--chemdner")) {
-	  option = args[i];
-	} else if (args[i].equals("--freetext")) {
+	if (args[i].substring(0,2).equals("--")) {
 	  option = args[i];
 	} else {
 	  filename = args[i];
@@ -226,20 +230,16 @@ public class BioCPipeline {
 	} 
       } else if (option.equals("--freetext")) {
 	String inputtext = FreeText.loadFile(filename);
-	System.out.println(inputtext);
+	logger.info(inputtext);
 	BioCPassage passage = new BioCPassage();
 	passage.setText(inputtext);
 	passage.putInfon("freetext", "freetext");
 	pipeline.processPassage(passage);
+      } else if (option.equals("--help")) {
+	displayHelp();
       }
-
     } else {
-      System.err.println("usage: [options] filename");
-      System.err.println("options:");
-      System.err.println("  --freetext (default)");
-      System.err.println("  --ncbicorpus");
-      System.err.println("  --chemdner");
-      System.err.println("  --chemdnersldi");
+      displayHelp();
     }   
   }
 }
