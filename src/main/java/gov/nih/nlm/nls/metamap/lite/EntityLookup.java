@@ -2,6 +2,7 @@
 package gov.nih.nlm.nls.metamap.lite;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +61,7 @@ import opennlp.tools.dictionary.serializer.Entry;
 public class EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup.class);
   int resultLength = 
-    Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","110"));
+    Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","250"));
 
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
@@ -148,6 +149,21 @@ public class EntityLookup {
     return inputtext;
   }
 
+  public class EntityListAndTokenLength {
+    List<Entity> entityList;
+    Integer length;
+    public EntityListAndTokenLength(List<Entity> entityList, Integer length) {
+      this.entityList = entityList;
+      this.length = length;
+    }
+    public List<Entity> getEntityList() {
+      return this.entityList;
+    }
+    public Integer getLength() {
+      return this.length;
+    }
+  }
+
   /**
    * Given Example:
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
@@ -170,12 +186,13 @@ public class EntityLookup {
    *             "Thyroid"
    *    ...
    */
-  public Collection<List<Entity>> findLongestMatch(String docid, List<Document> documentList,
+  public EntityListAndTokenLength findLongestMatch(String docid, List<Document> documentList,
 				       List<? extends Token> tokenList)
     throws FileNotFoundException, IOException, ParseException
   {
     logger.debug("findLongestMatch");
-    Map<String,List<Entity>> candidateMap = new HashMap<String,List<Entity>>();
+    Map<Integer,Map<String,List<Entity>>> candidateMap = 
+      new HashMap<Integer,Map<String,List<Entity>>>();
     // logger.debug("tokenlist text: " + Tokenize.getTextFromTokenList(tokenList));
     for (int i = tokenList.size(); i > 0; i--) { 
       // List<ERToken> tokenSubList = removePunctuation(tokenList.subList(0, i));
@@ -192,6 +209,13 @@ public class EntityLookup {
 	firstToken.getText().length();
       String originalTerm = StringUtils.join(tokenTextSubList, "").trim();
       String term = transformPreposition(originalTerm);
+      Integer tokenListLength = new Integer(i);
+      Map<String,List<Entity>> conceptMap;
+      if (candidateMap.containsKey(tokenListLength)) {
+	conceptMap = candidateMap.get(tokenListLength);
+      } else {
+	conceptMap = new HashMap<String,List<Entity>>();
+      }
       for (Document doc: documentList) {
 	String cui = doc.get("cui");
 	String docStr = doc.get("str");
@@ -199,7 +223,7 @@ public class EntityLookup {
 			   "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
 		     term.equalsIgnoreCase(docStr));
 
-	if (term.equalsIgnoreCase(docStr)) {
+	if (MWIUtilities.normalizeMetaString(term).equals(MWIUtilities.normalizeMetaString(docStr))) {
 	  Entity entity;
 	  if (tokenSubList.get(0) instanceof PosToken) {
 	    entity = new Entity(docid,
@@ -212,16 +236,19 @@ public class EntityLookup {
 				((PosToken)tokenSubList.get(0)).getPosition(),
 				termLength,
 				0.0);
-	    if (! candidateMap.containsKey(cui)) {
+	    if (! conceptMap.containsKey(cui)) {
 	      List<Entity> newEntityList = new ArrayList<Entity>();
 	      newEntityList.add(entity);
-	      candidateMap.put(cui, newEntityList);
+	      conceptMap.put(cui, newEntityList);
 	    }
 	    if (tokenSubList.get(0) instanceof ERToken) {
 	      ((ERToken)tokenSubList.get(0)).addEntity(entity);
 	    }
 	  }
 	}
+      }
+      if (conceptMap.size() > 0) {
+	candidateMap.put(tokenListLength, conceptMap);
       }
     }
     // for (Entity candidate: candidateMap.values()) {
@@ -232,7 +259,18 @@ public class EntityLookup {
     // 					     candidate.getInputTextTokenList(),
     // 					     candidateMap.values()));/
     // }
-    return candidateMap.values();
+    List<Entity> entityList = new ArrayList<Entity>();
+    Integer longest = 0;
+    if (candidateMap.size() > 0){ 
+      List<Integer> sortedList = new ArrayList<Integer>(candidateMap.keySet());
+      Collections.sort(sortedList);
+      Collections.reverse(sortedList);
+      longest = sortedList.get(0);
+      for (List<Entity> values: candidateMap.get(longest).values()) {
+	entityList.addAll(values);
+      }
+    }
+    return new EntityListAndTokenLength(entityList, longest);
   }
 
   void logHits(List<Document> hitList) {
@@ -278,13 +316,17 @@ public class EntityLookup {
     throws FileNotFoundException, IOException, ParseException
   {
     Set<Entity> entitySet = new HashSet<Entity>();
-    for (int i = 0; i<sentenceTokenList.size(); i++) {
+    int i = 0;
+    while (i<sentenceTokenList.size()) {
       String prefix = sentenceTokenList.get(i).getText();
       if (prefix.trim().length() > 1) {
 	logger.debug("processSentenceTokenList: prefix term: " + prefix);
 	List<Document> hitList;
 	try {
-	  hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix.toLowerCase(),
+	  // this.mmIndexes.strQueryParser.setFuzzyPrefixLength(2);
+	  // The added asterisk should make the lucene query parser
+	  // create a prefix query.
+	  hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix,
 							     this.mmIndexes.strQueryParser,
 							     resultLength);
 	} catch (ParseException pe) {
@@ -297,17 +339,22 @@ public class EntityLookup {
 	  if (logger.isDebugEnabled()) {
 	    logHits(hitList);
 	  }
-	  for (List<Entity> entityList: this.findLongestMatch
-		 (docid,
-		  hitList,
-		  sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())))) {
-	    for (Entity entity: entityList) {
-	      entitySet.add(entity);
-	    }
+	  EntityListAndTokenLength entityListAndTokenLength = 
+	    this.findLongestMatch
+	    (docid,
+	     hitList,
+	     sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())));
+	  for (Entity entity: entityListAndTokenLength.getEntityList()) {
+	    entitySet.add(entity);
 	  }
+	  i = i + entityListAndTokenLength.getLength();
+	} else {
+	  i++;
 	}
+      } else {
+	i++;
       }
-    }
+    } /*while*/
     return entitySet;
   }
 
@@ -410,9 +457,9 @@ public class EntityLookup {
 			 rindex + "\t" +
 			 0.9);
       writer.println(document.getID() + "\t" +
-		     term + "\t" +
-		     rindex + "\t" +
-		     0.9);
+		     term + "\t");
+		     // rindex + "\t" +
+		     // 0.9);
       rindex++;
     }
   }
