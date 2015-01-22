@@ -28,6 +28,7 @@ import bioc.BioCSentence;
 import bioc.BioCAnnotation;
 import bioc.BioCDocument;
 import bioc.BioCPassage;
+import bioc.BioCLocation;
 
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
@@ -42,6 +43,7 @@ import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.PosToken;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.prefix.Tokenize;
+import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 
 import gov.nih.nlm.nls.types.Sentence;
 
@@ -61,7 +63,7 @@ import opennlp.tools.dictionary.serializer.Entry;
 public class EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup.class);
   int resultLength = 
-    Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","250"));
+    Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","300"));
 
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
@@ -143,9 +145,11 @@ public class EntityLookup {
    * @return string with preposition "of the" removed and the term inverted.
    */
   public static String transformPreposition(String inputtext) {
+    logger.debug("entering: transformPreposition");
     if (inputtext.indexOf(" of the") > 0) {
-      return MWIUtilities.normalizeMetaString(inputtext.replaceAll(" of the", ","));
+      return MWIUtilities.normalizeAstString(inputtext.replaceAll(" of the", ","));
     } 
+    logger.debug("leaving: transformPreposition");
     return inputtext;
   }
 
@@ -162,6 +166,13 @@ public class EntityLookup {
     public Integer getLength() {
       return this.length;
     }
+  }
+
+  public class SpanInfo {
+    int start;
+    int length;
+    int getStart()  { return this.start; }
+    int getLength() { return this.length; }
   }
 
   /**
@@ -193,11 +204,9 @@ public class EntityLookup {
     logger.debug("findLongestMatch");
     Map<Integer,Map<String,List<Entity>>> candidateMap = 
       new HashMap<Integer,Map<String,List<Entity>>>();
-    // logger.debug("tokenlist text: " + Tokenize.getTextFromTokenList(tokenList));
-    for (int i = tokenList.size(); i > 0; i--) { 
-      // List<ERToken> tokenSubList = removePunctuation(tokenList.subList(0, i));
-      List<? extends Token> tokenSubList = tokenList.subList(0, i);
-      // logger.debug("token sublist text: " + Tokenize.getTextFromTokenList(tokenSubList));
+
+    List<List<? extends Token>> listOfTokenSubLists = TokenListUtils.createSubListsOpt(tokenList);
+    for (List<? extends Token> tokenSubList: listOfTokenSubLists) {
       List<String> tokenTextSubList = new ArrayList<String>();
       for (Token token: tokenSubList) {
 	tokenTextSubList.add(token.getText());
@@ -209,7 +218,7 @@ public class EntityLookup {
 	firstToken.getText().length();
       String originalTerm = StringUtils.join(tokenTextSubList, "").trim();
       String term = transformPreposition(originalTerm);
-      Integer tokenListLength = new Integer(i);
+      Integer tokenListLength = new Integer(tokenSubList.size());
       Map<String,List<Entity>> conceptMap;
       if (candidateMap.containsKey(tokenListLength)) {
 	conceptMap = candidateMap.get(tokenListLength);
@@ -223,7 +232,7 @@ public class EntityLookup {
 			   "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
 		     term.equalsIgnoreCase(docStr));
 
-	if (MWIUtilities.normalizeMetaString(term).equals(MWIUtilities.normalizeMetaString(docStr))) {
+	if (MWIUtilities.normalizeAstString(term).equals(MWIUtilities.normalizeAstString(docStr))) {
 	  Entity entity;
 	  if (tokenSubList.get(0) instanceof PosToken) {
 	    entity = new Entity(docid,
@@ -244,8 +253,9 @@ public class EntityLookup {
 	    if (tokenSubList.get(0) instanceof ERToken) {
 	      ((ERToken)tokenSubList.get(0)).addEntity(entity);
 	    }
-	  }
-	}
+	  } /*if token instance of PosToken*/
+	  break;
+	} /*if term equals doc string */
       }
       if (conceptMap.size() > 0) {
 	candidateMap.put(tokenListLength, conceptMap);
@@ -326,9 +336,12 @@ public class EntityLookup {
 	  // this.mmIndexes.strQueryParser.setFuzzyPrefixLength(2);
 	  // The added asterisk should make the lucene query parser
 	  // create a prefix query.
-	  hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(prefix,
+	  String query = prefix + "*";
+	  logger.debug("lucene str query: " + query);
+	  hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(query,
 							     this.mmIndexes.strQueryParser,
 							     resultLength);
+	  logger.debug("size of hitList: " + hitList.size());
 	} catch (ParseException pe) {
 	  System.err.println("errant term prefix: " + prefix);
 	  System.err.println("tokenlist: " + Tokenize.getTextFromTokenList(sentenceTokenList));
@@ -347,7 +360,9 @@ public class EntityLookup {
 	  for (Entity entity: entityListAndTokenLength.getEntityList()) {
 	    entitySet.add(entity);
 	  }
-	  i = i + entityListAndTokenLength.getLength();
+	  i = i + (entityListAndTokenLength.getLength() > 0 ? 
+
+		   entityListAndTokenLength.getLength() : 1);
 	} else {
 	  i++;
 	}
@@ -408,13 +423,23 @@ public class EntityLookup {
     for (BioCPassage passage: document.getPassages()) {
       for (BioCSentence sentence: passage.getSentences()) {
 	for (BioCAnnotation annotation: sentence.getAnnotations()) {
+	  writer.println(annotation.getText());
+	  for (BioCLocation location: annotation.getLocations()) {
+	    writer.println(	"|" + location );
+	  }
 	  if (annotation instanceof BioCEntity) {
-	    writer.print(((BioCEntity)annotation).getEntity().toString());
+	    BioCEntity bioCEntity = (BioCEntity)annotation;
+	    Entity entity = bioCEntity.getEntity();
+	    System.out.print(entity.toString());
+	    writer.print(entity.toString());
 	    for (Map.Entry<String,String> entry: annotation.getInfons().entrySet()) {
+	      System.out.print(entry.getKey() + ":" + entry.getValue() + "|");
 	      writer.print(entry.getKey() + ":" + entry.getValue() + "|");
 	    }
+	    System.out.println();
 	    writer.println();
 	  } else {
+	    System.out.println(annotation);
 	    writer.println(annotation);
 	  }
 	}
@@ -477,5 +502,43 @@ public class EntityLookup {
     writeBcEvaluateAnnotations(pw, document);
     pw.close();
   }
+
+  public static void writeBratAnnotations(PrintWriter writer, BioCDocument document) {
+    Map<BioCLocation,List<BioCAnnotation>> locationMap = new HashMap<BioCLocation,List<BioCAnnotation>>();
+    for (BioCPassage passage: document.getPassages()) {
+      for (BioCSentence sentence: passage.getSentences()) {
+	for (BioCAnnotation annotation: sentence.getAnnotations()) {
+	  for (BioCLocation location: annotation.getLocations()) {
+	    if (locationMap.containsKey(location.toString())) {
+	      locationMap.get(location).add(annotation);
+	    } else {
+	      List<BioCAnnotation> annotationList = new ArrayList<BioCAnnotation>();
+	      annotationList.add(annotation);
+	      locationMap.put(location, annotationList);
+	    } /*if*/
+	  } /*for*/
+	} /*for*/
+      } /*for*/
+    } /*for*/
+
+    int cindex = 0;
+    Set<String> annotationSet = new HashSet<String>();
+    for (Map.Entry<BioCLocation,List<BioCAnnotation>> entry: locationMap.entrySet()) {
+      BioCLocation location = entry.getKey();
+      for (BioCAnnotation annotation: entry.getValue()) {
+        int start = location.getOffset();
+	int end = location.getOffset() + (location.getLength() - 1);
+	String term = annotation.getText();
+	annotationSet.add("\tMetaMapLite " + start + " " + end + "\t" + term);
+      }
+    }
+    for (String annotation: annotationSet) {
+      cindex++;
+      System.out.println("T" + cindex + annotation);
+      writer.println("T" + cindex + annotation);
+    }
+  }
+
+  // public static void write
 }
 
