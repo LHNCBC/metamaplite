@@ -29,10 +29,12 @@ public class PubMedDocumentImpl implements PubMedDocument {
     PassageImpl titlePassage = new PassageImpl();
     titlePassage.setText(docTitle);
     titlePassage.putInfon("section","title");
+    // titlePassage.setOffset(0);
     this.passages.add(titlePassage);
     PassageImpl abstractPassage = new PassageImpl();;
     abstractPassage.setText(docAbstract);
     abstractPassage.putInfon("section","abstract");
+    // abstractPassage.setOffset(0);
     this.passages.add(abstractPassage);
   }
   

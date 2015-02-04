@@ -70,10 +70,12 @@ public class NCBICorpusDocument  {
     BioCPassage title = new BioCPassage();
     title.setText(removeCategoryTags(docFields[1]));
     title.setOffset(0);
+    title.putInfon("docid",docFields[0]);
     title.putInfon("title","title");
     doc.addPassage(title);
     BioCPassage abstractPassage = new BioCPassage();
     abstractPassage.setText(removeCategoryTags(docFields[2]));
+    abstractPassage.putInfon("docid",docFields[0]);
     abstractPassage.putInfon("abstract","abstract");
     abstractPassage.setOffset(0);
     doc.addPassage(abstractPassage);

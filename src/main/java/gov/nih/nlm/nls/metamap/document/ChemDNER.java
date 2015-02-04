@@ -171,9 +171,6 @@ public class ChemDNER {
     return documentList;
   }
 
-
-
-
   /**
    * Load list of BioCDocument documents
    * @param inputFilename input text filename
