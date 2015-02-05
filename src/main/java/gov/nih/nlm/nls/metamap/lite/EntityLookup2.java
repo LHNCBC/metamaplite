@@ -46,6 +46,7 @@ import gov.nih.nlm.nls.metamap.prefix.PosToken;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
+import gov.nih.nlm.nls.metamap.prefix.Scanner;
 
 import gov.nih.nlm.nls.types.Sentence;
 
@@ -60,25 +61,25 @@ import opennlp.tools.dictionary.serializer.Entry;
 /**
  *
  */
-public class EntityLookup {
-  private static final Logger logger = LogManager.getLogger(EntityLookup.class);
+public class EntityLookup2 {
+  private static final Logger logger = LogManager.getLogger(EntityLookup2.class);
   int resultLength = 
     Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","1500"));
 
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
 
-  public EntityLookup() 
+  public EntityLookup2() 
     throws IOException, FileNotFoundException, ParseException
   {
     this.mmIndexes = new MetaMapIndexes();
     this.metaMapEvalInst = new MetaMapEvaluation(this.mmIndexes);
   }
 
-  public static EntityLookup singleton;
+  public static EntityLookup2 singleton;
   static {
     try {
-      singleton = new EntityLookup();
+      singleton = new EntityLookup2();
     } catch (IOException ioe) {
       ioe.printStackTrace(System.err);
     } catch (ParseException pe) {
@@ -189,15 +190,6 @@ public class EntityLookup {
     return semanticTypeSet;
   }
 
-  List<ERToken> removePunctuation(List<ERToken> tokenList) {
-    List<ERToken> newTokenList = new ArrayList<ERToken>();
-    for (ERToken token: newTokenList) {
-      if ((token.getText().length() > 1) || (! CharUtils.isPunct(token.getText().charAt(0)))) {
-	newTokenList.add(token);
-      }
-    }
-    return newTokenList;
-  }
 
   /**
    * Given the string:
@@ -220,21 +212,6 @@ public class EntityLookup {
     } 
     // logger.debug("leaving: transformPreposition");
     return inputtext;
-  }
-
-  public class EntityListAndTokenLength {
-    List<Entity> entityList;
-    int length;
-    public EntityListAndTokenLength(List<Entity> entityList, int length) {
-      this.entityList = entityList;
-      this.length = length;
-    }
-    public List<Entity> getEntityList() {
-      return this.entityList;
-    }
-    public int getLength() {
-      return this.length;
-    }
   }
 
   public class SpanEntityMapAndTokenLength {
@@ -359,7 +336,8 @@ public class EntityLookup {
 	      // logger.debug("term: \"" + term + 
 	      // 	     "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
 	      // 	     term.equalsIgnoreCase(docStr));
-	      if (normTerm.equals(MWIUtilities.normalizeAstString(docStr))) {
+	      // if (normTerm.equals(MWIUtilities.normalizeAstString(docStr))) {
+	      if (normTerm.equals(normalizeAstString(docStr))) {
 		if (tokenSubList.get(0) instanceof PosToken) {
 		  ConceptInfo concept = new ConceptInfo(cui, 
 							this.findPreferredName(cui),
@@ -387,12 +365,6 @@ public class EntityLookup {
       } /* if term length > 0 */
     } /* for token-sublist in list-of-token-sublists */
     return new SpanEntityMapAndTokenLength(spanMap, longestMatchedTokenLength);
-  }
-
-  void logHits(List<Document> hitList) {
-    for (Document hit: hitList) {
-      logger.debug(hit.get("cui") + "|" + hit.get("str") + "|" + hit.get("src"));
-    }
   }
 
   /**
@@ -429,8 +401,7 @@ public class EntityLookup {
    * @return set of entities found in the sentence.
    */
   public Set<Entity> processSentenceTokenList(String docid, List<? extends Token> sentenceTokenList)
-    throws FileNotFoundException, IOException, ParseException
-  {
+    throws IOException, FileNotFoundException, ParseException {
     logger.debug("sentence tokenlist: " + sentenceTokenList);
     Set<Entity> entitySet = new HashSet<Entity>();
     int i = 0;
@@ -492,14 +463,6 @@ public class EntityLookup {
   }
 
   // static methods
-  public static Set<Entity> generateEntitySet(List<? extends Token> sentenceTokenList)
-    throws IOException, FileNotFoundException, ParseException
-  {
-    logger.debug("generateEntitySet: ");
-    EntityLookup entityLookup = EntityLookup.singleton;
-    return entityLookup.processSentenceTokenList("_____", sentenceTokenList);
-  }
-
   public static Set<Entity> removeSubsumingEntities(Set<Entity> entitySet) {
     Map <Integer,Entity> startMap = new HashMap<Integer,Entity>();
     logger.debug("-input entity set spans-");
@@ -539,131 +502,20 @@ public class EntityLookup {
     return newEntitySet;
   }
 
-
-  public static Set<BioCAnnotation> generateBioCEntitySet(String docid,
-							  List<? extends Token> sentenceTokenList)
-    throws IOException, FileNotFoundException, ParseException
-  {
-    logger.debug("generateEntitySet: ");
-    EntityLookup entityLookup = EntityLookup.singleton;
-    Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
-    Set<Entity> entitySet = 
-      removeSubsumingEntities
-      (entityLookup.processSentenceTokenList(docid, sentenceTokenList));
-    for (Entity entity: entitySet) {
-      bioCEntityList.add((BioCAnnotation)new BioCEntity(entity));
+  public static List<Entity> processPassage(String docid, BioCPassage passage) 
+    throws IOException, FileNotFoundException, ParseException {
+    logger.debug("enter processPassage");
+    EntityLookup2 entityLookupInst = EntityLookup2.singleton;
+    Set<Entity> entitySet0 = new HashSet<Entity>();
+    for (BioCSentence sentence: passage.getSentences()) {
+      List<? extends Token> tokenList = Scanner.analyzeText(sentence);
+      entitySet0.addAll(entityLookupInst.processSentenceTokenList(docid, tokenList));
     }
-    return bioCEntityList;
+    logger.debug("exit processPassage");
+    Set<Entity> entitySet = removeSubsumingEntities(entitySet0);
+    return new ArrayList<Entity>(entitySet);
+
+    
   }
-
-  public static void displayEntitySet(Set<Entity> entitySet) {
-    logger.debug("displayEntitySet");
-    for (Entity entity: entitySet) {
-      System.out.println(entity);
-    }
-  }
-
-  public static BioCSentence displayEntitySet(BioCSentence sentence) {
-    for (BioCAnnotation annotation: sentence.getAnnotations()) {
-      if (annotation instanceof BioCEntity) {
-	System.out.print(((BioCEntity)annotation).getEntitySet().toString());
-	for (Map.Entry<String,String> entry: annotation.getInfons().entrySet()) {
-	  System.out.print(entry.getKey() + ":" + entry.getValue() + "|");
-	}
-	System.out.println();
-      } else {
-	System.out.println(annotation);
-      }
-    }
-    return sentence;
-  }
-
-  public static void writeEntities(PrintWriter writer, BioCDocument document) {
-    int rindex = 0;
-    for (BioCPassage passage: document.getPassages()) {
-      for (BioCSentence sentence: passage.getSentences()) {
-	for (BioCAnnotation annotation: sentence.getAnnotations()) {
-	  writer.println(annotation.getText());
-	  for (BioCLocation location: annotation.getLocations()) {
-	    writer.println(	"|" + location );
-	  }
-	  if (annotation instanceof BioCEntity) {
-	    BioCEntity bioCEntity = (BioCEntity)annotation;
-	    for (Entity entity: bioCEntity.getEntitySet()) {
-	      System.out.print(entity.toString());
-	      writer.print(entity.toString());
-	      for (Map.Entry<String,String> entry: annotation.getInfons().entrySet()) {
-		System.out.print(entry.getKey() + ":" + entry.getValue() + "|");
-		writer.print(entry.getKey() + ":" + entry.getValue() + "|");
-	      }
-	      System.out.println();
-	      writer.println();
-	    }
-	  } else {
-	    System.out.println(annotation);
-	    writer.println(annotation);
-	  }
-	}
-      }
-    }    
-  }
-
-  public static void writeEntities(PrintStream stream, BioCDocument document)
-  {
-    writeEntities(new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream))), document);
-  }
-
-  public static void writeEntities(String filename, BioCDocument document) 
-    throws IOException
-  {
-    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
-    writeEntities(pw, document);
-    pw.close();
-  }
-
-  public static void writeBcEvaluateAnnotations(PrintWriter writer, BioCSentence sentence)
-    throws IOException
-  {
-    writeBcEvaluateAnnotations(writer, sentence);
-  }
-
-  public static void writeBcEvaluateAnnotations(PrintWriter writer, BioCDocument document) {
-    Set<String> termSet = new HashSet<String>();
-    for (BioCPassage passage: document.getPassages()) {
-      for (BioCSentence sentence: passage.getSentences()) {
-	for (BioCAnnotation annotation: sentence.getAnnotations()) {
-	  termSet.add(annotation.getText());
-	}
-      }
-    }
-    int rindex = 1;
-    for (String term: termSet) {
-      System.out.println(document.getID() + "\t" +
-			 term + "\t" +
-			 rindex + "\t" +
-			 0.9);
-      writer.println(document.getID() + "\t" +
-		     term + "\t");
-		     // rindex + "\t" +
-		     // 0.9);
-      rindex++;
-    }
-  }
-
-  public static void writeBcEvaluateAnnotations(PrintStream stream, BioCDocument document) 
-    throws IOException
-  {
-    writeBcEvaluateAnnotations(new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream))), document);
-  }
-
-  public static void writeBcEvaluateAnnotations(String filename, BioCDocument document) 
-    throws IOException
-  {
-    PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
-    writeBcEvaluateAnnotations(pw, document);
-    pw.close();
-  }
-
-
 }
 

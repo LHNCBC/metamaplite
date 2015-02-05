@@ -1,8 +1,8 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite.types;
 
 import java.util.Set;
+import java.util.HashSet;
 
 import bioc.BioCAnnotation;
 import bioc.BioCLocation;
@@ -12,7 +12,7 @@ import bioc.BioCLocation;
  */
 
 public class BioCEntity extends BioCAnnotation {
-  Entity entity;
+  Set<Entity> entitySet = new HashSet<Entity>();
   
   public  BioCEntity(BioCAnnotation annotation) {
     super(annotation);
@@ -24,8 +24,7 @@ public class BioCEntity extends BioCAnnotation {
 
   public  BioCEntity(Entity entity) {
     super();
-    this.entity = entity;
-    this.setID(entity.getCUI());
+    this.entitySet.add(entity);
     this.setText(entity.getMatchedText());
     BioCLocation location = new BioCLocation();
     location.setLength(entity.getLength());
@@ -33,9 +32,17 @@ public class BioCEntity extends BioCAnnotation {
     this.addLocation(location);
   }
 
-  public Entity getEntity() { return this.entity; }
+  public void addEntity(Entity entity) { this.entitySet.add(entity); }
+  public Set<Entity> getEntitySet() { return this.entitySet; }
   
   public String toString() {
-    return super.toString() + "|" + this.entity.toString();
+    StringBuilder sb = new StringBuilder();
+    sb.append(this.getText()).append("|");
+    for (BioCLocation location: this.getLocations()) {
+      sb.append(location.getOffset()).append("|")
+	.append(location.getLength()).append("|");
+    }
+    sb.append(this.entitySet.toString());
+    return sb.toString();
   }
 }

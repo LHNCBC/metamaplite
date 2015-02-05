@@ -37,9 +37,14 @@ public class SentenceExtractor
   public static SentenceDetectorME sentenceDetector;
 
   static {
+    setModel(System.getProperty("en-sent.bin.path", "en-sent.bin"));
+  }
+
+  public static void setModel(String modelFilename)
+  {
     InputStream modelIn = null;
     try {
-      modelIn = new FileInputStream(System.getProperty("en-sent.bin.path", "en-sent.bin"));
+      modelIn = new FileInputStream(modelFilename);
       sentenceModel = new SentenceModel(modelIn);
       sentenceDetector = new SentenceDetectorME(sentenceModel);
     } catch (IOException ioe) {
@@ -119,7 +124,7 @@ public class SentenceExtractor
       sentence.setOffset(offset);
       sentence.setInfons(passage.getInfons());
       sentenceList.add(sentence);
-      offset = offset + sentenceText.length();
+      offset = offset + sentenceText.length() + 1;
       sentenceCount++;
     }
     passage.setSentences(sentenceList);

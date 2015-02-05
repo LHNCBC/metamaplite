@@ -7,6 +7,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,6 +33,7 @@ import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
 import gov.nih.nlm.nls.metamap.document.FreeText;
 import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
+import gov.nih.nlm.nls.metamap.document.SingleLineInput;
 
 import bioc.BioCDocument;
 import bioc.BioCPassage;
@@ -86,6 +90,7 @@ public class BioCPipeline {
     logger.debug("enter processSentences");
     List<BioCSentence> resultList = new ArrayList<BioCSentence>();
     for (BioCSentence sentence: passage.getSentences()) {
+      logger.info("Processing: " + sentence.getText());
       resultList.add(BioCPipeline.processSentence(sentence));
     }
     logger.debug("exit processSentences");
@@ -117,6 +122,16 @@ public class BioCPipeline {
     return document;
   }
   
+  public List<BioCDocument> processDocumentList(List<BioCDocument> documentList)
+    throws IllegalAccessException, InvocationTargetException, IOException, ParseException
+  {
+    List<BioCDocument> newDocumentList = new ArrayList<BioCDocument>();
+    for (BioCDocument document: documentList) {
+      newDocumentList.add(this.processDocument(document));
+    }
+    return newDocumentList;
+  }
+
   /**
    * Initialize pipeline application.
    * @return pipeline application instance
@@ -196,50 +211,132 @@ public class BioCPipeline {
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException,
 	   ParseException , InvocationTargetException {
+
     if (args.length > 0) {
       BioCPipeline pipeline = initPipeline();
-      String filename = null;
-      String option = "--freetext";
+      List<String> filenameList = new ArrayList<String>();
+      String processingOption = "--freetext";
+      String displayOption = "--mmi";
+      String outputFile = null;
+      String entityLookupResultLengthString = "";
       int i = 0;
       while (i < args.length) {
-	if (args[i].substring(0,2).equals("--")) {
-	  option = args[i];
+	if (args[i].equals("--chemdnersldi")) {
+	  processingOption = args[i];
+	} else if (args[i].equals("--chemdner")) {
+	  processingOption = args[i];
+	} else if (args[i].equals("--ncbicorpus")) {
+	  processingOption = args[i];
+	} else if (args[i].equals("--freetext")) {
+	  processingOption = args[i];
+	} else if (args[i].equals("--sli")) {
+	  processingOption = args[i];
+	} else if (args[i].equals("--bc-evaluate") ||
+		   args[i].equals("--bioc") ||
+		   args[i].equals("--bc") ||
+		   args[i].equals("--cdi")) {
+	  displayOption = args[i];
+	} else if (args[i].equals("--mmi") || 
+		   args[i].equals("--mmilike")) {
+	  displayOption = args[i];
+	} else if (args[i].equals("--brat") || 
+		   args[i].equals("--BRAT")) {
+	  displayOption = args[i];
+	} else if (args[i].equals("--luceneresultlen")) {
+	  i++;
+	  entityLookupResultLengthString = args[i];
+	} else if (args[i].equals("--help")) {
+	  displayHelp();
+	  System.exit(1);
 	} else {
-	  filename = args[i];
+	  filenameList.add(args[i]);
 	}
 	i++;
       }
 
-      if (option.equals("--chemdnersldi")) {
-	List<BioCDocument> documentList = ChemDNER.bioCLoadSLDIFile(filename);
-	/*CHEMDNER SLDI style documents*/
-	for (BioCDocument document: documentList) {
-	  pipeline.processDocument(document);
-	}
-      } else if (option.equals("--chemdner")) {
-	List<BioCDocument> documentList = ChemDNER.bioCLoadFile(filename);
-	/*CHEMDNER SLDI style documents*/
-	for (BioCDocument document: documentList) {
-	  pipeline.processDocument(document);
-	} 
-      } else if (option.equals("--ncbicorpus")) {
-	List<BioCDocument> documentList = NCBICorpusDocument.bioCLoadFile(filename);
-	/*CHEMDNER SLDI style documents*/
-	for (BioCDocument document: documentList) {
-	  pipeline.processDocument(document);
-	} 
-      } else if (option.equals("--freetext")) {
-	String inputtext = FreeText.loadFile(filename);
-	logger.info(inputtext);
-	BioCPassage passage = new BioCPassage();
-	passage.setText(inputtext);
-	passage.putInfon("freetext", "freetext");
-	pipeline.processPassage(passage);
-      } else if (option.equals("--help")) {
-	displayHelp();
+      if (entityLookupResultLengthString.length() > 0) {
+	System.setProperty("metamaplite.entitylookup.resultlength", 
+			   entityLookupResultLengthString);
       }
+
+      logger.info("Loading and processing documents");
+      List<BioCDocument> newDocumentList = new ArrayList<BioCDocument>();;
+      if (processingOption.equals("--chemdnersldi")) {
+	List<BioCDocument> documentList = ChemDNER.bioCLoadSLDIFile(filenameList.get(0));
+	/*CHEMDNER SLDI style documents*/
+	newDocumentList = pipeline.processDocumentList(documentList);
+      } else if (processingOption.equals("--chemdner")) {
+	List<BioCDocument> documentList = ChemDNER.bioCLoadFile(filenameList.get(0));
+	/*CHEMDNER SLDI style documents*/
+	newDocumentList = pipeline.processDocumentList(documentList);
+      } else if (processingOption.equals("--ncbicorpus")) {
+	List<BioCDocument> documentList = NCBICorpusDocument.bioCLoadFile(filenameList.get(0));
+	/*CHEMDNER SLDI style documents*/
+	newDocumentList = pipeline.processDocumentList(documentList);
+      } else if (processingOption.equals("--freetext")) {
+
+	// String inputtext = FreeText.loadFile(filenameList.get(0));
+	// BioCDocument document = new BioCDocument();
+	// logger.info(inputtext);
+	// BioCPassage passage = new BioCPassage();
+	// passage.setText(inputtext);
+	// passage.putInfon("docid", "00000000.tx");
+	// passage.putInfon("freetext", "freetext");
+	// document.addPassage(passage);
+	// document.setID("00000000.tx");
+	// List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+	// documentList.add(document);
+	
+	List<BioCDocument> documentList = FreeText.loadFreeTextFile(filenameList.get(0));
+	newDocumentList = pipeline.processDocumentList(documentList);
+      } else if (processingOption.equals("--sli")) {
+	List<BioCDocument> documentList = SingleLineInput.bioCLoadFile(filenameList.get(0));
+	/*Single line documents*/
+	newDocumentList = pipeline.processDocumentList(documentList);
+      } else if (processingOption.equals("--help")) {
+	displayHelp();
+	System.exit(1);
+      } 
+      logger.debug("document list length: " + newDocumentList.size());
+      for (BioCDocument doc: newDocumentList) {
+	logger.debug(doc);
+      }
+
+      logger.info("outputing results ");
+
+      if (displayOption.equals("--bc-evaluate") ||
+	  displayOption.equals("--bc") ||
+	  displayOption.equals("--bioc") ||
+	  displayOption.equals("--cdi")) {
+	logger.info("writing BC evaluate format file...");
+	for (BioCDocument document: newDocumentList) {
+	  EntityLookup.writeBcEvaluateAnnotations(System.out, document);
+	}
+      } else if (displayOption.equals("--brat")) {
+	logger.debug("writing mmi format output");
+	for (BioCDocument document: newDocumentList) {
+	  Brat.writeBratAnnotations("BioCPipeline",
+					    new PrintWriter
+					    (new BufferedWriter
+					     (new OutputStreamWriter(System.out))), 
+					    document);
+	}
+      } else if (displayOption.equals("--mmi")) {
+	logger.debug("writing mmi format output");
+	for (BioCDocument document: newDocumentList) {
+	  EntityLookup.writeEntities(System.out, document);
+	}
+      } else {
+	logger.debug("writing mmi format output");
+	for (BioCDocument document: newDocumentList) {
+	  EntityLookup.writeEntities(System.out, document);
+	}
+      }
+
+
     } else {
       displayHelp();
+      System.exit(1);
     }   
   }
 }
