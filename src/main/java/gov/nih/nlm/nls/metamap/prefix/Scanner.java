@@ -54,8 +54,8 @@ public class Scanner {
     return addOffsets(tokenlist, 0);
   }
 
-  /**
-   * Classify tokens, metamap style.
+/**
+   * Classify token, metamap style.
    * <p>
    * What are the classes?:
    * <pre>
@@ -74,44 +74,54 @@ public class Scanner {
    *  "cm" - comma
    *  "un" - unknown"
    * </pre>
+   * @param token original unclassified tokenlist
+   * @return token with classified tokens
+   */
+  public static ClassifiedToken classifyToken(Token token) {
+    // Clojure is much more concise representing this...
+    if (Scanner.wspattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "ws"));
+    } else if (Scanner.anpattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "an"));
+    } else if (Scanner.ucpattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "uc"));
+    } else if (Scanner.lcpattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "lc"));
+    } else if (Scanner.icpattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "ic"));
+    } else if (Scanner.nupattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "nu"));
+    } else if (Scanner.grpattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "gr"));
+    } else if (Scanner.openparen.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "op"));
+    } else if (Scanner.closeparen.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "cp"));
+    } else if (Scanner.openbrack.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "ob"));
+    } else if (Scanner.closebrack.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "cb"));
+    } else if (Scanner.comma.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "cm"));
+    } else if (Scanner.period.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "pd"));
+    } else if (Scanner.pnpattern.matcher(token.getText()).matches()) {
+      return (new ClassifiedTokenImpl(token.getText(), "pn"));
+    } else {
+      return (new ClassifiedTokenImpl(token.getText(), "unknown"));
+    }
+  }
+
+  /**
+   * Classify tokens, metamap style.
+   * see static method classifyToken
    * @param tokenlist original unclassified tokenlist
    * @return tokenlist with classified tokens
    */
   public static List<ClassifiedToken> classifyTokenList(List<Token> tokenlist) {
     List<ClassifiedToken> newtokenlist = new ArrayList<ClassifiedToken>();
-    // Clojure is much more concise representing this...
     for (Token token: tokenlist) {
-      if (Scanner.wspattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "ws"));
-      } else if (Scanner.anpattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "an"));
-      } else if (Scanner.ucpattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "uc"));
-      } else if (Scanner.lcpattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "lc"));
-      } else if (Scanner.icpattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "ic"));
-      } else if (Scanner.nupattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "nu"));
-      } else if (Scanner.grpattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "gr"));
-      } else if (Scanner.openparen.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "op"));
-      } else if (Scanner.closeparen.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "cp"));
-      } else if (Scanner.openbrack.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "ob"));
-      } else if (Scanner.closebrack.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "cb"));
-      } else if (Scanner.comma.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "cm"));
-      } else if (Scanner.period.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "pd"));
-      } else if (Scanner.pnpattern.matcher(token.getText()).matches()) {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "pn"));
-      } else {
-	newtokenlist.add(new ClassifiedTokenImpl(token.getText(), "unknown"));
-      }
+      newtokenlist.add(classifyToken(token));
     }
     return newtokenlist;
   }

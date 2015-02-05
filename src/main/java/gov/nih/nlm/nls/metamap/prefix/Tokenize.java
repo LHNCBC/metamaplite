@@ -3,6 +3,8 @@ package gov.nih.nlm.nls.metamap.prefix;
 import java.util.List;
 import java.util.ArrayList;
 
+import bioc.BioCSentence;
+
 /**
  * Tokenization support for FindPrefix, emulates original tokenization
  * of regime used by C support code originally used by MetaMap.
@@ -203,6 +205,26 @@ public class Tokenize {
     StringBuilder sb = new StringBuilder();
     for (String token: tokenList) {
       sb.append(token);
+    }      
+    return sb.toString();
+  }
+
+
+  /**
+   * @param tokenList tokenlist representing text with 
+   * punctuation and whitespace removed, inserting whitespace between text.
+   *
+   * @return text generated from tokens.
+   */
+  public static String getTextFromNoWsTokenList(List<? extends Token> tokenList)
+  {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i<tokenList.size(); i++) {
+      Token token = tokenList.get(i);
+      if (i > 0) {
+	sb.append(" ");
+      }
+      sb.append(token.getText());
     }      
     return sb.toString();
   }
