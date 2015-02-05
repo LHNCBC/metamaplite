@@ -92,6 +92,10 @@ public class SearchIndex {
     return new QueryParser(Version.LATEST, fieldname, analyzer);
   }
 
+  public static boolean isValidQueryTerm(String term) {
+    return CharUtils.isAlphaNumeric(term.charAt(0)) || (term.charAt(0) == '"');
+  }
+
   /**
    * Lookup term using supplied query parser and index searcher.
    * @param term          target term
@@ -107,8 +111,8 @@ public class SearchIndex {
   {
     List<Document> documentList = new ArrayList<Document>();
     try {
-      if (CharUtils.isAlphaNumeric(term.charAt(0))) {
-	Query query = queryParser.parse(term.toLowerCase());
+      if (isValidQueryTerm(term)) {
+	Query query = queryParser.parse(term);
 	ScoreDoc[] hits = indexSearcher.search(query, null, resultLength).scoreDocs;
 	// Iterate through the results:
 	for (int i = 0; i < hits.length; i++) {
