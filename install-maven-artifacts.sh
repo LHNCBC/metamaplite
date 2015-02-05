@@ -16,7 +16,7 @@ mvn install:install-file  -Dfile=/usr/local/pub/nlp/BioC/BioC_Java_1.0.1/lib/bio
                           -Dpackaging=jar 
 
 
-mvn install:install-file  -Dfile=/usr/local/pub/nlp/BioC/BioC_Java_1.0.1/lib/bioc.jar \
+mvn install:install-file  -Dfile=/usr/local/pub/nlp/BioC/BioC_Java_1.0.1/bioc_1.0.1.jar \
                           -DgroupId=bioc \
                           -DartifactId=bioc \
                           -Dversion=1.0.1 \
