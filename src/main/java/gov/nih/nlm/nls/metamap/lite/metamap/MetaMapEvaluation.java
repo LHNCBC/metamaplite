@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.lucene.document.Document;
@@ -29,6 +30,11 @@ public class MetaMapEvaluation {
   
   public MetaMapEvaluation(MetaMapIndexes indexes) {
     this.mmIndexes = indexes;
+  }
+
+  /** only possible to calculate if you have parsed the sentence into phrases. */
+  public double calculateCentrality() {
+    return 1.0;
   }
 
   public int getVariantDistance(String word, String variant)
@@ -53,11 +59,20 @@ public class MetaMapEvaluation {
     return 4/(this.getVariantDistance(word, textstring) + 4);
   }
 
+  /**
+   * Currently:
+   *   wl: word token length
+   *   vl: variant token length
+   *   ml: number of metawords (candidates?)
+   *    C: coverage
+   *
+   *       C = ((wl / vl) + ml) / 3.0"
+   */
   public double calculateCoverage(String[] tokenList, String word, int nMetaWords)
   {
     // System.out.println("word: " + word + ", " +
     //                    "tokenList: " + Tokenize.getTextFromTokenList(tokenList));
-    String[] wordTokenList = Tokenize.mmTokenize(word, nMetaWords);
+    String[] wordTokenList = Tokenize.mmTokenize(word, 2);
     return ((wordTokenList.length/tokenList.length) + nMetaWords)/3.0;
   }
 
@@ -68,22 +83,24 @@ public class MetaMapEvaluation {
     return 1.0;
   }
 
-  /** only possible to calculate if you have parsed the sentence into phrases. */
-  public double calculateCentrality() {
-    return 1.0;
-  }
-
-
+  /**
+   * Score formula:
+   *   score = 1000 * ((centrality + variation + 2*coverage + 2*cohesiveness)/6)
+   * in this case centrality and cohesiveness are 1.0:
+   *   score = 1000 * ((1.0 + variation + 2*coverage + 2.0)/6)
+   */
   public double calculateScore(String textstring,
 			       String preferredName,
 			       String cui,
 			       String[] inputTextTokenList,
-			       List<Entity> candidateList)
+			       Collection<Entity> candidateCollection)
     throws FileNotFoundException, IOException, ParseException
   {
     // System.out.println("textstring: " + textstring);
     String word = preferredName;
-    return ((this.calculateVariation(textstring, word) + 
-	     calculateCoverage(inputTextTokenList, word, candidateList.size()))/6.0);
+    return 1000 * ( 1.0 +
+		    (this.calculateVariation(textstring, word) + 
+		     (2 * calculateCoverage(inputTextTokenList, word, candidateCollection.size())) +
+		     2.0)/6.0);
   }
 }

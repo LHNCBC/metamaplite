@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite;
 
@@ -9,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +28,12 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 
-import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.prefix.CharUtils;
+import gov.nih.nlm.nls.metamap.prefix.Tokenize;
+import gov.nih.nlm.nls.metamap.prefix.PosToken;
+import gov.nih.nlm.nls.metamap.prefix.ERToken;
+import gov.nih.nlm.nls.metamap.prefix.Tokenize;
+import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -38,20 +43,28 @@ import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 import gov.nih.nlm.nls.metamap.lite.lucene.StringPair;
 import gov.nih.nlm.nls.metamap.lite.lucene.StringTriple;
 
+import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
+import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreComparator;
-import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreConceptNameComparator;
+// import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreConceptNameComparator;
 import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapEvaluation;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIndexes;
 
 import gov.nih.nlm.nls.utils.StringUtils;
+import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  *
  */
 
 public class SimplePipeline {
+  private static final Logger logger = LogManager.getLogger(SimplePipeline.class);
   public SentenceModel sentenceModel;
   public SentenceDetectorME sentenceDetector;
   public TokenizerModel model;
@@ -178,6 +191,8 @@ public class SimplePipeline {
     return sentenceTokenArrayList;
   }
 
+
+
   String findPreferredName(String cui)
     throws FileNotFoundException, IOException, ParseException
  {
@@ -187,6 +202,32 @@ public class SimplePipeline {
       return hitList.get(0).get("str");
     }
     return null;
+  }
+
+  public Set<String> getSourceSet(String cui)
+    throws FileNotFoundException, IOException, ParseException
+  {
+    Set<String> sourceSet = new HashSet<String>();
+    List<Document> hitList = 
+      this.mmIndexes.cuiSourceInfoIndex.lookup(cui, this.mmIndexes.cuiQueryParser, 20);
+    for (Document hit: hitList) {
+      System.out.println(cui + ": " + hit.get("src"));
+      sourceSet.add(hit.get("src"));
+    }
+    return sourceSet;
+  }
+
+  public Set<String> getSemanticTypeSet(String cui)
+    throws FileNotFoundException, IOException, ParseException
+  {
+    Set<String> semanticTypeSet = new HashSet<String>();
+    List<Document> hitList = 
+      this.mmIndexes.cuiSemanticTypeIndex.lookup(cui, this.mmIndexes.cuiQueryParser, 20);
+    for (Document hit: hitList) {
+      System.out.println(cui + ": " + hit.get("src"));
+      semanticTypeSet.add(hit.get("src"));
+    }
+    return semanticTypeSet;
   }
 
   String[] removePunctuation(String[] stringArray) {
@@ -200,55 +241,99 @@ public class SimplePipeline {
   }
 
 
-  /**
-   * Given Example:
-   *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
-   * 
-   * Check the following:
-   *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
-   *   "Papillary Thyroid Carcinoma is a Unique Clinical"
-   *   "Papillary Thyroid Carcinoma is a Unique"
-   *   "Papillary Thyroid Carcinoma is a"
-   *   "Papillary Thyroid Carcinoma is"
-   *   "Papillary Thyroid Carcinoma"
-   *   "Papillary Thyroid"
-   *   "Papillary"
-   *
-   *  
-   *
-   */
-  public List<Entity> findLongestMatch(List<Document> documentList,
-					     String[] tokenArray)
+  /** cache of string -> concept and attributes */
+  public static Map<String,List<ConceptInfo>> termConceptCache = new HashMap<String,List<ConceptInfo>>();
+
+  public void cacheConcept(String term, ConceptInfo concept) {
+    if (termConceptCache.containsKey(term)) {
+      termConceptCache.get(term).add(concept);
+    } else {
+      List<ConceptInfo> newConceptList = new ArrayList<ConceptInfo>();
+      newConceptList.add(concept);
+      termConceptCache.put(term, newConceptList);
+    }
+  }
+
+  public void addEvListToSpanMap(Map<String,Entity> spanMap, List<Ev> evList, 
+				 String docid, String matchedText, 
+				 int offset, int length) {
+    String span = offset + ":" + length;
+    if (spanMap.containsKey(span)) {
+      Entity entity = spanMap.get(span);
+      Set<String> currentCuiSet = new HashSet<String>();
+      for (Ev currentEv: entity.getEvList()) {
+	currentCuiSet.add(currentEv.getConceptInfo().getCUI());
+      }
+      for (Ev newEv: evList) {
+	if (! currentCuiSet.contains(newEv.getConceptInfo().getCUI())) {
+	  entity.addEv(newEv);
+	}
+      }
+    } else {
+      Entity entity = new Entity(docid, matchedText, offset, length, 0.0, evList);
+      spanMap.put(span, entity);
+    }
+  }
+
+  public List<Entity> findLongestMatch(String docid,
+				       List<Document> documentList,
+				       String[] tokenArray)
     throws FileNotFoundException, IOException, ParseException
  {
-    List<Entity> candidateList = new ArrayList<Entity>();
+    // span -> entity list map
+    Map<String,Entity> spanMap = new HashMap<String,Entity>();
+    int longestMatchedTokenLength = 0;
     for (int i = tokenArray.length; i > 0; i--) { 
       String[] arraySegment = removePunctuation(Arrays.copyOfRange(tokenArray, 0, i));
      
       String term = StringUtils.join(arraySegment, " ");
-      for (Document doc: documentList) {
-	// System.out.println("term: \"" + term + 
-	// 		   "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
-	//  		 term.toLowerCase().equals(doc.get("str").toLowerCase()));
-
-	if (term.toLowerCase().equals(doc.get("str").toLowerCase())) {
-	  candidateList.add(new Entity(doc.get("cui"), 
-				       doc.get("str"), 
-				       this.findPreferredName(doc.get("cui")),
-				       arraySegment,
-				       0.0));
+      String normTerm = MWIUtilities.normalizeAstString(term);
+      int termLength = term.length();
+      int offset = 0;
+      List<Ev> evList = new ArrayList<Ev>();
+      if (EntityLookup.termConceptCache.containsKey(normTerm)) {
+	for (ConceptInfo concept: EntityLookup.termConceptCache.get(normTerm)) {
+	  Ev ev = new Ev(concept,
+			 term,
+			 offset,
+			 termLength,
+			 0.0);
 	}
-      }
+      } else {
+	for (Document doc: documentList) {
+	  // System.out.println("term: \"" + term + 
+	  // 		   "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
+	  //  		 term.toLowerCase().equals(doc.get("str").toLowerCase()));
+	  String cui = doc.get("cui");
+	  if (term.toLowerCase().equals(doc.get("str").toLowerCase())) {
+	    ConceptInfo concept = new ConceptInfo(cui, 
+						  this.findPreferredName(cui),
+						  this.getSourceSet(cui),
+						  this.getSemanticTypeSet(cui));
+	    this.cacheConcept(normTerm, concept);
+	    Ev ev = new Ev(concept,
+			       term,
+			       offset,
+			       termLength,
+			       0.0);
+	  } /* if term = lucene document */
+	} /* for document in lucene document list*/
+      } /* if else */
+	this.addEvListToSpanMap(spanMap, evList, 
+				docid,
+				term,
+				offset, termLength);
+	longestMatchedTokenLength = Math.max(longestMatchedTokenLength,arraySegment.length);
     }
-    for (Entity candidate: candidateList) {
-      candidate.setScore
-	(this.metaMapEvalInst.calculateScore(candidate.getConceptName(),
-					 candidate.getPreferredName(),
-					 candidate.getCUI(),
-					 candidate.getInputTextTokenList(),
-					 candidateList));
-    }
-    return candidateList;
+    // for (Entity candidate: candidateList) {
+    //   candidate.setScore
+    // 	(this.metaMapEvalInst.calculateScore(candidate.getConceptName(),
+    // 					     candidate.getPreferredName(),
+    // 					     candidate.getCUI(),
+    // 					     candidate.getInputTextTokenList(),
+    // 					     candidateList));
+    // }
+    return new ArrayList<Entity>(spanMap.values());
   }
 
   /**
@@ -261,6 +346,7 @@ public class SimplePipeline {
   public Set<Entity> processSentence(String sentence)
     throws FileNotFoundException, IOException, ParseException
   {
+    String docid = "XXXXXX";
     String[] sentenceTokenArray = this.tokenizeText(sentence);
     Set<Entity> entitySet = new HashSet<Entity>();
     String tags[] = this.tagger.tag(sentenceTokenArray);
@@ -270,7 +356,8 @@ public class SimplePipeline {
 									10);
       if (hitList.size() > 0) {
 	for (Entity entity: this.findLongestMatch
-	       (hitList,
+	       (docid,
+		hitList,
 		Arrays.copyOfRange(sentenceTokenArray, 
 				   i, Math.min(i+30,sentenceTokenArray.length)))) {
 	  entitySet.add(entity);
@@ -279,6 +366,7 @@ public class SimplePipeline {
     }
     return entitySet;
   }
+
 
   public List<List<Entity>> processText(String text)
     throws FileNotFoundException, IOException, ParseException
@@ -289,7 +377,7 @@ public class SimplePipeline {
       Set<Entity> entitySet = processSentence(sentence);
       List<Entity> entityList = new ArrayList<Entity>();
       entityList.addAll(entitySet);
-      Collections.sort(entityList, new EntityScoreConceptNameComparator()); 
+      // Collections.sort(entityList, new EntityScoreConceptNameComparator()); 
       listOfEntityList.add(entityList);
     }
     return listOfEntityList;
