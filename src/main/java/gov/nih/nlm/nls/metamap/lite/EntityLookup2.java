@@ -36,7 +36,6 @@ import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
 
-import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapEvaluation;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIndexes;
 

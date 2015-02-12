@@ -48,6 +48,7 @@ import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
+import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
 import gov.nih.nlm.nls.metamap.document.FreeText;
 import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
 import gov.nih.nlm.nls.metamap.document.SingleLineInput;
@@ -289,7 +290,7 @@ public class MetaMapLite {
 	logger.info("Loading and processing " + filename);
 	List<Entity> entityList = new ArrayList<Entity>();
 	if (processingOption.equals("--chemdnersldi")) {
-	  List<BioCDocument> documentList = ChemDNER.bioCLoadSLDIFile(filename);
+	  List<BioCDocument> documentList = ChemDNERSLDI.bioCLoadSLDIFile(filename);
 	  /*CHEMDNER SLDI style documents*/
  	  entityList = metaMapLiteInst.processDocumentList(documentList);
 	} else if (processingOption.equals("--chemdner")) {

@@ -26,7 +26,6 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 import bioc.BioCLocation;
 
-import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
