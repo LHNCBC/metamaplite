@@ -28,12 +28,14 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PluginRegistry;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
+import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
 import gov.nih.nlm.nls.metamap.document.FreeText;
 import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
 import gov.nih.nlm.nls.metamap.document.SingleLineInput;
+
+import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 
 import bioc.BioCDocument;
 import bioc.BioCPassage;
@@ -262,7 +264,7 @@ public class BioCPipeline {
       logger.info("Loading and processing documents");
       List<BioCDocument> newDocumentList = new ArrayList<BioCDocument>();;
       if (processingOption.equals("--chemdnersldi")) {
-	List<BioCDocument> documentList = ChemDNER.bioCLoadSLDIFile(filenameList.get(0));
+	List<BioCDocument> documentList = ChemDNERSLDI.bioCLoadSLDIFile(filenameList.get(0));
 	/*CHEMDNER SLDI style documents*/
 	newDocumentList = pipeline.processDocumentList(documentList);
       } else if (processingOption.equals("--chemdner")) {

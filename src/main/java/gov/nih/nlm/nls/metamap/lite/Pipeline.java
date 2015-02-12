@@ -26,9 +26,9 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PluginRegistry;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
+import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
 import gov.nih.nlm.nls.metamap.document.PubMedDocumentImpl;
 import gov.nih.nlm.nls.metamap.document.PubMedDocument;
 import gov.nih.nlm.nls.metamap.document.FreeText;
@@ -225,7 +225,7 @@ public class Pipeline {
       }
 
       if (option.equals("--chemdnersldi")) {
-	List<PubMedDocument> documentList = ChemDNER.loadSLDIFile(filename);
+	List<PubMedDocument> documentList = ChemDNERSLDI.loadSLDIFile(filename);
 	/*CHEMDNER SLDI style documents*/
 	for (PubMedDocument document: documentList) {
 	  pipeline.processDocument(document);
