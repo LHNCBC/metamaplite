@@ -104,36 +104,6 @@ public class EntityLookup2 {
     }
   }
 
-  /** cache of string -> lucene document hit list */
-  public static Map<String,List<Document>> termHitListCache = new HashMap<String,List<Document>>();
-
-  public void cacheHitList(String term, List<Document> hitList) {
-    synchronized (termHitListCache) {
-      termHitListCache.put(term, hitList);
-    }
-  }
-
-  /**
-   * A memoization of lucene cuiSourceinfoindex lookup.
-   * @param String containing query
-   * @return list of lucene index documents
-   */
-  List<Document> cuiSourceInfoIndexLookup(String query)
-    throws FileNotFoundException, IOException, ParseException
-  {
-    List<Document> hitList;
-    if (termHitListCache.containsKey(query)) {
-      logger.debug("Using hit List cache for query " + query);
-      hitList = termHitListCache.get(query);
-    } else {
-      hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(query,
-							 this.mmIndexes.strQueryParser,
-							 resultLength);
-      termHitListCache.put(query, hitList);
-    }
-    return hitList;
-  }
-
   /** string -> normalize string cache. */
   public static Map<String,String> normalizeAstStringCache = new HashMap<String,String>();
 
@@ -315,7 +285,7 @@ public class EntityLookup2 {
 	if (CharUtils.isAlpha(term.charAt(0))) {
 	  List<Ev> evList = new ArrayList<Ev>();
 
-	  // List<Document> documentList = this.mmIndexes.cuiSourceInfoIndex.lookup(query,
+	  //List<Document> documentList = this.mmIndexes.cuiSourceInfoIndex.lookup(query,
 	  // 									 this.mmIndexes.strQueryParser,
 	  // 									 resultLength);
 	  Integer tokenListLength = new Integer(tokenSubList.size());
@@ -417,16 +387,9 @@ public class EntityLookup2 {
 	  // String query = prefix + "*";
 	  String query = prefix;
 	  logger.debug("lucene str query: " + query);
-	  // if (termHitListCache.containsKey(query)) {
-	  //   logger.debug("Using hit List cache for query " + query);
-	  //   hitList = termHitListCache.get(query);
-	  // } else {
-	  //   hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(query,
-	  // 						       this.mmIndexes.strQueryParser,
-	  // 						       resultLength);
-	  //   termHitListCache.put(query, hitList);
-	  // }
-	  hitList = cuiSourceInfoIndexLookup(query);
+	  hitList = this.mmIndexes.cuiSourceInfoIndex.lookup(query,
+							     this.mmIndexes.strQueryParser,
+							     resultLength);
 	  logger.debug("size of hitList: " + hitList.size());
 	} catch (ParseException pe) {
 	  System.err.println("errant term prefix: " + prefix);
@@ -435,9 +398,6 @@ public class EntityLookup2 {
 	}
 	if (hitList.size() > 0) {
 	  logger.debug("processSentenceTokenList: hit size: " + hitList.size());
-	  // if (logger.isDebugEnabled()) {
-	  //   logHits(hitList);
-	  // }
 	  SpanEntityMapAndTokenLength spanEntityMapAndTokenLength = 
 	    this.findLongestMatch
 	    (docid,

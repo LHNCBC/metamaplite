@@ -2,6 +2,7 @@
 package gov.nih.nlm.nls.metamap.lite.lucene;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -40,6 +41,9 @@ import org.apache.lucene.queryparser.classic.ParseException;
 
 import gov.nih.nlm.nls.metamap.prefix.CharUtils;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * Index representation for MetaMap Lite; the representation consists
@@ -47,11 +51,16 @@ import gov.nih.nlm.nls.metamap.prefix.CharUtils;
  */
 
 public class SearchIndex {
+  private static final Logger logger = LogManager.getLogger(SearchIndex.class);
+
   static Version version = Version.LATEST;
   static Analyzer analyzer = new EnglishAnalyzer();
   Directory index;
   DirectoryReader ireader;
   IndexSearcher isearcher;
+
+  /** cache of string -> lucene document hit list */
+  public Map<String,List<Document>> termHitListCache = new HashMap<String,List<Document>>();
 
   /**
    * Instantiate lucene index reader for index at indexDirectoryname
@@ -132,12 +141,42 @@ public class SearchIndex {
    * @param term         target term
    * @param queryParser  query parser for field
    * @param resultLength expected size of query result.
+   * @return list of lucene index documents
    */
-  public List<Document> lookup(String term,
+  public List<Document> lookupOriginal(String term,
 			       QueryParser queryParser,
 			       int resultLength)
     throws IOException, ParseException
   {
     return SearchIndex.lookup(term, queryParser, this.isearcher, resultLength);
   }
+
+
+  /**
+   * Lookup term using index reader instantiated by class instance
+   * using supplied query parser.
+   * 
+   * A memoization of lucene cuiSourceinfoindex lookup.
+   * @param String containing query
+   * @param queryParser  query parser for field
+   * @param resultLength expected size of query result.
+   * @return list of lucene index documents
+   */
+  public List<Document> lookup(String query,
+			QueryParser queryParser,
+			int resultLength)
+    throws FileNotFoundException, IOException, ParseException
+  {
+    List<Document> hitList;
+    if (termHitListCache.containsKey(query)) {
+      logger.debug("Using hit List cache for query " + query);
+      hitList = this.termHitListCache.get(query);
+    } else {
+      hitList = SearchIndex.lookup(query, queryParser, this.isearcher, resultLength);
+      termHitListCache.put(query, hitList);
+    }
+    return hitList;
+  }
+
+
 }

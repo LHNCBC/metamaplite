@@ -1,6 +1,6 @@
 
 //
-package gov.nih.nlm.nls.metamap.lite;
+package gov.nih.nlm.nls.metamap.lite.resultformats;
 
 
 
@@ -33,7 +33,7 @@ import opennlp.tools.dictionary.serializer.Entry;
  *
  */
 
-public class Brat {
+public class Brat implements ResultFormatter {
 
   static class TextBoundAnnotation {
     String id;
@@ -296,5 +296,10 @@ public class Brat {
     Set<TextBoundAnnotation> annotationSet = new HashSet<TextBoundAnnotation>(annotationMap.values());
     writeAnnotationSet(recognizerName, writer, annotationSet);
   } /* listEntities */
+
+  public void entityListFormatter(PrintWriter writer,
+			   List<Entity> entityList) {
+    writeAnnotationList("MMLite", writer, entityList);
+  }
 
 }

@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.ner;
 
@@ -38,7 +37,6 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PluginRegistry;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.MarkAbbreviations;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
@@ -46,6 +44,8 @@ import gov.nih.nlm.nls.metamap.lite.EntityLookup2;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroupFilter;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroups;
 import gov.nih.nlm.nls.metamap.lite.EntityAnnotation;
+import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
+import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
 import gov.nih.nlm.nls.metamap.document.FreeText;
@@ -61,8 +61,6 @@ import bioc.tool.AbbrConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import opennlp.tools.util.Span;
-
-import gov.nih.nlm.nls.metamap.lite.Brat;
 
 public class MetaMapLite {
   /** log4j logger instance */
@@ -99,7 +97,7 @@ public class MetaMapLite {
     // Brat.listEntities(result0);
     BioCSentence result = 
       SemanticGroupFilter.keepEntitiesInSemanticGroup
-      (SemanticGroups.getDisordersEdited(), result0);
+      (SemanticGroups.getClinicalDisorders(), result0);
     // System.out.println("filtered entity list: ");
     // Brat.listEntities(result);
     logger.debug("exit processSentence");
@@ -347,7 +345,7 @@ public class MetaMapLite {
 	  logger.debug("writing mmi format output");
 	  PrintWriter pw = new PrintWriter(new BufferedWriter
 					   (new FileWriter(outputFilename)));
-	  Brat.writeAnnotationList("MetaMapLite", pw, entityList);
+	  Brat.writeAnnotationList("MMLite", pw, entityList);
 	  pw.close();
 	  break;
 	case MMI_FORMAT:
