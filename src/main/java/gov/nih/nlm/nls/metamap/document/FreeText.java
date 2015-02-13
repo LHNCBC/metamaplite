@@ -21,15 +21,17 @@ import org.apache.logging.log4j.Logger;
  * Unstructured text.
  */
 
-public class FreeText {
+public class FreeText implements BioCDocumentLoader {
   /** log4j logger instance */
   private static final Logger logger = LogManager.getLogger(FreeText.class);
 
   String text;
+  public FreeText() { }
   public FreeText(String text) { this.text = text; }
   public String getText() {
     return this.text;
   }
+  public void setText(String text) { this.text = text; }
 
   public static String loadFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -44,22 +46,42 @@ public class FreeText {
     return text;
   }
 
+  public static BioCDocument instantiateBioCDocument(String docText) 
+  {
+    BioCDocument document = new BioCDocument();
+    logger.debug(docText);
+    BioCPassage passage = new BioCPassage();
+    passage.setOffset(0);
+    passage.setText(docText);
+    passage.putInfon("docid", "00000000.tx");
+    passage.putInfon("freetext", "freetext");
+    document.addPassage(passage);
+    document.setID("00000000.tx");
+    return document;
+  }
 
   public static List<BioCDocument> loadFreeTextFile(String filename) 
     throws FileNotFoundException, IOException
   {
     String inputtext = FreeText.loadFile(filename);
-    BioCDocument document = new BioCDocument();
-    logger.debug(inputtext);
-    BioCPassage passage = new BioCPassage();
-    passage.setOffset(0);
-    passage.setText(inputtext);
-    passage.putInfon("docid", "00000000.tx");
-    passage.putInfon("freetext", "freetext");
-    document.addPassage(passage);
-    document.setID("00000000.tx");
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+    BioCDocument document = instantiateBioCDocument(inputtext);
     documentList.add(document);
     return documentList;
   }
+
+  public BioCDocument loadFileAsBioCDocument(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    String inputtext = FreeText.loadFile(filename);
+    BioCDocument document = instantiateBioCDocument(inputtext);
+    return document;
+  }
+
+  public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    return loadFreeTextFile(filename);
+  }
+
 }

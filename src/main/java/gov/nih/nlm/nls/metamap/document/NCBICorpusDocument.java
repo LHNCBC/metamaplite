@@ -18,7 +18,7 @@ import gov.nih.nlm.nls.types.Document;
  *
  */
 
-public class NCBICorpusDocument  {
+public class NCBICorpusDocument implements BioCDocumentLoader {
 
   public static String removeCategoryTags(String text) {
     return text.replaceAll("<category=\"[A-Za-z]+\">", "").replaceAll("</category>", "");
@@ -117,6 +117,20 @@ public class NCBICorpusDocument  {
     }
     br.close();
     return documentList;
+  }
+  
+  public BioCDocument loadFileAsBioCDocument(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    String inputtext = FreeText.loadFile(filename);
+    BioCDocument document = instantiateBioCDocument(inputtext);
+    return document;
+  }
+  
+ public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    return bioCLoadFile(filename);
   }
 
 }

@@ -17,7 +17,7 @@ import java.util.List;
  *
  */
 
-public class SingleLineDelimitedInputWithID {
+public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
 
   /**
    * Instantiate BioCDocument document instance reading single-line
@@ -34,7 +34,7 @@ public class SingleLineDelimitedInputWithID {
    * CHEMDNER document.
    * @return BioCDocument document instance
    */
-  public static BioCDocument instantiateBioCSLDIDocument(String docText) 
+  public static BioCDocument instantiateBioCDocument(String docText) 
   {
     String[] docFields = docText.split("\\|");
 
@@ -53,14 +53,14 @@ public class SingleLineDelimitedInputWithID {
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
    */
-  public static List<BioCDocument> bioCLoadSLDIFile(String inputFilename)
+  public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
     BufferedReader br = new BufferedReader(new FileReader(inputFilename));
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {
-      documentList.add(ChemDNER.instantiateBioCSLDIDocument(line));
+      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
     }
     br.close();
     return documentList;
@@ -82,4 +82,20 @@ public class SingleLineDelimitedInputWithID {
       }
     }
   }
+
+  public BioCDocument loadFileAsBioCDocument(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    String inputtext = FreeText.loadFile(filename);
+    BioCDocument document = instantiateBioCDocument(inputtext);
+    return document;
+  }
+  
+ public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    return bioCLoadFile(filename);
+  }
+
+
 }

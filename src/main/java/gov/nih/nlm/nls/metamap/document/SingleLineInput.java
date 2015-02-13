@@ -19,7 +19,7 @@ import bioc.BioCPassage;
  *
  */
 
-public class SingleLineInput {
+public class SingleLineInput implements BioCDocumentLoader {
   public static List<String> loadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
@@ -33,6 +33,17 @@ public class SingleLineInput {
     return lineList;
   }
 
+  public static BioCDocument instantiateBioCDocument(String docText) 
+  {
+      BioCDocument doc = new BioCDocument();
+      doc.setID(".tx");
+      BioCPassage passage = new BioCPassage();
+      passage.setText(docText);
+      passage.setOffset(0);
+      // passage.putInfon("docid", formatter.toString());
+      doc.addPassage(passage);
+      return doc;
+  }
 
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -42,16 +53,10 @@ public class SingleLineInput {
     int i = 0;
     String line;
     while ((line = br.readLine()) != null) {
+      BioCDocument doc = instantiateBioCDocument(line); 
       StringBuilder sb = new StringBuilder();
       Formatter formatter = new Formatter(sb, Locale.US);
-      BioCDocument doc = new BioCDocument();
-      doc.setID(".tx");
-      BioCPassage passage = new BioCPassage();
       formatter.format("%08d.TX", i);
-      passage.putInfon("docid", formatter.toString());
-      passage.setText(line);
-      passage.setOffset(0);
-      doc.addPassage(passage);
       doc.putInfon("docid", formatter.toString());
       docList.add(doc);
       i++;
@@ -59,4 +64,19 @@ public class SingleLineInput {
     br.close();
     return docList;
   }
+
+  public BioCDocument loadFileAsBioCDocument(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    String inputtext = FreeText.loadFile(filename);
+    BioCDocument document = instantiateBioCDocument(inputtext);
+    return document;
+  }
+  
+ public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    return bioCLoadFile(filename);
+  }
+
 }
