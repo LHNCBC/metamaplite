@@ -15,9 +15,10 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.mmi.MMI;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
+import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
 import gov.nih.nlm.nls.metamap.document.PubMedDocument;
+import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 
@@ -51,7 +52,7 @@ public class Main {
       /*CHEMDNER style documents*/
       for (String docText: documentList) {
 
-	PubMedDocument cDoc = ChemDNER.instantiateSLDIDocument(docText);
+	PubMedDocument cDoc = ChemDNERSLDI.instantiateSLDIDocument(docText);
 
 	List<List<Entity>> titleListOfEntityList = inst.processText(cDoc.getTitle());
 	for (List<Entity> entityList: titleListOfEntityList) {
