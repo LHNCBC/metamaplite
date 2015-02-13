@@ -26,17 +26,12 @@ Current options are:
  * --chemdner:     CHEMDNER document: tab separated fields: id \t title \t abstract
  * --chemdnerSLDI: CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
 
-The application currently only outputs to standard output. (See
-method: gov.nih.nlm.nls.metamap.lite.EntityLookup.displayEntitySet)
+
+## Adding custom input document formats
+
+New document loader class must conform to BioCDocumentLoader interface.
 
 
-The old program:
+## Adding custom result output formats
 
-    $ ./run.sh -Den-sent.bin.path=/usr/local/pub/nlp/opennlp/models/en-sent.bin \
-		       -Den-token.bin.path=/usr/local/pub/nlp/opennlp/models/en-token.bin \
-               -Den-pos-maxent.bin.path=/usr/local/pub/nlp/opennlp/models/en-pos-maxent.bin \
-	gov.nih.nlm.nls.metamap.lite.Main filename
-
-  $ ./run.sh gov.nih.nlm.nls.metamap.lite.Main ~/queries/chemdner_abs_sample.txt
-
-
+New result formatter class must conform to ResultFormatter interface.
