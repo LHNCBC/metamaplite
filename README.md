@@ -35,3 +35,23 @@ New document loader class must conform to BioCDocumentLoader interface.
 ## Adding custom result output formats
 
 New result formatter class must conform to ResultFormatter interface.
+
+## Feature Requests
+
+1. add support for exclusion of some cui/term combination (see MetaMap's special terms file)
+2. support entity lookup using two separate dataset (UMLS and custom, etc.)
+
+## Known bugs
+
+1. Semantic Type filter does not always filter out some type not in list.
+2. Abbreviation detector doesn't always work
+
+## Packaging
+
+Required files:
+
+1. Java class and supporting jars
+2. POM and ANT files
+3. Open NLP sentence model files
+4. Lucene indices
+
