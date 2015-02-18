@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PROJECTDIR=/net/indlx1/export/home/wjrogers/Projects/metamaplite
+
 ANALYZERS=$HOME/.m2/repository/org/apache/lucene/lucene-analyzers-common/4.10.0/lucene-analyzers-common-4.10.0.jar
 CORE=$HOME/.m2/repository/org/apache/lucene/lucene-core/4.10.0/lucene-core-4.10.0.jar
 QUERYPARSER=$HOME/.m2/repository/org/apache/lucene/lucene-queryparser/4.10.0/lucene-queryparser-4.10.0.jar
@@ -13,11 +15,15 @@ CONTEXT=$HOME/.m2/repository/context/context/2012/context-2012.jar
 
 JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT
 
-OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
+# OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
+OPENNLP_MODELS=$PROJECTDIR/data/models
 
 JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Den-token.bin.path=$OPENNLP_MODELS/en-token.bin \
     -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin \
-    -Dlog4j.configurationFile=$PWD/config/log4j2.xml"
+    -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
+    -Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
+    -Dmetamaplite.entitylookup.resultlength=1500"
+DEBUGOPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n"
 
-java -cp target/classes:$JARSPATH $JVMOPTS $* 
+java -cp $PROJECTDIR/target/classes:$JARSPATH $JVMOPTS $* 
