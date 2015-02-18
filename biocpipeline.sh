@@ -25,4 +25,4 @@ JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
     -Dmetamaplite.entitylookup.resultlength=1500"
 
-java -cp $PROJECTDIR/target/classes:$JARSPATH $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
+java -cp $PROJECTDIR/target/classes:$JARSPATH $JVMOPTS gov.nih.nlm.nls.metamap.lite.BioCPipeline $* 
