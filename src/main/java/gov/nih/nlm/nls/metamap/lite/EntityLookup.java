@@ -50,8 +50,6 @@ import gov.nih.nlm.nls.types.Sentence;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 
-import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import opennlp.tools.dictionary.serializer.Entry;
@@ -132,27 +130,6 @@ public class EntityLookup {
     return hitList;
   }
 
-  /** string -> normalize string cache. */
-  public static Map<String,String> normalizeAstStringCache = new HashMap<String,String>();
-
-  /**
-   * A memoization of MWIUtilities.normalizeAstString 
-   * @param input string 
-   * @return normalized version of input string.
-   */
-  static String normalizeAstString(String astString) {
-    /* in the name of premature optimization, I'm memoizing normalizeAstString */
-    if (normalizeAstStringCache.containsKey(astString)) {
-      return normalizeAstStringCache.get(astString);
-    } else {
-	String normalizedAstString = MWIUtilities.normalizeAstString(astString);
-	synchronized (normalizeAstStringCache) {
-	  normalizeAstStringCache.put(astString, normalizedAstString);
-	}
-	return normalizedAstString;
-    }
-  }
-
   public String findPreferredName(String cui)
     throws FileNotFoundException, IOException, ParseException
  {
@@ -215,7 +192,7 @@ public class EntityLookup {
     // logger.debug("entering: transformPreposition");
     if (inputtext.indexOf(" of the") > 0) {
       // return MWIUtilities.normalizeAstString(inputtext.replaceAll(" of the", ","));
-      return normalizeAstString(inputtext.replaceAll(" of the", ","));
+      return NormalizedStringCache.normalizeAstString(inputtext.replaceAll(" of the", ","));
     } 
     // logger.debug("leaving: transformPreposition");
     return inputtext;
@@ -332,7 +309,7 @@ public class EntityLookup {
 	String term = transformPreposition(originalTerm);
 	String query = term;
 	// String normTerm = MWIUtilities.normalizeAstString(term);
-	String normTerm = normalizeAstString(term);
+	String normTerm = NormalizedStringCache.normalizeAstString(term);
 	int offset = ((PosToken)tokenSubList.get(0)).getPosition();
 	if (CharUtils.isAlpha(term.charAt(0))) {
 	  List<Ev> evList = new ArrayList<Ev>();
@@ -358,7 +335,7 @@ public class EntityLookup {
 	      // logger.debug("term: \"" + term + 
 	      // 	     "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
 	      // 	     term.equalsIgnoreCase(docStr));
-	      if (normTerm.equals(MWIUtilities.normalizeAstString(docStr))) {
+	      if (normTerm.equals(NormalizedStringCache.normalizeAstString(docStr))) {
 		if (tokenSubList.get(0) instanceof PosToken) {
 		  ConceptInfo concept = new ConceptInfo(cui, 
 							this.findPreferredName(cui),
