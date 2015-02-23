@@ -1,0 +1,102 @@
+<project name="metamaplite" default="main" basedir=".">
+
+
+  <!-- ==================== Initialization properties ===================== -->
+  <!-- Give user a chance to override without editing this file
+       (and without typing -D each time it compiles it) -->
+  <property file=".ant.properties" />
+  <property file="${user.home}/.ant.properties" />
+
+  <!--
+       ===================================================================
+         Set the properties related to the source tree
+       =================================================================== 
+   -->
+  <property name="java.top"                 value=".."/>
+  <property name="project.top"              value="."/>
+  <property name="project.src"              value="${project.top}/src/main/java"/>
+  <property name="project.apidoc"           value="${project.top}/doc/apiDoc"/>
+  <property name="project.classes"          value="${project.top}/classes" />
+  <property name="project.lib"              value="${project.top}/lib" />
+  <property name="bioc"                     value="${project.lib}/bioc-1.0.1.jar"/>
+  <property name="lucene-core"              value="${project.lib}/lucene-core-4.10.0.jar"/>
+  <property name="lucene-analyzers-common"  value="${project.lib}/lucene-analyzers-common-4.10.0.jar"/>
+  <property name="lucene-queryparser"       value="${project.lib}/lucene-queryparser-4.10.0.jar"/>
+  <property name="lucene-queries"           value="${project.lib}/lucene-queries-4.10.0.jar"/>
+  <property name="log4j-api"                value="${project.lib}/log4j-api-2.1.jar"/>
+  <property name="log4j-core"               value="${project.lib}/log4j-core-2.1.jar"/>
+  <property name="context"                  value="${project.lib}/context-2012.jar"/>
+  <property name="opennlp-maxent"           value="${project.lib}/opennlp-maxent-3.0.3.jar"/>
+  <property name="opennlp-tools"            value="${project.lib}/opennlp-tools-1.5.3.jar"/>
+  <property name="nlsnlp"                   value="${project.lib}/nlp-2.4.C.jar"/>
+  
+
+  <!-- ======================== compile ========================= -->
+  <target name="compile">  
+    <mkdir dir="${project.classes}" />
+    <javac srcdir="${project.src}"
+	   destdir="${project.classes}">	   
+      <classpath>
+        <pathelement location="${bioc}"/>
+        <pathelement location="${lucene-core}"/>
+        <pathelement location="${lucene-analyzers-common}"/>
+        <pathelement location="${lucene-queryparser}"/>
+        <pathelement location="${lucene-queries}"/>
+        <pathelement location="${log4j-api}"/>
+        <pathelement location="${log4j-core}"/>
+        <pathelement location="${context}"/>
+        <pathelement location="${opennlp-maxent}"/>
+        <pathelement location="${opennlp-tools}"/>
+        <pathelement location="${nlsnlp}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- =================== javadoc generation ====================== -->
+  <target name="javadoc">
+  <!-- Add project internal javadoc -->
+    <mkdir dir="${project.apidoc}" />
+    <javadoc packagenames="tools.*"
+             sourcepath="${project.src}"
+             destdir="${project.apidoc}"
+             author="true"
+             version="true"
+             use="true"
+	     package="true"
+             windowtitle="Tools api"
+             doctitle="Tools Internal"
+             bottom="Copyright &#169; 2015 National Library of Medicine."
+	     splitindex="true">
+    </javadoc>
+  </target>
+
+  <!-- ==================== Administrative targets ======================= -->
+  <target name="jar" depends="compile">
+    <mkdir dir="${project.lib}" />
+    <jar jarfile="${project.lib}/metamaplite-1.0-SNAPSHOT.jar"
+         basedir="${project.classes}"/>
+
+  </target>
+
+  <!-- delete classes directory  -->
+  <target name="clean">
+    <delete includeEmptyDirs="true">
+     <fileset dir="${project.classes}"/>
+    </delete>
+  </target>
+
+  <target name="all" depends="clean,compile,javadoc,jar"/>
+  <target name="main" depends="compile"/>
+
+  <!-- help target -->
+  <target name="help">
+    <echo>
+  targets: 
+    clean                clean classes and archives from working directory
+    compile              build classes 
+    javadoc              build javadoc
+    jar                  build jar of classes
+    </echo>
+  </target>
+
+</project>
