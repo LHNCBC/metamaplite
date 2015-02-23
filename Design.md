@@ -1,28 +1,86 @@
-# Trie based NER using a lexically enhanced trie dictionary.
+# MetaMap Lite 
 
-# Optimizations
+## Feature Requests
 
-Cache references to entities in Map to avoid unnecessary lookups.
+1. add support for exclusion of some cui/term combination (see MetaMap's special terms file)
+2. support entity lookup using two separate dataset (UMLS and custom, etc.)
 
-# input formats
+## Known bugs
 
-Medline 
-XML (Medline, user-specified)
-JSON 
-EDN
+1. Semantic Type filter does not always filter out all excluded types
+2. Abbreviation detector doesn't always work
 
-# pipeline
+## Packaging
 
-# pipeline definition
+### Required files
 
-# pipeline protocols
+1. Java class and supporting jars
+2. POM and ANT files
+3. Open NLP sentence model files
+4. Lucene indices
+5. Local libraries which are not available through Maven.
+
+
+### Organization
+
+     metamaplite -+- src 
+                  +- config
+                  +- data -+- models
+                  |        +- lucenedb -+- strict -+- cui_sourceinfo 
+                  |                                +- cui_st
+                  +- logs
+                  +- scripts
+                  +- target
+
+## Possible implementations
+
+### Trie based
+
+ Trie based NER using a lexically enhanced trie dictionary.
+
+### Lucene index based
+
+Current implementation uses Lucene indexes
+
+### IRUtils multi-key index
+
+Multi-key Inverted File index (Implementation in process).
+
+## Optimizations
+
+Cache references to entities in Map to avoid unnecessary lookups, this
+is in current implementation.
+
+## Input Formats
+
+### Current
+
++ FreeText
++ Single Line Input (SLI)
++ Single Line Delimited Input (SLDI)
++ ChemDNER
++ ChemDNERSLDI
++ NCBICorpus
+
+### Future
+
++ Medline 
++ XML (Medline, user-specified)
++ JSON 
++ EDN
+
+# Pipeline
+
+# Pipeline Definition
+
+# Pipeline Protocols
 
 object based
 
-# pipeline wrapper modules
+# Pipeline Wrapper Modules
 
 
-# plugins
+# Plugins
 
 Should use OSGi or JPF (Java Plugin Framework)  
 
@@ -42,7 +100,7 @@ Should use OSGi or JPF (Java Plugin Framework)
 
 # MRCONSO file 
 
-/nfsvol/nls/specialist/module/metawordindex/data.Base.2014AA/mrconso.suppressed
+    /nfsvol/nls/specialist/module/metawordindex/data.Base.2014AA/mrconso.suppressed
 
 5365358
 
@@ -75,5 +133,18 @@ Annotations are associated with the span.
 
 typical annotations
    Concept Id with associated semantic types and source references
+
+
+# Generating datafiles
+
+## Generating cuisourceinfoindex (cui_sourceinfo)
+
+Use extract\_mrconso\_sources.perl:
+
+    http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/public_mm/tree/bin/extract_mrconso_sources.perl
+
+## Generating cuisemantictypeindex (cui_st)
+
+
 
 
