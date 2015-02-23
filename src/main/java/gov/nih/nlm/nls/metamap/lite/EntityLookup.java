@@ -134,9 +134,9 @@ public class EntityLookup {
     throws FileNotFoundException, IOException, ParseException
  {
     List<Document> hitList = 
-      this.mmIndexes.cuiSourceInfoIndex.lookup(cui, this.mmIndexes.cuiQueryParser, 1);
+      this.mmIndexes.cuiConceptIndex.lookup(cui, this.mmIndexes.cuiQueryParser, 1);
     if (hitList.size() > 0) {
-      return hitList.get(0).get("str");
+      return hitList.get(0).get("concept");
     }
     return null;
   }

@@ -104,18 +104,27 @@ public class EntityLookup2 {
     }
   }
 
-
+  /**
+   * Find preferred name for cui (concept unique identifier)
+   * @param cui target cui
+   * @return preferredname for cui or null if not found
+   */
   public String findPreferredName(String cui)
     throws FileNotFoundException, IOException, ParseException
  {
     List<Document> hitList = 
-      this.mmIndexes.cuiSourceInfoIndex.lookup(cui, this.mmIndexes.cuiQueryParser, 1);
+      this.mmIndexes.cuiConceptIndex.lookup(cui, this.mmIndexes.cuiQueryParser, 1);
     if (hitList.size() > 0) {
-      return hitList.get(0).get("str");
+      return hitList.get(0).get("concept");
     }
     return null;
   }
 
+  /**
+   * Get source vocabulary abbreviations for cui (concept unique identifier)
+   * @param cui target cui
+   * @return set of source vocabulary abbreviations a for cui or empty set if none found.
+   */
   public Set<String> getSourceSet(String cui)
     throws FileNotFoundException, IOException, ParseException
   {
@@ -128,6 +137,11 @@ public class EntityLookup2 {
     return sourceSet;
   }
 
+  /**
+   * Get semantic type set for cui (concept unique identifier)
+   * @param cui target cui
+   * @return set of semantic type abbreviations a for cui or empty set if none found.
+   */
   public Set<String> getSemanticTypeSet(String cui)
     throws FileNotFoundException, IOException, ParseException
   {
@@ -139,7 +153,6 @@ public class EntityLookup2 {
     }
     return semanticTypeSet;
   }
-
 
   /**
    * Given the string:
