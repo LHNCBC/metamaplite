@@ -41,8 +41,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
-import gov.nih.nlm.nls.metamap.lite.lucene.StringPair;
-import gov.nih.nlm.nls.metamap.lite.lucene.StringTriple;
 
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
