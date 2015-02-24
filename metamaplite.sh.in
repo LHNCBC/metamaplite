@@ -23,7 +23,7 @@ CONFIGDIR=$PROJECTDIR/config
 JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Den-token.bin.path=$OPENNLP_MODELS/en-token.bin \
     -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin \
-    -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
+    -Dlog4j.configurationFile=file://$PROJECTDIR/config/log4j2.xml \
     -Dmetamaplite.property.file=$CONFIGDIR/metamaplite.properties \
     -Dmetamaplite.entitylookup.resultlength=1500 \
     -Dmetamaplite.cuiconceptindex=$PROJECTDIR/data/lucenedb/strict/cuiconcept \
