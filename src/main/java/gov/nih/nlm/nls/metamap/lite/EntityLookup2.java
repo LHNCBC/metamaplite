@@ -30,6 +30,8 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 import bioc.BioCLocation;
 
+import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
+
 import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
@@ -460,14 +462,31 @@ public class EntityLookup2 {
     return newEntitySet;
   }
 
-  public static List<Entity> processPassage(String docid, BioCPassage passage) 
-    throws IOException, FileNotFoundException, ParseException {
+  public static void applyContext(Set<Entity> entitySet, BioCSentence sentence) 
+    throws Exception {
+    for (List<String> result: ContextWrapper.applyContextUsingEntities(entitySet, sentence.getText())) {
+      logger.debug("result: " + result);
+    }
+  }
+
+  public static List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext) 
+    throws IOException, FileNotFoundException, ParseException, Exception {
     logger.debug("enter processPassage");
     EntityLookup2 entityLookupInst = EntityLookup2.singleton;
     Set<Entity> entitySet0 = new HashSet<Entity>();
+    int i = 0;
     for (BioCSentence sentence: passage.getSentences()) {
       List<? extends Token> tokenList = Scanner.analyzeText(sentence);
-      entitySet0.addAll(entityLookupInst.processSentenceTokenList(docid, tokenList));
+      Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList);
+      for (Entity entity: sentenceEntitySet) {
+	entity.setLocationPosition(i);
+      }
+      entitySet0.addAll(sentenceEntitySet);
+    // look for negation and other relations using Context.
+      if (useContext) {
+	applyContext(sentenceEntitySet, sentence);
+      }
+      i++;
     }
     logger.debug("exit processPassage");
     Set<Entity> entitySet = removeSubsumingEntities(entitySet0);

@@ -2,6 +2,7 @@ package gov.nih.nlm.nls.metamap.lite.context;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
 import gov.nih.nlm.nls.types.Sentence;
@@ -34,6 +35,21 @@ public class ContextWrapper {
     return resultlist;
   }
 
+  public static List<List<String>> applyContextUsingEntities(Collection<Entity> entityList, 
+							     String sentence)
+    throws Exception {
+    List<List<String>> resultlist = new ArrayList<List<String>>();
+    for (Entity entity: entityList) {
+      List<String> result = contextInstance.applyContext(entity.getText(), sentence);
+      resultlist.add(result);
+      if (result.get(2).equals("Negated")) {
+	entity.setNegated(true);
+      }
+      entity.setTemporality(result.get(3));
+    }
+    return resultlist;
+  }
+
   /** Given annotated sentence list with entities, determine hedging
    * relations using ConText.*/
   public static List<List<String>> applyContextUsingEntities(List<Entity> entityList, 
@@ -41,9 +57,14 @@ public class ContextWrapper {
     throws Exception {
     List<List<String>> resultlist = new ArrayList<List<String>>();
     for (Entity entity: entityList) {
-        for (Sentence sentence: sentenceList) {
-            resultlist.add(contextInstance.applyContext(entity.getText(), sentence.getText()));
-        }
+      for (Sentence sentence: sentenceList) {
+	List<String> result = contextInstance.applyContext(entity.getText(), sentence.getText());
+	resultlist.add(result);
+	if (result.get(2).equals("Negated")) {
+	  entity.setNegated(true);
+	}
+	entity.setTemporality(result.get(3));
+      }
     }
     return resultlist;
   }
@@ -64,6 +85,10 @@ public class ContextWrapper {
 	    annotation.putInfon("negstatus",   result.get(2));
 	    annotation.putInfon("temporality", result.get(3));
 	    annotation.putInfon("subject",     result.get(4));
+	    if (result.get(2).equals("Negated")) {
+	      entity.setNegated(true);
+	    }
+	    entity.setTemporality(result.get(3));
 	  }
 	}
       }

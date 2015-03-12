@@ -20,12 +20,14 @@ import java.io.FileReader;
 
 import java.lang.reflect.Method;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.HashSet;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -52,6 +54,15 @@ import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
 import gov.nih.nlm.nls.metamap.document.FreeText;
 import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
 import gov.nih.nlm.nls.metamap.document.SingleLineInput;
+import gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID;
+import gov.nih.nlm.nls.metamap.document.BioCDocumentLoader;
+import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry;
+import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
+
+import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
+import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatterRegistry;
+
+import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
 
 import bioc.BioCDocument;
 import bioc.BioCPassage;
@@ -63,32 +74,81 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import opennlp.tools.util.Span;
 
+/**
+ * Properties precedence (from highest to lowest):
+ * <ul>
+ *   <li>Command line options</li>
+ *   <li>MetaMap property file</li>
+ * </ul>
+ */
 public class MetaMapLite {
   /** log4j logger instance */
   private static final Logger logger = LogManager.getLogger(MetaMapLite.class);
   /** location of metamaplite.properties configuration file */
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");
+  static Map<String,String> outputExtensionMap = new HashMap<String,String>();
 
-  static final int BRAT_FORMAT = 1;
-  static final int CDI_FORMAT  = 2;
-  static final int MMI_FORMAT  = 3;
+  Set<String> semanticGroup = new HashSet<String>(); // initially empty
 
   AbbrConverter abbrConverter = new AbbrConverter();
   Properties properties;
 
-  public MetaMapLite(Properties properties) {
+  boolean useContext = false;
+
+  public MetaMapLite(Properties properties)
+    throws ClassNotFoundException, InstantiationException, 
+	   NoSuchMethodException, IllegalAccessException
+  {
     this.properties = properties;
+    BioCDocumentLoaderRegistry.register("freetext",
+					"For freetext document that are grammatically well behaved.", 
+					new FreeText());
+    BioCDocumentLoaderRegistry.register("chemdner",
+					"ChemDNER format document sets",
+					new ChemDNER());
+    BioCDocumentLoaderRegistry.register("chemdnersldi",
+					"ChemDNER single line delimited with id format document sets",
+					new ChemDNERSLDI());
+    BioCDocumentLoaderRegistry.register("ncbicorpus",
+					"NCBI Disease Corpus format document sets",
+					new NCBICorpusDocument());
+    BioCDocumentLoaderRegistry.register("semeval14",
+					"SemEval Document (Almost FreeText)",
+					new SemEvalDocument());
+    BioCDocumentLoaderRegistry.register("sli",
+					"Single Line Input document sets",
+					new SingleLineInput());
+    BioCDocumentLoaderRegistry.register("sldi",
+					"Single Line Input document sets",
+					new SingleLineDelimitedInputWithID());
+    ResultFormatterRegistry.register("brat",
+				     "BRAT Annotation format (.ann)",
+				     new Brat());
+    ResultFormatterRegistry.register("mmi",
+				     "Fielded MetaMap Indexing-like Output",
+				     new MMI());
+    /** augment or override any built-in formats with ones specified by property file. */
+    BioCDocumentLoaderRegistry.register(properties);
+    ResultFormatterRegistry.register(properties);
+
+    outputExtensionMap.put("brat",".ann");
+    outputExtensionMap.put("mmi",".mmi");
+    outputExtensionMap.put("cdi",".cdi");
+  }
+
+  void setSemanticGroup(String[] semanticTypeList) {
+    this.semanticGroup = new HashSet<String>(Arrays.asList(semanticTypeList));
   }
 
   /**
-   * Invoke sentence processing pipeline on asentence
+   * Invoke sentence processing pipeline on a sentence
    * @param sentence
    * @return updated sentence
    */
-  public static BioCSentence processSentence(BioCSentence sentence, BioCPassage passage)
+  public BioCSentence processSentence(BioCSentence sentence, BioCPassage passage)
     throws IllegalAccessException, InvocationTargetException, 
-	   IOException, ParseException
+	   IOException, ParseException, Exception
   {
     logger.debug("enter processSentence");
     BioCSentence result0 = 
@@ -96,9 +156,17 @@ public class MetaMapLite {
       (SentenceAnnotator.tokenizeSentence(sentence), passage);
     // System.out.println("unfiltered entity list: ");
     // Brat.listEntities(result0);
-    BioCSentence result = 
-      SemanticGroupFilter.keepEntitiesInSemanticGroup
-      (SemanticGroups.getClinicalDisorders(), result0);
+    BioCSentence result = result0;
+    if ((! this.semanticGroup.contains("all")) &&
+        (this.semanticGroup.size() > 0)) {
+      result = SemanticGroupFilter.keepEntitiesInSemanticGroup
+	(this.semanticGroup, result0);
+    }
+    // look for negation and other relations using Context.
+    if (this.useContext) {
+      ContextWrapper.applyContext(result);
+    }
+
     // System.out.println("filtered entity list: ");
     // Brat.listEntities(result);
     logger.debug("exit processSentence");
@@ -110,14 +178,14 @@ public class MetaMapLite {
    * @param passage containing list of sentences
    * @return list of results from sentence processing pipeline, one per sentence in input list.
    */
-  public static BioCPassage processSentences(BioCPassage passage) 
-    throws IllegalAccessException, InvocationTargetException, IOException, ParseException
+  public BioCPassage processSentences(BioCPassage passage) 
+    throws IllegalAccessException, InvocationTargetException, IOException, ParseException, Exception
   {
     logger.debug("enter processSentences");
     List<BioCSentence> resultList = new ArrayList<BioCSentence>();
     for (BioCSentence sentence: passage.getSentences()) {
       logger.info("Processing: " + sentence.getText());
-      resultList.add(processSentence(sentence, passage));
+      resultList.add(this.processSentence(sentence, passage));
     }
     passage.setSentences(resultList);
     logger.debug("exit processSentences");
@@ -125,7 +193,7 @@ public class MetaMapLite {
   }
 
   public List<Entity> processPassage(BioCPassage passage)
-    throws IllegalAccessException, InvocationTargetException, IOException, ParseException
+    throws IllegalAccessException, InvocationTargetException, IOException, ParseException, Exception
   {
     logger.debug("enter processPassage");
     logger.debug(passage.getText());
@@ -138,14 +206,14 @@ public class MetaMapLite {
       MarkAbbreviations.markAbbreviations
       (passageWithSentsAndAbbrevs,
        SemanticGroupFilter.keepEntitiesInSemanticGroup
-       (SemanticGroups.getDisordersEdited(), 
-	EntityLookup2.processPassage("0000000.tx", passageWithSentsAndAbbrevs)));
+       (this.semanticGroup, 
+	EntityLookup2.processPassage("0000000.tx", passageWithSentsAndAbbrevs, this.useContext)));
     logger.debug("exit processPassage");
     return entityList;
   }
 
   public List<Entity> processDocument(BioCDocument document) 
-    throws IllegalAccessException, InvocationTargetException, IOException, ParseException
+    throws IllegalAccessException, InvocationTargetException, IOException, ParseException, Exception
   {
     List<Entity> entityList = new ArrayList<Entity>();    
     for (BioCPassage passage: document.getPassages()) {
@@ -155,7 +223,7 @@ public class MetaMapLite {
   }
 
   public List<Entity> processDocumentList(List<BioCDocument> documentList)
-    throws IllegalAccessException, InvocationTargetException, IOException, ParseException
+    throws IllegalAccessException, InvocationTargetException, IOException, ParseException, Exception
   {
     List<Entity> entityList = new ArrayList<Entity>();    
     for (BioCDocument document: documentList) {
@@ -167,7 +235,7 @@ public class MetaMapLite {
   public static MetaMapLite initMetaMapLite()
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
-	   NoSuchMethodException, IllegalAccessException 
+	   NoSuchMethodException, IllegalAccessException
   {
     Properties properties = new Properties();
     properties.load(new FileReader(configPropertyFilename));
@@ -183,15 +251,26 @@ public class MetaMapLite {
     System.err.println("usage: [options] filenames");
     System.err.println("document processing options:");
     System.err.println("  --freetext (default)");
-    System.err.println("  --ncbicorpus");
-    System.err.println("  --chemdner");
-    System.err.println("  --chemdnersldi");
+    System.err.println("  --inputdocformat=<document type>");
+    System.err.println("    Available document types:");
+    for (String name: BioCDocumentLoaderRegistry.listNameSet()) {
+      System.err.println("      " + name);
+    }
     System.err.println("output options:");
     System.err.println("  --bioc|cdi|bc|bc-evaluate");
     System.err.println("  --mmilike|mmi");
     System.err.println("  --mmi");
     System.err.println("  --brat");    
     System.err.println("  --luceneresultlen");
+    System.err.println("  --outputformat=<format type>");
+    System.err.println("    Available format types:");  
+    for (String name: ResultFormatterRegistry.listNameSet()) {
+      System.err.println("      " + name);
+    }
+    System.err.println("processing options:");
+    System.err.println("  --restrict-to-sts=<semtype>[,<semtype>,<semtype>...]");
+    System.err.println("performance/effectiveness options:");
+    System.err.println("  --luceneresultlen=<length>");
   }
 
   /**
@@ -233,46 +312,64 @@ public class MetaMapLite {
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException,
-	   ParseException , InvocationTargetException {
+	   ParseException , InvocationTargetException, 
+	   Exception
+  {
     if (args.length > 0) {
       MetaMapLite metaMapLiteInst = initMetaMapLite();
+      Properties properties = metaMapLiteInst.properties;
+
+      /** set any options in properties configuration file and system properties first */
+      BioCDocumentLoaderRegistry.register(properties);
+
       List<String> filenameList = new ArrayList<String>();
-      String processingOption = "--freetext";
-      int outputOption = MMI_FORMAT;
-      String outputExtension = ".mmi";
-      String outputFile = null;
-      String entityLookupResultLengthString = "";
+      String documentInputOption =
+	properties.getProperty("metamaplite.document.inputtype", "freetext");
+      String outputFormatOption =
+ 	properties.getProperty("metamaplite.outputformat", "mmi");
+      String outputExtension =
+ 	properties.getProperty("metamaplite.outputextension",  ".mmi");
+      String outputFile =
+ 	properties.getProperty("metamaplite.outputfilename", null);
+      String entityLookupResultLengthString = 
+ 	properties.getProperty("metamaplite.entitylookup.resultlength", "");
+      metaMapLiteInst.setSemanticGroup
+	(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
+      metaMapLiteInst.useContext = 
+	Boolean.parseBoolean(properties.getProperty("metamaplite.usecontext", "false"));
       int i = 0;
       while (i < args.length) {
-	if (args[i].equals("--chemdnersldi")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--chemdner")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--ncbicorpus")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--freetext")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--sli")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--bc-evaluate") ||
-		   args[i].equals("--bioc") ||
-		   args[i].equals("--bc") ||
-		   args[i].equals("--cdi")) {
-	  outputOption = CDI_FORMAT;
-	  outputExtension = ".cdi";
-	} else if (args[i].equals("--mmi") || 
-		   args[i].equals("--mmilike")) {
-	  outputOption = MMI_FORMAT;
-	} else if (args[i].equals("--brat") || 
-		   args[i].equals("--BRAT")) {
-	  outputOption = BRAT_FORMAT;
-	  outputExtension = ".ann";
-	} else if (args[i].equals("--luceneresultlen")) {
-	  i++;
-	  entityLookupResultLengthString = args[i];
-	} else if (args[i].equals("--help")) {
-	  displayHelp();
-	  System.exit(1);
+        if (args[i].substring(0,2).equals("--")) {
+	  String[] fields = args[i].split("=");
+	  if (fields[0].equals("--inputdocformat")) {
+	    documentInputOption = fields[1];
+	  } else if (fields[0].equals("--freetext")) {
+	    documentInputOption = "freetext";
+	  } else if (fields[0].equals("--outputformat")) {
+	    outputFormatOption = fields[1];
+	    outputExtension = outputExtensionMap.get(outputFormatOption);
+	  } else if (fields[0].equals("--brat") || 
+		     fields[0].equals("--BRAT")) {
+	    outputFormatOption = "brat";
+	    outputExtension = outputExtensionMap.get(outputFormatOption);
+	  } else if (fields[0].equals("--mmi") || 
+		     fields[0].equals("--mmilike")) {
+	    outputFormatOption = "mmi";
+	    outputExtension = outputExtensionMap.get(outputFormatOption);
+	  } else if (fields[0].equals("--luceneresultlen")) {
+	    entityLookupResultLengthString = fields[1];
+	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
+		     fields[0].equals("--restrict-to-sts") ||
+		     fields[0].equals("--restrict_to_semantic-types") ||
+		     fields[0].equals("--restrict_to_sts")) {
+	    String[] semanticTypeList = fields[1].split(",");
+	    metaMapLiteInst.setSemanticGroup(semanticTypeList);
+	  } else if (fields[0].equals("--usecontext")) {
+	    metaMapLiteInst.useContext = true;
+	  } else if (args[i].equals("--help")) {
+	    displayHelp();
+	    System.exit(1);
+	  }
 	} else {
 	  filenameList.add(args[i]);
 	}
@@ -283,80 +380,31 @@ public class MetaMapLite {
 	System.setProperty("metamaplite.entitylookup.resultlength", 
 			   entityLookupResultLengthString);
       }
-
+ 
       logger.info("Loading and processing documents");
       for (String filename: filenameList) {
 	System.out.println("Loading and processing " + filename);
 	logger.info("Loading and processing " + filename);
-	List<Entity> entityList = new ArrayList<Entity>();
-	if (processingOption.equals("--chemdnersldi")) {
-	  List<BioCDocument> documentList = ChemDNERSLDI.bioCLoadSLDIFile(filename);
-	  /*CHEMDNER SLDI style documents*/
- 	  entityList = metaMapLiteInst.processDocumentList(documentList);
-	} else if (processingOption.equals("--chemdner")) {
-	  List<BioCDocument> documentList = ChemDNER.bioCLoadFile(filename);
-	  /*CHEMDNER SLDI style documents*/
-	  entityList = metaMapLiteInst.processDocumentList(documentList);
-	} else if (processingOption.equals("--ncbicorpus")) {
-	  List<BioCDocument> documentList = NCBICorpusDocument.bioCLoadFile(filename);
-	  /*CHEMDNER SLDI style documents*/
-	  entityList = metaMapLiteInst.processDocumentList(documentList);
-	} else if (processingOption.equals("--freetext")) {
-	  
-	  // String inputtext = FreeText.loadFile(filename);
-	  // BioCDocument document = new BioCDocument();
-	  // logger.info(inputtext);
-	  // BioCPassage passage = new BioCPassage();
-	  // passage.setText(inputtext);
-	  // passage.putInfon("docid", "00000000.tx");
-	  // passage.putInfon("freetext", "freetext");
-	  // document.addPassage(passage);
-	  // document.setID("00000000.tx");
-	  // List<BioCDocument> documentList = new ArrayList<BioCDocument>();
-	  // documentList.add(document);
-	  
-	  List<BioCDocument> documentList = FreeText.loadFreeTextFile(filename);
-	  entityList = metaMapLiteInst.processDocumentList(documentList);
-	} else if (processingOption.equals("--sli")) {
-	  List<BioCDocument> documentList = SingleLineInput.bioCLoadFile(filename);
-	  /*Single line documents*/
-	  entityList = metaMapLiteInst.processDocumentList(documentList);
-	} else if (processingOption.equals("--help")) {
-	  displayHelp();
-	  System.exit(1);
-	} 
-	// logger.debug("document list length: " + newDocumentList.size());
-	// for (BioCDocument doc: newDocumentList) {
-	//   logger.debug(doc);
-	// }
-	
+
+	// load documents
+	BioCDocumentLoader docLoader = BioCDocumentLoaderRegistry.get(documentInputOption);
+	List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
+
+	// process documents
+	List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
+
+	// create output filename
 	String basename = filename.substring(0,filename.lastIndexOf(".")); // 
 	String outputFilename = basename + outputExtension;
 	logger.info("outputing results to " + outputFilename);
 
-	switch (outputOption) {
-	case CDI_FORMAT:
-	  logger.info("writing BC evaluate format file...");
-	  // for (BioCDocument document: newDocumentList) {
-	  // 
-	  // EntityAnnotation.writeBcEvaluateAnnotations(outputFilename, document);
-	  // }
-	  break;
-	case BRAT_FORMAT:
-	  logger.debug("writing mmi format output");
-	  PrintWriter pw = new PrintWriter(new BufferedWriter
-					   (new FileWriter(outputFilename)));
-	  Brat.writeAnnotationList("MMLite", pw, entityList);
-	  pw.close();
-	  break;
-	case MMI_FORMAT:
-	  logger.debug("writing mmi format output");
-	  MMI.displayEntityList(entityList);
-	  break;
-      default:
-	  logger.debug("writing mmi format output");
-	  MMI.displayEntityList(entityList);
-	}
+	// output results for file
+	PrintWriter pw = new PrintWriter(new BufferedWriter
+					 (new FileWriter(outputFilename)));
+	// format output
+	ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
+	formatter.entityListFormatter(pw, entityList);
+	pw.close();
       } /* for filename */
 
     } else {

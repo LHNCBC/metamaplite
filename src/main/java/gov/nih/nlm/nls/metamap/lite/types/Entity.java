@@ -21,6 +21,9 @@ public class Entity implements Annotation, Comparable<Entity>
   int start;
   int length;
   double score;
+  boolean negationStatus = false;
+  String temporality = "";
+  int locationPosition = 0;
 
   List<Ev> evList = null;
 
@@ -51,7 +54,24 @@ public class Entity implements Annotation, Comparable<Entity>
   public void setText(String text) {
     this.matchedText = text;
   }
-
+  public void setNegated(boolean value) {
+    this.negationStatus = value;
+  }
+  public boolean isNegated() {
+    return this.negationStatus;
+  }
+  public void setTemporality(String value) {
+    this.temporality = value;
+  }
+  public String getTemporality() {
+    return this.temporality;
+  }
+  public void setLocationPosition(int i) {
+    this.locationPosition = i;
+  }
+  public int getLocationPosition() {
+    return this.locationPosition;
+  }
   public int compareTo(Entity o) {
     if (this.getScore() != o.getScore()) {
       return Double.compare(this.getScore(),o.getScore());
