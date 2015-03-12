@@ -43,7 +43,9 @@ public class SemanticGroupFilter {
     for (Entity entity: entityList) {
       List<Ev> newEvList = new ArrayList<Ev>();
       for (Ev ev: entity.getEvList()) {
-	if (ev.getConceptInfo().getSemanticTypeSet() instanceof HashSet) {
+	if (semanticGroup.contains("all")) {
+	  newEvList.add(ev);
+	} else if (ev.getConceptInfo().getSemanticTypeSet() instanceof HashSet) {
 	  Set<String> semanticTypeSet = ev.getConceptInfo().getSemanticTypeSet();
 	  logger.debug("entity has semantic type set: " + semanticTypeSet );
 	  // retainAll for intersection test? that's intuitive! (NOTE: retainAll is destructive.)
@@ -77,7 +79,9 @@ public class SemanticGroupFilter {
 	for (Entity entity: biocEntity.getEntitySet()) {
 	  List<Ev> newEvList = new ArrayList<Ev>();
 	  for (Ev ev: entity.getEvList()) {
-	    if (ev.getConceptInfo().getSemanticTypeSet() instanceof HashSet) {
+	    if (semanticGroup.contains("all")) {
+	      newEvList.add(ev);
+	    } else if (ev.getConceptInfo().getSemanticTypeSet() instanceof HashSet) {
 	      Set<String> semanticTypeSet = ev.getConceptInfo().getSemanticTypeSet();
 	      logger.debug("entity has semantic type set: " + semanticTypeSet );
 	      // retainAll for intersection test? that's intuitive! (NOTE: retainAll is destructive.)
