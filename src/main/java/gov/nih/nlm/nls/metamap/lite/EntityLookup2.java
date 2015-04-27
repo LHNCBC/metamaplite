@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Comparator;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -254,7 +255,7 @@ public class EntityLookup2 {
     throws FileNotFoundException, IOException, ParseException
   {
     logger.debug("findLongestMatch");
-
+    String normTerm ="";
     int longestMatchedTokenLength = 0;
     // span -> entity list map
     Map<String,Entity> spanMap = new HashMap<String,Entity>();
@@ -275,7 +276,7 @@ public class EntityLookup2 {
 	String term = transformPreposition(originalTerm);
 	String query = term;
 	// String normTerm = MWIUtilities.normalizeAstString(term);
-	String normTerm = NormalizedStringCache.normalizeAstString(term);
+	normTerm = NormalizedStringCache.normalizeAstString(term);
 	int offset = ((PosToken)tokenSubList.get(0)).getPosition();
 	if (CharUtils.isAlpha(term.charAt(0))) {
 	  List<Ev> evList = new ArrayList<Ev>();
@@ -462,6 +463,18 @@ public class EntityLookup2 {
     return newEntitySet;
   }
 
+  static class EntityStartComparator implements Comparator<Entity> {
+    public int compare(Entity o1, Entity o2) { return o1.getStart() - o2.getStart(); }
+    public boolean equals(Object obj) { return false; }
+  }
+
+  static EntityStartComparator entityComparator = new EntityStartComparator();
+
+  /**
+   * Apply Context negation and temporality matching to sentence using entity set.
+   * @param entitySet entitySet associated with sentence 
+   * @param sentence sentence to apply Context annotations to.
+   */
   public static void applyContext(Set<Entity> entitySet, BioCSentence sentence) 
     throws Exception {
     for (List<String> result: ContextWrapper.applyContextUsingEntities(entitySet, sentence.getText())) {
@@ -490,9 +503,9 @@ public class EntityLookup2 {
     }
     logger.debug("exit processPassage");
     Set<Entity> entitySet = removeSubsumingEntities(entitySet0);
-    return new ArrayList<Entity>(entitySet);
-
-    
+    List<Entity> resultList = new ArrayList<Entity>(entitySet);
+    Collections.sort(resultList, entityComparator);
+    return resultList;
   }
 }
 
