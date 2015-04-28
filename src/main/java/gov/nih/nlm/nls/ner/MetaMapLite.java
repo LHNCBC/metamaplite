@@ -128,6 +128,8 @@ public class MetaMapLite {
     ResultFormatterRegistry.register("mmi",
 				     "Fielded MetaMap Indexing-like Output",
 				     new MMI());
+
+
     /** augment or override any built-in formats with ones specified by property file. */
     BioCDocumentLoaderRegistry.register(properties);
     ResultFormatterRegistry.register(properties);
@@ -187,7 +189,10 @@ public class MetaMapLite {
       logger.info("Processing: " + sentence.getText());
       resultList.add(this.processSentence(sentence, passage));
     }
-    passage.setSentences(resultList);
+    /*passage.setSentences(resultList);*/
+    for (BioCSentence sentence: resultList) {
+      passage.addSentence(sentence);
+    }
     logger.debug("exit processSentences");
     return passage;
   }
@@ -205,9 +210,8 @@ public class MetaMapLite {
     List<Entity> entityList =
       MarkAbbreviations.markAbbreviations
       (passageWithSentsAndAbbrevs,
-       SemanticGroupFilter.keepEntitiesInSemanticGroup
-       (this.semanticGroup, 
-	EntityLookup2.processPassage("0000000.tx", passageWithSentsAndAbbrevs, this.useContext)));
+       EntityLookup2.processPassage
+       ("0000000.tx", passageWithSentsAndAbbrevs, this.useContext, this.semanticGroup));
     logger.debug("exit processPassage");
     return entityList;
   }
@@ -403,7 +407,11 @@ public class MetaMapLite {
 					 (new FileWriter(outputFilename)));
 	// format output
 	ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
-	formatter.entityListFormatter(pw, entityList);
+	if (formatter != null) {
+	  formatter.entityListFormatter(pw, entityList);
+	} else {
+	  System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
+	}
 	pw.close();
       } /* for filename */
 
@@ -412,4 +420,5 @@ public class MetaMapLite {
       System.exit(1);
     }   
   }
+
 }

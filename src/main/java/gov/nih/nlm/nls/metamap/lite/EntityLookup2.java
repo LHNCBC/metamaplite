@@ -227,6 +227,25 @@ public class EntityLookup2 {
     }
   }
 
+  boolean isCuiInRestrictSet(String cui, Set<String> semanticTypeRestrictSet)
+  {
+    if (semanticTypeRestrictSet.isEmpty() || semanticTypeRestrictSet.contains("all"))
+      return true;
+    try {
+      boolean inSet = false;
+      for (String semtype: getSemanticTypeSet(cui)) {
+	inSet = inSet || semanticTypeRestrictSet.contains(semtype);
+      }
+      return inSet;
+    } catch (FileNotFoundException fnfe) {
+      return false;
+    } catch (IOException ioe) {
+      return false;
+    } catch (ParseException pe) {
+      return false;
+    }
+  }
+
   /**
    * Given Example:
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
@@ -250,8 +269,9 @@ public class EntityLookup2 {
    *    ...
    */
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
-						   List<Document> documentList, 
-						   List<? extends Token> tokenList)
+						      List<Document> documentList, 
+						      List<? extends Token> tokenList,
+						      Set<String> semanticTypeRestrictSet)
     throws FileNotFoundException, IOException, ParseException
   {
     logger.debug("findLongestMatch");
@@ -273,7 +293,7 @@ public class EntityLookup2 {
       String originalTerm = StringUtils.join(tokenTextSubList, "");
       if ((originalTerm.length() > 2) &&
 	  (CharUtils.isAlphaNumeric(originalTerm.charAt(originalTerm.length() - 1)))) {
-	String term = transformPreposition(originalTerm);
+	String term = originalTerm;
 	String query = term;
 	// String normTerm = MWIUtilities.normalizeAstString(term);
 	normTerm = NormalizedStringCache.normalizeAstString(term);
@@ -293,7 +313,10 @@ public class EntityLookup2 {
 			     termLength,
 			     0.0);
 	      logger.debug("add ev: " + ev);
-	      evList.add(ev);
+	      String cui = ev.getConceptInfo().getCUI();
+	      if (isCuiInRestrictSet(cui, semanticTypeRestrictSet)) {
+		evList.add(ev);
+	      }
 	    }
 	  } else {
 	    for (Document doc: documentList) {
@@ -321,7 +344,9 @@ public class EntityLookup2 {
 				 termLength,
 				 0.0);
 		  logger.debug("add ev: " + ev);
-		  evList.add(ev);
+		  if (isCuiInRestrictSet(cui, semanticTypeRestrictSet)) {
+		    evList.add(ev);
+		  }
 		} /*if token instance of PosToken*/
 	      } /*if term equals doc string */
 	    } /* for doc in documentList */
@@ -371,7 +396,8 @@ public class EntityLookup2 {
    * @param sentenceTokenList sentence to be examined.
    * @return set of entities found in the sentence.
    */
-  public Set<Entity> processSentenceTokenList(String docid, List<? extends Token> sentenceTokenList)
+  public Set<Entity> processSentenceTokenList(String docid, List<? extends Token> sentenceTokenList,
+					      Set<String> semTypeRestrictSet)
     throws IOException, FileNotFoundException, ParseException {
     logger.debug("sentence tokenlist: " + sentenceTokenList);
     Set<Entity> entitySet = new HashSet<Entity>();
@@ -403,7 +429,8 @@ public class EntityLookup2 {
 	    this.findLongestMatch
 	    (docid,
 	     hitList,
-	     sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())));
+	     sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())),
+	     semTypeRestrictSet);
 	  for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
 	    if (entity.getEvList().size() > 0) {
 	      entitySet.add(entity);
@@ -482,7 +509,8 @@ public class EntityLookup2 {
     }
   }
 
-  public static List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext) 
+  public static List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
+					    Set<String> semTypeRestrictSet) 
     throws IOException, FileNotFoundException, ParseException, Exception {
     logger.debug("enter processPassage");
     EntityLookup2 entityLookupInst = EntityLookup2.singleton;
@@ -490,7 +518,8 @@ public class EntityLookup2 {
     int i = 0;
     for (BioCSentence sentence: passage.getSentences()) {
       List<? extends Token> tokenList = Scanner.analyzeText(sentence);
-      Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList);
+      Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList,
+										semTypeRestrictSet);
       for (Entity entity: sentenceEntitySet) {
 	entity.setLocationPosition(i);
       }
