@@ -46,6 +46,8 @@ public class MarkAbbreviations {
     return newEntityList;
   }
 
+  /** add any entity that are abbreviations.
+   */
   public static List<Entity> markAbbreviations(BioCPassage passage, List<Entity> entityList) {
     // add abbreviations to entity set if present
     List<Entity> newEntityList = new ArrayList<Entity>(entityList);
@@ -87,6 +89,7 @@ public class MarkAbbreviations {
       }
     } /*for relation in annotation relations*/
 
+    // Actually add the entities
     if (abbrMap.size() > 0) {
       List<Entity> abbrevEntities = new ArrayList<Entity>();
       for (Entity entity: entityList) {
@@ -95,15 +98,22 @@ public class MarkAbbreviations {
 	  logger.info("text -> " + key + " -> " + abbrMap.get(key));
 	  if (shortFormMap.containsKey(abbrMap.get(key))) {
 	    for (BioCAnnotation abbrAnnot: shortFormMap.get(abbrMap.get(entity.getText()))) {
-	      logger.info("adding " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
-	      Entity newEntity = new Entity(entity);
-	      newEntity.setText(abbrAnnot.getText());
 	      BioCLocation location = abbrAnnot.getLocations().get(0);
-	      newEntity.setStart(location.getOffset());
-	      newEntity.setLength(abbrAnnot.getText().length());
-	      logger.info("newEntity: " + newEntity);
-	      newEntityList.add(newEntity);
-	      newEntityList.addAll(findMatches(passage,newEntity));
+	      // verify if abbreviation is in original text at specified offset 
+	      if ((location.getOffset() > 0) && (abbrAnnot.getText().length() > 0)) {
+		logger.debug("abbrev annotation: " + abbrAnnot.getText() ); 
+		logger.debug("location offset: " + location.getOffset()); 
+		if (passage.getText().substring(location.getOffset(), location.getOffset() + abbrAnnot.getText().length()).equals(abbrAnnot.getText())) {
+		  logger.info("adding " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
+		  Entity newEntity = new Entity(entity);
+		  newEntity.setText(abbrAnnot.getText());
+		  newEntity.setStart(location.getOffset());
+		  newEntity.setLength(abbrAnnot.getText().length());
+		  logger.info("newEntity: " + newEntity);
+		  newEntityList.add(newEntity);
+		  newEntityList.addAll(findMatches(passage,newEntity));
+		}
+	      }
 	    }
 	  }
 	}
