@@ -41,9 +41,10 @@ public class Brat implements ResultFormatter {
     int startOffset;
     int endOffset;
     String text;     
-    List<NormalizationAnnotation> referenceList = null;
+    Set<NormalizationAnnotation> referenceSet = null;
 
     public TextBoundAnnotation(String id, String type, int start, int end, String text) {
+      
        this.id = id; 
        this.type = type;
        this.startOffset = start;
@@ -51,22 +52,22 @@ public class Brat implements ResultFormatter {
        this.text = text;
     }
     public TextBoundAnnotation(String id, String type, int start, int end, String text, 
-			       List<NormalizationAnnotation> referenceList) {
+			       Set<NormalizationAnnotation> referenceSet) {
        this.id = id; 
        this.type = type;
        this.startOffset = start;
        this.endOffset = end;
        this.text = text;
-       this.referenceList = referenceList;
+       this.referenceSet = referenceSet;
     }
     public void setId(String id) { this.id = id; }
-    public void setReferenceList(List<NormalizationAnnotation> referenceList) { 
-      this.referenceList = referenceList;
+    public void setReferenceSet(Set<NormalizationAnnotation> referenceSet) { 
+      this.referenceSet = referenceSet;
     }
-    public void addToReferenceList(List<NormalizationAnnotation> referenceList) { 
-      this.referenceList.addAll(referenceList);
+    public void addToReferenceSet(Set<NormalizationAnnotation> referenceSet) { 
+      this.referenceSet.addAll(referenceSet);
     }
-    public List<NormalizationAnnotation> getReferenceList() { return this.referenceList; } 
+    public Set<NormalizationAnnotation> getReferenceSet() { return this.referenceSet; } 
     public String toString() {
       return this.id + "\t" + this.type + " " + this.startOffset + " " + this.endOffset + "\t" + this.text;
     }
@@ -79,25 +80,26 @@ public class Brat implements ResultFormatter {
     String rid;
     String eid;
     String text;
-    List<NormalizationAnnotation> referenceList = null;
     NormalizationAnnotation(String id, String target, String rid, String eid, String text) {
-      this.id = id; 
-      this.target = target;
-      this.rid = rid;
-      this.eid = eid;
-      this.text = text;
+      this.id = id.trim(); 
+      this.target = target.trim();
+      this.rid = rid.trim();
+      this.eid = eid.trim();
+      this.text = text.trim();
     }
-    NormalizationAnnotation(String id, String target, String rid, String eid, String text,
-			    List<NormalizationAnnotation> referenceList) {
-      this.id = id; 
-      this.target = target;
-      this.rid = rid;
-      this.eid = eid;
-      this.text = text;
-       this.referenceList = referenceList;
+    public boolean equals(Object obj) {
+      return  (this.rid.equals(((NormalizationAnnotation)obj).rid) &&
+	       this.eid.equals(((NormalizationAnnotation)obj).eid) &&
+	       this.text.equals(((NormalizationAnnotation)obj).text));
+    }
+    public int hashCode() {
+      return (this.rid + this.eid + this.text).hashCode();
     }
     public void setId(String id) { this.id = id; }
     public void setTarget(String target) { this.target = target; }
+    public String getRid()  { return this.rid; }
+    public String getEid()  { return this.eid; }
+    public String getText() { return this.text; }
     public String toString() {
       return this.id + "\tReference " + this.target + " " + this.rid + ":" + this.eid + "\t" + this.text;
     }
@@ -119,23 +121,23 @@ public class Brat implements ResultFormatter {
     public void setArg2(String target) { this.arg2 = target; }
   }
 
-  public static List<NormalizationAnnotation> generateReferenceList(Entity entity) {
-    List<NormalizationAnnotation> referenceList = new ArrayList<NormalizationAnnotation>();
+  public static Set<NormalizationAnnotation> generateReferenceSet(Entity entity) {
+    Set<NormalizationAnnotation> referenceSet = new HashSet<NormalizationAnnotation>();
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
       String preferredName = ev.getConceptInfo().getPreferredName();
-      referenceList.add(new NormalizationAnnotation("N0","T0", "ConceptId", cui, preferredName));
+      referenceSet.add(new NormalizationAnnotation("N0","T0", "ConceptId", cui, preferredName));
       for (String semtype: ev.getConceptInfo().getSemanticTypeSet()) {
-	referenceList.add(new NormalizationAnnotation("N0","T0", "SemanticType", semtype, semtype));
+	referenceSet.add(new NormalizationAnnotation("N0","T0", "SemanticType", semtype, semtype));
       }
       if (entity.isNegated()) {
-	referenceList.add(new NormalizationAnnotation("N0","T0", "Negated", ev.getMatchedText(), ev.getMatchedText()));
+	referenceSet.add(new NormalizationAnnotation("N0","T0", "Negated", ev.getMatchedText(), ev.getMatchedText()));
       }
       if (entity.getTemporality().trim().length() > 0) {
-	referenceList.add(new NormalizationAnnotation("N0","T0", "Temporality", entity.getTemporality(), entity.getTemporality()));
+	referenceSet.add(new NormalizationAnnotation("N0","T0", "Temporality", entity.getTemporality(), entity.getTemporality()));
       }
     }
-    return referenceList;
+    return referenceSet;
   }
 
   public static void writeAnnotationSet(String recognizerName,
@@ -149,8 +151,8 @@ public class Brat implements ResultFormatter {
       annotation.setId(tid);
       System.out.println(annotation.toString());
       writer.println(annotation.toString());
-      if (annotation.getReferenceList() != null) {
-	for (NormalizationAnnotation nAnnotation: annotation.getReferenceList()) {
+      if (annotation.getReferenceSet() != null) {
+	for (NormalizationAnnotation nAnnotation: annotation.getReferenceSet()) {
 	  nindex++;
 	  nAnnotation.setId("N" + nindex);
 	  nAnnotation.setTarget(tid);
@@ -172,8 +174,8 @@ public class Brat implements ResultFormatter {
       annotation.setId(tid);
       System.out.println(annotation.toString());
       writer.println(annotation.toString());
-      if (annotation.getReferenceList() != null) {
-	for (NormalizationAnnotation nAnnotation: annotation.getReferenceList()) {
+      if (annotation.getReferenceSet() != null) {
+	for (NormalizationAnnotation nAnnotation: annotation.getReferenceSet()) {
 	  nindex++;
 	  nAnnotation.setId("N" + nindex);
 	  nAnnotation.setTarget(tid);
@@ -214,7 +216,7 @@ public class Brat implements ResultFormatter {
 	if (annotation instanceof BioCEntity) {
 	  BioCEntity entityAnnotation = (BioCEntity)annotation;
 	  for (Entity entity: entityAnnotation.getEntitySet()) {
-	    annotationSet.add(new TextBoundAnnotation("T0",recognizerName,start,end,term,Brat.generateReferenceList(entity)));
+	    annotationSet.add(new TextBoundAnnotation("T0",recognizerName,start,end,term,Brat.generateReferenceSet(entity)));
 	  }
 	} else {
 	  annotationSet.add(new TextBoundAnnotation("T0",recognizerName,start,end,term));
@@ -256,7 +258,7 @@ public class Brat implements ResultFormatter {
 	      // textAnnot = annotationMap.get(textAnnot.genKey());
 	      // textAnnot.addToReferenceList(Brat.generateReferenceList(entity));
 	    } else {
-	      textAnnot.setReferenceList(Brat.generateReferenceList(entity));
+	      textAnnot.setReferenceSet(Brat.generateReferenceSet(entity));
 	      annotationMap.put(textAnnot.genKey(), textAnnot);
 	    }
 	  }
@@ -294,7 +296,7 @@ public class Brat implements ResultFormatter {
 	  // textAnnot = annotationMap.get(textAnnot.genKey());
 	  // textAnnot.addToReferenceList(Brat.generateReferenceList(entity));
 	} else {
-	  textAnnot.setReferenceList(Brat.generateReferenceList(entity));
+	  textAnnot.setReferenceSet(Brat.generateReferenceSet(entity));
 	  annotationMap.put(textAnnot.genKey(), textAnnot);
 	}
       }
