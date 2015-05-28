@@ -43,19 +43,19 @@ public class MetaMapIndexes {
     // indexes
     this.cuiConceptIndex =
       new SearchIndex(System.getProperty("metamaplite.cuiconceptindex",
-					 "/nfsvol/nlsaux15/lucenedb/strict/cuiconcept"));
+					 "/net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/cuiconcept"));
     this.firstWordsOfOneWideIndex =
       new SearchIndex(System.getProperty("metamaplite.firstwordsofonewideindex",
-					 "/nfsvol/nlsaux15/lucenedb/strict/first_words_of_one_WIDE"));
+					 "/net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/first_words_of_one_WIDE"));
     this.cuiSourceInfoIndex =
       new SearchIndex(System.getProperty("metamaplite.cuisourceinfoindex",
-					 "/nfsvol/nlsaux15/lucenedb/strict/cui_sourceinfo"));
+					 "/net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/cui_sourceinfo"));
     this.cuiSemanticTypeIndex =
       new SearchIndex(System.getProperty("metamaplite.cuisemantictypeindex",
-					 "/nfsvol/nlsaux15/lucenedb/strict/cui_st"));
+					 "/net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/cui_st"));
     this.varsIndex =
       new SearchIndex(System.getProperty("metamaplite.varsindex",
-					 "/nfsvol/nlsaux15/lucenedb/strict/vars"));
+					 "/net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/vars"));
 
     // query parsers for various fields
     this.conceptQueryParser = SearchIndex.newQueryParser("concept");
