@@ -227,7 +227,7 @@ public class EntityLookup2 {
     }
   }
 
-  boolean isCuiInRestrictSet(String cui, Set<String> semanticTypeRestrictSet)
+  boolean isCuiInSemanticTypeRestrictSet(String cui, Set<String> semanticTypeRestrictSet)
   {
     if (semanticTypeRestrictSet.isEmpty() || semanticTypeRestrictSet.contains("all"))
       return true;
@@ -235,6 +235,26 @@ public class EntityLookup2 {
       boolean inSet = false;
       for (String semtype: getSemanticTypeSet(cui)) {
 	inSet = inSet || semanticTypeRestrictSet.contains(semtype);
+      }
+      return inSet;
+    } catch (FileNotFoundException fnfe) {
+      return false;
+    } catch (IOException ioe) {
+      return false;
+    } catch (ParseException pe) {
+      return false;
+    }
+  }
+
+
+boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
+  {
+    if (sourceRestrictSet.isEmpty() || sourceRestrictSet.contains("all"))
+      return true;
+    try {
+      boolean inSet = false;
+      for (String semtype: getSourceSet(cui)) {
+	inSet = inSet || sourceRestrictSet.contains(semtype);
       }
       return inSet;
     } catch (FileNotFoundException fnfe) {
@@ -271,7 +291,8 @@ public class EntityLookup2 {
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
 						      List<Document> documentList, 
 						      List<? extends Token> tokenList,
-						      Set<String> semanticTypeRestrictSet)
+						      Set<String> semanticTypeRestrictSet,
+						      Set<String> sourceRestrictSet)
     throws FileNotFoundException, IOException, ParseException
   {
     logger.debug("findLongestMatch");
@@ -314,7 +335,8 @@ public class EntityLookup2 {
 			     0.0);
 	      logger.debug("add ev: " + ev);
 	      String cui = ev.getConceptInfo().getCUI();
-	      if (isCuiInRestrictSet(cui, semanticTypeRestrictSet)) {
+	      if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
+		  isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
 		evList.add(ev);
 	      }
 	    }
@@ -344,7 +366,8 @@ public class EntityLookup2 {
 				 termLength,
 				 0.0);
 		  logger.debug("add ev: " + ev);
-		  if (isCuiInRestrictSet(cui, semanticTypeRestrictSet)) {
+		  if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
+		  isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
 		    evList.add(ev);
 		  }
 		} /*if token instance of PosToken*/
@@ -397,7 +420,8 @@ public class EntityLookup2 {
    * @return set of entities found in the sentence.
    */
   public Set<Entity> processSentenceTokenList(String docid, List<? extends Token> sentenceTokenList,
-					      Set<String> semTypeRestrictSet)
+					      Set<String> semTypeRestrictSet,
+					      Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException, ParseException {
     logger.debug("sentence tokenlist: " + sentenceTokenList);
     Set<Entity> entitySet = new HashSet<Entity>();
@@ -430,7 +454,7 @@ public class EntityLookup2 {
 	    (docid,
 	     hitList,
 	     sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())),
-	     semTypeRestrictSet);
+	     semTypeRestrictSet, sourceRestrictSet);
 	  for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
 	    if (entity.getEvList().size() > 0) {
 	      entitySet.add(entity);
@@ -510,7 +534,8 @@ public class EntityLookup2 {
   }
 
   public static List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
-					    Set<String> semTypeRestrictSet) 
+					    Set<String> semTypeRestrictSet,
+					    Set<String> sourceRestrictSet) 
     throws IOException, FileNotFoundException, ParseException, Exception {
     logger.debug("enter processPassage");
     EntityLookup2 entityLookupInst = EntityLookup2.singleton;
@@ -519,7 +544,8 @@ public class EntityLookup2 {
     for (BioCSentence sentence: passage.getSentences()) {
       List<? extends Token> tokenList = Scanner.analyzeText(sentence);
       Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList,
-										semTypeRestrictSet);
+										semTypeRestrictSet,
+sourceRestrictSet);
       for (Entity entity: sentenceEntitySet) {
 	entity.setLocationPosition(i);
       }

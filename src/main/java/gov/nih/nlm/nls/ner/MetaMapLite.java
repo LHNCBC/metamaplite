@@ -90,6 +90,7 @@ public class MetaMapLite {
   static Map<String,String> outputExtensionMap = new HashMap<String,String>();
 
   Set<String> semanticGroup = new HashSet<String>(); // initially empty
+  Set<String> sourceSet = new HashSet<String>(); // initially empty
 
   AbbrConverter abbrConverter = new AbbrConverter();
   Properties properties;
@@ -141,6 +142,10 @@ public class MetaMapLite {
 
   void setSemanticGroup(String[] semanticTypeList) {
     this.semanticGroup = new HashSet<String>(Arrays.asList(semanticTypeList));
+  }
+
+  void setSourceSet(String[] sourceList) {
+    this.sourceSet = new HashSet<String>(Arrays.asList(sourceList));
   }
 
   /**
@@ -211,7 +216,7 @@ public class MetaMapLite {
       MarkAbbreviations.markAbbreviations
       (passageWithSentsAndAbbrevs,
        EntityLookup2.processPassage
-       ("0000000.tx", passageWithSentsAndAbbrevs, this.useContext, this.semanticGroup));
+       ("0000000.tx", passageWithSentsAndAbbrevs, this.useContext, this.semanticGroup, this.sourceSet));
     logger.debug("exit processPassage");
     return entityList;
   }
@@ -364,10 +369,16 @@ public class MetaMapLite {
 	    entityLookupResultLengthString = fields[1];
 	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
 		     fields[0].equals("--restrict-to-sts") ||
-		     fields[0].equals("--restrict_to_semantic-types") ||
+		     fields[0].equals("--restrict_to_semantic_types") ||
 		     fields[0].equals("--restrict_to_sts")) {
 	    String[] semanticTypeList = fields[1].split(",");
 	    metaMapLiteInst.setSemanticGroup(semanticTypeList);
+	  } else if (fields[0].equals("--restrict-to-sources") ||
+		     fields[0].equals("--restrict-to-src") ||
+		     fields[0].equals("--restrict_to_sources") ||
+		     fields[0].equals("--restrict_to_src")) {
+	    String[] sourceList = fields[1].split(",");
+	    metaMapLiteInst.setSourceSet(sourceList);
 	  } else if (fields[0].equals("--usecontext")) {
 	    metaMapLiteInst.useContext = true;
 	  } else if (args[i].equals("--help")) {
