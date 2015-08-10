@@ -68,9 +68,11 @@ public class EntityLookup2 {
 
   public MetaMapEvaluation metaMapEvalInst;
   public MetaMapIndexes mmIndexes;
+  // SpecialTerms excludedTerms = new SpecialTerms
+  //   (this.getClass().getClassLoader().getResourceAsStream
+  //    (System.getProperty("metamaplite.excluded.termsfile","specialterms.txt")));
   SpecialTerms excludedTerms = new SpecialTerms
-    (this.getClass().getClassLoader().getResourceAsStream
-     (System.getProperty("metamaplite.excluded.termsfile","specialterms.txt")));
+    (System.getProperty("metamaplite.excluded.termsfile","/export/home/wjrogers/Projects/metamaplite/data/specialterms.txt"));
 
   public EntityLookup2() 
     throws IOException, FileNotFoundException, ParseException
@@ -326,8 +328,8 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 	  // 									 this.mmIndexes.strQueryParser,
 	  // 									 resultLength);
 	  Integer tokenListLength = new Integer(tokenSubList.size());
-	  if (EntityLookup.termConceptCache.containsKey(normTerm)) {
-	    for (ConceptInfo concept: EntityLookup.termConceptCache.get(normTerm)) {
+	  if (termConceptCache.containsKey(normTerm)) {
+	    for (ConceptInfo concept: termConceptCache.get(normTerm)) {
 	      Ev ev = new Ev(concept,
 			     originalTerm,
 			     ((PosToken)tokenSubList.get(0)).getPosition(),
@@ -517,6 +519,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
   static class EntityStartComparator implements Comparator<Entity> {
     public int compare(Entity o1, Entity o2) { return o1.getStart() - o2.getStart(); }
     public boolean equals(Object obj) { return false; }
+    public int hashCode() { return 0; }
   }
 
   static EntityStartComparator entityComparator = new EntityStartComparator();
@@ -554,6 +557,38 @@ sourceRestrictSet);
       if (useContext) {
 	applyContext(sentenceEntitySet, sentence);
       }
+      i++;
+    }
+    logger.debug("exit processPassage");
+    Set<Entity> entitySet = removeSubsumingEntities(entitySet0);
+    List<Entity> resultList = new ArrayList<Entity>(entitySet);
+    Collections.sort(resultList, entityComparator);
+    return resultList;
+  }
+
+  public static List<Entity> processSentences(String docid, List<Sentence> sentenceList,
+					      boolean useContext,
+					      Set<String> semTypeRestrictSet,
+					      Set<String> sourceRestrictSet)
+    throws IOException, FileNotFoundException, ParseException, Exception
+  {
+    EntityLookup2 entityLookupInst = EntityLookup2.singleton;
+    Set<Entity> entitySet0 = new HashSet<Entity>();
+    int i = 0;
+    for (Sentence sentence: sentenceList) {
+      List<? extends Token> tokenList = Scanner.analyzeText(sentence);
+      Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList,
+										semTypeRestrictSet,
+										sourceRestrictSet);
+      for (Entity entity: sentenceEntitySet) {
+	entity.setLocationPosition(i);
+      }
+      entitySet0.addAll(sentenceEntitySet);
+      // fix this for ConText
+    // look for negation and other relations using Context.
+      // if (useContext) {
+	// applyContext(sentenceEntitySet, sentence);
+      // }
       i++;
     }
     logger.debug("exit processPassage");
