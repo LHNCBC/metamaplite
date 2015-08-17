@@ -49,14 +49,14 @@ public class SpecialTerms {
   public Set<String> loadSpecialTerms(String filename)
     throws FileNotFoundException, IOException
   {
-    Set<String> specialTerms = new HashSet<String>();
+    Set<String> termSet = new HashSet<String>();
     String line;
     BufferedReader br = new BufferedReader(new FileReader(filename));
      while ((line = br.readLine()) != null) {
-      this.specialTerms.add(line.trim());
+      termSet.add(line.trim());
     }
     br.close();
-    return specialTerms;
+    return termSet;
   }  
 
   public Set<String> loadSpecialTerms(InputStream stream)
@@ -73,7 +73,7 @@ public class SpecialTerms {
   }  
 
   public String makeKey(String cui, String term) {
-    return cui + "|" + term;
+    return cui + ":" + term;
   }
 
   public boolean isSpecial(String cui, String term) {
