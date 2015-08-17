@@ -37,7 +37,7 @@ public class SentenceExtractor
   public static SentenceDetectorME sentenceDetector;
 
   static {
-    setModel(System.getProperty("en-sent.bin.path", "en-sent.bin"));
+    setModel(System.getProperty("en-sent.bin.path", "data/models/en-sent.bin"));
   }
 
   public static void setModel(String modelFilename)
@@ -115,7 +115,7 @@ public class SentenceExtractor
   public static BioCPassage createSentences(BioCPassage passage) {
     logger.debug("createSentenceList");
     int sentenceCount = 0;
-    int offset = 0;
+    int offset = passage.getOffset();
     String[] sentenceArray = sentenceDetector.sentDetect(passage.getText());
     List<BioCSentence> sentenceList = new ArrayList<BioCSentence>();
     for (String sentenceText: sentenceArray) {
@@ -127,7 +127,10 @@ public class SentenceExtractor
       offset = offset + sentenceText.length() + 1;
       sentenceCount++;
     }
-    passage.setSentences(sentenceList);
+    // passage.setSentences(sentenceList);
+    for (BioCSentence sentence: sentenceList) {
+      passage.addSentence(sentence);
+    }
     return passage;
   }
 }
