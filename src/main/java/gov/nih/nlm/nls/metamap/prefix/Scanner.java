@@ -54,7 +54,7 @@ public class Scanner {
     return addOffsets(tokenlist, 0);
   }
 
-/**
+  /**
    * Classify token, metamap style.
    * <p>
    * What are the classes?:
@@ -62,7 +62,7 @@ public class Scanner {
    *  "ws" - whitespace
    *  "an" - alphanumeric
    *  "pn" - punctuation
-   *   "uc" - uppercase
+   *  "uc" - uppercase
    *  "ic" - ignore case
    *  "lc" - lowercase
    *  "nu" - numeric

@@ -21,6 +21,14 @@ public class ERTokenImpl implements Token, PosToken, ClassifiedToken, ERToken
     this.text = tokenText;
     this.position = position;
     this.tokenClass = tokenClass;
+    this.partOfSpeech = "";
+  }
+
+  public ERTokenImpl(String tokenText, int position, String tokenClass, String partOfSpeech) {
+    this.text = tokenText;
+    this.position = position;
+    this.tokenClass = tokenClass;
+    this.partOfSpeech = partOfSpeech;
   }
 
   public ERTokenImpl(String tokenText, int position, String tokenClass, List<Entity> entityList) {
@@ -28,6 +36,7 @@ public class ERTokenImpl implements Token, PosToken, ClassifiedToken, ERToken
     this.position = position;
     this.tokenClass = tokenClass;
     this.entityList = entityList;
+    this.partOfSpeech = "";
   }
 
   @Override
@@ -61,7 +70,11 @@ public class ERTokenImpl implements Token, PosToken, ClassifiedToken, ERToken
   public void addEntity(Entity entity) {
     this.entityList.add(entity);
   }
+  public void setPartOfSpeech(String partOfSpeech) {
+    this.partOfSpeech = partOfSpeech;
+  }
+  
   public String toString() {
-    return this.text + "," + this.position;
+    return this.text + "|" + this.position + "|" + this.partOfSpeech;
   }
 }
