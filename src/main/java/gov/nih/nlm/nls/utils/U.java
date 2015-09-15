@@ -1407,10 +1407,10 @@ public static String pad( double pNum, int pNumChars )
  * 
 */
 // ================================================|Public Method Header|====
-  public static String listToPipedString( List pRows ) {
+  public static String listToPipedString( List<String> pRows ) {
 
     StringBuffer buff = new StringBuffer();
-    for (Iterator i = pRows.iterator(); i.hasNext(); ) {
+    for (Iterator<String> i = pRows.iterator(); i.hasNext(); ) {
       buff.append(((String) i.next()).trim());
       if (i.hasNext() )
 	buff.append("|");
