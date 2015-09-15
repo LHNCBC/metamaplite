@@ -28,7 +28,9 @@
   <property name="context"                  value="${project.lib}/context-2012.jar"/>
   <property name="opennlp-maxent"           value="${project.lib}/opennlp-maxent-3.0.3.jar"/>
   <property name="opennlp-tools"            value="${project.lib}/opennlp-tools-1.5.3.jar"/>
+  <property name="opencsv"                  value="${project.lib}/opencsv-2.3.jar"/>
   <property name="nlsnlp"                   value="${project.lib}/nlp-2.4.C.jar"/>
+  <property name="irutils"                  value="${project.lib}/irutils-2.0-SNAPSHOT.jar"/>
   
 
   <!-- ======================== compile ========================= -->
@@ -47,7 +49,9 @@
         <pathelement location="${context}"/>
         <pathelement location="${opennlp-maxent}"/>
         <pathelement location="${opennlp-tools}"/>
+	<pathelement location="${opencsv}"/>
         <pathelement location="${nlsnlp}"/>
+	<pathelement location="${irutils}"/>
       </classpath>
     </javac>
   </target>
