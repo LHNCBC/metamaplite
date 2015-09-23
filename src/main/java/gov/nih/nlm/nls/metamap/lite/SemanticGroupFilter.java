@@ -113,7 +113,10 @@ public class SemanticGroupFilter {
     List<BioCAnnotation> filteredAnnotationList = 
       keepEntitiesInSemanticGroup(semanticGroup, sentence.getAnnotations());
     BioCSentence newSentence = new BioCSentence(sentence);
-    newSentence.setAnnotations(filteredAnnotationList);
+    // newSentence.setAnnotations(filteredAnnotationList);
+    for (BioCAnnotation anAnnotation: filteredAnnotationList) {
+      newSentence.addAnnotation(anAnnotation);
+    }
     return newSentence;
   }
 
