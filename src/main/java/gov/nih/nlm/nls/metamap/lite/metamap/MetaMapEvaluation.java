@@ -12,11 +12,11 @@ import java.io.FileReader;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
+// import org.apache.lucene.document.Document;
+// import org.apache.lucene.queryparser.classic.ParseException;
+// import org.apache.lucene.queryparser.classic.QueryParser;
 
-import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
+// import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
 import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 
@@ -26,11 +26,16 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 
 public class MetaMapEvaluation {
 
-  public MetaMapIndexes mmIndexes;
+  public MetaMapIvfIndexes mmIndexes;
   
-  public MetaMapEvaluation(MetaMapIndexes indexes) {
+  public MetaMapEvaluation(MetaMapIvfIndexes indexes) {
     this.mmIndexes = indexes;
   }
+
+  public MetaMapEvaluation(MetaMapIndexes indexes) {
+
+  }
+
 
   /** only possible to calculate if you have parsed the sentence into phrases. */
   public double calculateCentrality() {
@@ -38,23 +43,23 @@ public class MetaMapEvaluation {
   }
 
   public int getVariantDistance(String word, String variant)
-    throws IOException, ParseException
+    throws IOException
   {
-    List<Document> hitList = this.mmIndexes.varsIndex.lookup(variant,
-							     this.mmIndexes.varQueryParser,
-							     100);
-    int distance = 4;		// maximum distance: doesn't match at all.
-    for (Document hit: hitList) {
-      if ((word.equals(hit.get("word"))) &&
-	  (variant.equals(hit.get("var")))) {
-	distance = Integer.parseInt(hit.get("dist"));
-      }
-    }
-    return distance;
+  //   List<Document> hitList = this.mmIndexes.varsIndex.lookup(variant,
+  // 							     this.mmIndexes.varQueryParser,
+  // 							     100);
+     int distance = 4;		// maximum distance: doesn't match at all.
+  //   for (Document hit: hitList) {
+  //     if ((word.equals(hit.get("word"))) &&
+  // 	  (variant.equals(hit.get("var")))) {
+  // 	distance = Integer.parseInt(hit.get("dist"));
+  //     }
+  //   }
+     return distance;
   }
 
   public double calculateVariation(String textstring, String word)
-    throws FileNotFoundException, IOException, ParseException
+    throws FileNotFoundException, IOException
   {
     return 4/(this.getVariantDistance(word, textstring) + 4);
   }
@@ -94,7 +99,7 @@ public class MetaMapEvaluation {
 			       String cui,
 			       String[] inputTextTokenList,
 			       Collection<Entity> candidateCollection)
-    throws FileNotFoundException, IOException, ParseException
+    throws FileNotFoundException, IOException
   {
     // System.out.println("textstring: " + textstring);
     String word = preferredName;
