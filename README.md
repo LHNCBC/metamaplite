@@ -8,16 +8,21 @@
 ## Installation
 
 
-You'll need the model file for the sentence extractor "en-sent.bin"
-which can be downloaded from the opennlp project at
-http://opennlp.sourceforge.net/models-1.5
+## modifying configuration file
 
-Set the system property "en-sent.bin.path":
+### inverted files
 
-    en-sent.bin.path=<location of en-sent.bin>
+    metamaplite.ivf.cuiconceptindex: data/ivf/strict/indices/cuiconcept
+    metamaplite.ivf.firstwordsofonewideindex: data/ivf/strict/indices/first_words_of_one_WIDE
+    metamaplite.ivf.cuisourceinfoindex: data/ivf/strict/indices/cui_sourceinfo
+    metamaplite.ivf.cuisemantictypeindex: data/ivf/strict/indices/cui_st
+    metamaplite.ivf.varsindex: data/ivf/strict/indices/vars
 
-Modify metamaplite.sh to set the location of the model file and then
-run it.
+### OpenNLP model files 
+
+    opennlp.en-sent.bin.path: data/models/en-sent.bin
+    opennlp.en-token.bin.path: data/models/en-token.bin
+    opennlp.en-pos-maxent.bin.path: data/models/en-pos-maxent.bin
 
 ## Usage
 
@@ -34,11 +39,8 @@ output options:
   --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
   --mmilike|mmi               similar to MetaMap Fielded MMI output
   --brat                      BRAT annotation format
-Other options:
-  --luceneresultlen           set length of result sets returned from Lucene
 
-
-## Tables and Lucene Indexes
+## Tables and Indexes
 
 Currently, three tables are used:
 
