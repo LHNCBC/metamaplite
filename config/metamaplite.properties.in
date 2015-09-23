@@ -1,19 +1,18 @@
 # MetaMap Lite configuration 
 #
 # Lucene indexes
-# metamaplite.cuiconceptindex: /net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/cuiconcept
-# metamaplite.firstwordsofonewideindex: /net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/first_words_of_one_WIDE
-# metamaplite.cuisourceinfoindex: /net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/cui_sourceinfo
-# metamaplite.cuisemantictypeindex: /net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/cui_st
-# metamaplite.varsindex: /net/indlx1/export/home/wjrogers/Projects/metamaplite/data/lucenedb/strict/vars
+metamaplite.cuiconceptindex: /nfsvol/nlsaux15/lucenedb/strict/cuiconcept
+metamaplite.firstwordsofonewideindex: /nfsvol/nlsaux15/lucenedb/strict/first_words_of_one_WIDE
+metamaplite.cuisourceinfoindex: /nfsvol/nlsaux15/lucenedb/strict/cui_sourceinfo
+metamaplite.cuisemantictypeindex: /nfsvol/nlsaux15/lucenedb/strict/cui_st
+metamaplite.varsindex: /nfsvol/nlsaux15/lucenedb/strict/vars
 
-# irutils indexes
-metamaplite.ivf.cuiconceptindex: /net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices/cuiconcept
-metamaplite.ivf.firstwordsofonewideindex: /net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices/first_words_of_one_WIDE
-metamaplite.ivf.cuisourceinfoindex: /net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices/cuisourceinfo
-metamaplite.ivf.cuisemantictypeindex: /net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices/cuist
-metamaplite.ivf.varsindex: /net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices/vars
-
+# Inverted Files
+metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/strict/indices/cuiconcept
+metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/strict/indices/first_words_of_one_WIDE
+metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/strict/indices/cui_sourceinfo
+metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/strict/indices/cui_st
+metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
 
 # default semantic.type.list: if not defined is empty (all semantic types) 
 #   semantic type abbreviations separated by commas.
@@ -21,10 +20,10 @@ metamaplite.ivf.varsindex: /net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjro
 # semantic.type.list: acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy
 semantic.type.list: acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy
 
-# OpenNLP model files
-opennlp.en-sent.bin.path: /usr/local/pub/nlp/opennlp/models/en-sent.bin
-opennlp.en-token.bin.path: /usr/local/pub/nlp/opennlp/models/en-token.bin
-opennlp.en-pos.bin.path: /usr/local/pub/nlp/opennlp/models/en-pos-maxent.bin
+# OpenNLP model files 
+opennlp.en-sent.bin.path: @@basedir@@/data/models/en-sent.bin
+opennlp.en-token.bin.path: @@basedir@@/data/models/en-token.bin
+opennlp.en-pos-maxent.bin.path: @@basedir@@/data/models/en-pos-maxent.bin
 
 # What should a pipeline look-like?
 #
@@ -62,5 +61,5 @@ bioc.document.loader.freetext: gov.nih.nlm.nls.metamap.document.FreeText
 bioc.document.loader.ncbicorpus: gov.nih.nlm.nls.metamap.document.NCBICorpusDocument
 
 # Excluded (special) terms
-metamaplite.excluded.termsfile: /export/home/wjrogers/Projects/metamaplite/data/specialterms.txt
-metamaplite.indicator.stringsfile: /export/home/wjrogers/Projects/metamaplite/data/Sections.20110511.csv
+metamaplite.excluded.termsfile: specialterms.txt
+
