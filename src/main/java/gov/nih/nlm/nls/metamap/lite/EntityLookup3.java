@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Comparator;
+import java.util.Properties;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -67,27 +68,42 @@ public class EntityLookup3 {
   //    (System.getProperty("metamaplite.excluded.termsfile","specialterms.txt")));
   SpecialTerms excludedTerms = new SpecialTerms
     (System.getProperty("metamaplite.excluded.termsfile","/export/home/wjrogers/Projects/metamaplite/data/specialterms.txt"));
-
+  Set<String> allowedPartOfSpeechSet = new HashSet<String>();
+  
   /** string column for cuisourceinfo index*/
   int strColumn = 3;		
   /** cui column for semantic type and cuisourceinfo index */
   int cuiColumn = 0;		
 
-  static final int MAX_TOKEN_SIZE = Integer.parseInt(System.getProperty("metamaplite.entitylookup3.maxtokensize","5"));
+  static final int MAX_TOKEN_SIZE = Integer.parseInt(System.getProperty("metamaplite.entitylookup3.maxtokensize","15"));
+
+  SentenceAnnotator sentenceAnnotator;
+
+  public void defaultAllowedPartOfSpeech() {
+    this.allowedPartOfSpeechSet.add("RB"); // should this be here?
+    this.allowedPartOfSpeechSet.add("NN");
+    this.allowedPartOfSpeechSet.add("NNS");
+    this.allowedPartOfSpeechSet.add("NNP");
+    this.allowedPartOfSpeechSet.add("NNPS");
+    this.allowedPartOfSpeechSet.add("JJ");
+    this.allowedPartOfSpeechSet.add("JJR");
+    this.allowedPartOfSpeechSet.add("JJS");
+  }
 
   public EntityLookup3() 
     throws IOException, FileNotFoundException
   {
     this.mmIndexes = new MetaMapIvfIndexes();
+    this.sentenceAnnotator = new SentenceAnnotator();
+    this.defaultAllowedPartOfSpeech();
   }
 
-  public static EntityLookup3 singleton;
-  static {
-    try {
-      singleton = new EntityLookup3();
-    } catch (IOException ioe) {
-      ioe.printStackTrace(System.err);
-    }
+  public EntityLookup3(Properties properties) 
+    throws IOException, FileNotFoundException
+  {
+    this.mmIndexes = new MetaMapIvfIndexes(properties);
+    this.sentenceAnnotator = new SentenceAnnotator(properties);
+    this.defaultAllowedPartOfSpeech();
   }
 
   /** cache of string -> concept and attributes */
@@ -191,7 +207,7 @@ public class EntityLookup3 {
     // logger.debug("entering: transformPreposition");
     if (inputtext.indexOf(" of the") > 0) {
       // return MWIUtilities.normalizeAstString(inputtext.replaceAll(" of the", ","));
-      return NormalizedStringCache.normalizeAstString(inputtext.replaceAll(" of the", ","));
+      return NormalizedStringCache.normalizeString(inputtext.replaceAll(" of the", ","));
     } 
     // logger.debug("leaving: transformPreposition");
     return inputtext;
@@ -279,6 +295,14 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     }
   }
 
+  public static boolean isLikelyMatch(String term, String normTerm, String docStr) {
+    if (term.length() < 5) {
+      return term.equals(docStr);
+    } else {
+      return normTerm.equals(NormalizedStringCache.normalizeString(docStr));
+    }
+  }
+
   /**
    * Given Example:
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
@@ -302,7 +326,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *    ...
    */
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
-						      List<? extends Token> tokenList,
+						      List<ERToken> tokenList,
 						      Set<String> semanticTypeRestrictSet,
 						      Set<String> sourceRestrictSet)
     throws FileNotFoundException, IOException
@@ -320,56 +344,61 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       }
       ERToken firstToken = (ERToken)tokenSubList.get(0);
       ERToken lastToken = (ERToken)tokenSubList.get(tokenSubList.size() - 1);
-      int termLength = (tokenSubList.size() > 1) ?
-	(lastToken.getPosition() + lastToken.getText().length()) - firstToken.getPosition() : 
-	firstToken.getText().length();
-      String originalTerm = StringUtils.join(tokenTextSubList, "");
-      if ((originalTerm.length() > 2) &&
-	  (CharUtils.isAlphaNumeric(originalTerm.charAt(originalTerm.length() - 1)))) {
-	String term = originalTerm;
-	String query = term;
-	// String normTerm = MWIUtilities.normalizeAstString(term);
-	normTerm = NormalizedStringCache.normalizeAstString(term);
-	int offset = ((PosToken)tokenSubList.get(0)).getPosition();
-	if (CharUtils.isAlpha(term.charAt(0))) {
-	  List<Ev> evList = new ArrayList<Ev>();
-	  Integer tokenListLength = new Integer(tokenSubList.size());
-	  if (termConceptCache.containsKey(normTerm)) {
-	    for (ConceptInfo concept: termConceptCache.get(normTerm)) {
-	      Ev ev = new Ev(concept,
-			     originalTerm,
-			     ((PosToken)tokenSubList.get(0)).getPosition(),
-			     termLength,
-			     0.0);
-	      logger.debug("add ev: " + ev);
-	      String cui = ev.getConceptInfo().getCUI();
-	      if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
-		  isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-		evList.add(ev);
+      logger.debug("firstToken: " + firstToken + "-> " + firstToken.getPartOfSpeech() +
+			 " -> " +
+			 this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech()));
+      if ((! firstToken.getText().toLowerCase().equals("other")) &&
+	  this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech())) {
+	int termLength = (tokenSubList.size() > 1) ?
+	  (lastToken.getPosition() + lastToken.getText().length()) - firstToken.getPosition() : 
+	  firstToken.getText().length();
+	String originalTerm = StringUtils.join(tokenTextSubList, "");
+	logger.debug("originalTerm: " + originalTerm);
+	if ((originalTerm.length() > 2) &&
+	    (CharUtils.isAlphaNumeric(originalTerm.charAt(originalTerm.length() - 1)))) {
+	  String term = originalTerm;
+	  String query = term;
+	  // String normTerm = MWIUtilities.normalizeAstString(term);
+	  normTerm = NormalizedStringCache.normalizeString(term);
+	  int offset = ((PosToken)tokenSubList.get(0)).getPosition();
+	  if (CharUtils.isAlpha(term.charAt(0))) {
+	    List<Ev> evList = new ArrayList<Ev>();
+	    Integer tokenListLength = new Integer(tokenSubList.size());
+	    if (termConceptCache.containsKey(normTerm)) {
+	      for (ConceptInfo concept: termConceptCache.get(normTerm)) {
+		Ev ev = new Ev(concept,
+			       originalTerm,
+			       ((PosToken)tokenSubList.get(0)).getPosition(),
+			       termLength,
+			       0.0);
+		logger.debug("add ev: " + ev);
+		String cui = ev.getConceptInfo().getCUI();
+		if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
+		    isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
+		  evList.add(ev);
+		}
 	      }
-	    }
-	  } else {
-	    // if not in cache then lookup term 
-	    for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
-	      String[] fields = doc.split("\\|");
-	      String cui = fields[0];
-	      String docStr = fields[3];
-	      // logger.debug("term: \"" + term + 
-	      // 	     "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
-	      // 	     term.equalsIgnoreCase(docStr));
-	      // if (normTerm.equals(MWIUtilities.normalizeAstString(docStr))) {
+	    } else {
+	      // if not in cache then lookup term 
+	      for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
+		String[] fields = doc.split("\\|");
+		String cui = fields[0];
+		String docStr = fields[3];
+		// logger.debug("term: \"" + term + 
+		// 	     "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
+		// 	     term.equalsIgnoreCase(docStr));
+		// if (normTerm.equals(MWIUtilities.normalizeAstString(docStr))) {
 	      if (logger.isDebugEnabled() &&
 		  excludedTerms.isExcluded(cui,normTerm)) {
 		logger.debug( cui + "|" + normTerm + " is in excluded terms file.");
 	      }
-	      if ((! excludedTerms.isExcluded(cui,normTerm)) &&
-		  (normTerm.equals(NormalizedStringCache.normalizeAstString(docStr)))) {
+	      if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(term,normTerm,docStr)) {
 		if (tokenSubList.get(0) instanceof PosToken) {
 		  ConceptInfo concept = new ConceptInfo(cui, 
 							this.findPreferredName(cui),
 							this.getSourceSet(cui),
 							this.getSemanticTypeSet(cui));
-		  this.cacheConcept(normTerm, concept);
+		  this.cacheConcept(docStr, concept);
 		  Ev ev = new Ev(concept,
 				 originalTerm,
 				 offset,
@@ -392,6 +421,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 
 	} /* if term alphabetic */
       } /* if term length > 0 */
+      } /* first token has allowed partOfSpeech */
     } /* for token-sublist in list-of-token-sublists */
     return new SpanEntityMapAndTokenLength(spanMap, longestMatchedTokenLength);
   }
@@ -429,7 +459,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    * @param sentenceTokenList sentence to be examined.
    * @return set of entities found in the sentence.
    */
-  public Set<Entity> processSentenceTokenList(String docid, List<? extends Token> sentenceTokenList,
+  public Set<Entity> processSentenceTokenList(String docid, List<ERToken> sentenceTokenList,
 					      Set<String> semTypeRestrictSet,
 					      Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException {
@@ -513,19 +543,21 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     }
   }
 
-  public static List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
+
+  /** process passage */
+  public List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
 					    Set<String> semTypeRestrictSet,
 					    Set<String> sourceRestrictSet) 
     throws IOException, FileNotFoundException, Exception {
     logger.debug("enter processPassage");
-    EntityLookup3 entityLookupInst = EntityLookup3.singleton;
     Set<Entity> entitySet0 = new HashSet<Entity>();
     int i = 0;
     for (BioCSentence sentence: passage.getSentences()) {
-      List<? extends Token> tokenList = Scanner.analyzeText(sentence);
-      Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList,
-										semTypeRestrictSet,
-										sourceRestrictSet);
+      List<ERToken> tokenList = Scanner.analyzeText(sentence);
+      sentenceAnnotator.addPartOfSpeech(tokenList);
+      Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
+								    semTypeRestrictSet,
+								    sourceRestrictSet);
       for (Entity entity: sentenceEntitySet) {
 	entity.setLocationPosition(i);
       }
@@ -543,20 +575,21 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     return resultList;
   }
 
-  public static List<Entity> processSentences(String docid, List<Sentence> sentenceList,
+
+  public List<Entity> processSentences(String docid, List<Sentence> sentenceList,
 					      boolean useContext,
 					      Set<String> semTypeRestrictSet,
 					      Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException, Exception
   {
-    EntityLookup3 entityLookupInst = EntityLookup3.singleton;
     Set<Entity> entitySet0 = new HashSet<Entity>();
     int i = 0;
     for (Sentence sentence: sentenceList) {
-      List<? extends Token> tokenList = Scanner.analyzeText(sentence);
-      Set<Entity> sentenceEntitySet = entityLookupInst.processSentenceTokenList(docid, tokenList,
-										semTypeRestrictSet,
-										sourceRestrictSet);
+      List<ERToken> tokenList = Scanner.analyzeText(sentence);
+      sentenceAnnotator.addPartOfSpeech(tokenList);
+      Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
+								    semTypeRestrictSet,
+								    sourceRestrictSet);
       for (Entity entity: sentenceEntitySet) {
 	entity.setLocationPosition(i);
       }
@@ -575,18 +608,17 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     return resultList;
   }
 
-  public static Set<BioCAnnotation> generateBioCEntitySet(String docid,
-							  List<? extends Token> sentenceTokenList)
+  public Set<BioCAnnotation> generateBioCEntitySet(String docid,
+						   List<ERToken> sentenceTokenList)
     throws IOException, FileNotFoundException
   {
     logger.debug("generateEntitySet: ");
-    EntityLookup3 entityLookup = EntityLookup3.singleton;
     Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
     Set<Entity> entitySet = 
       removeSubsumingEntities
-      (entityLookup.processSentenceTokenList(docid, sentenceTokenList,
-					     new HashSet<String>(),
-					     new HashSet<String>()));
+      (this.processSentenceTokenList(docid, sentenceTokenList,
+				     new HashSet<String>(),
+				     new HashSet<String>()));
     for (Entity entity: entitySet) {
       bioCEntityList.add((BioCAnnotation)new BioCEntity(entity));
     }

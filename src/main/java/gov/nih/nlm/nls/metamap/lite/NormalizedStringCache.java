@@ -4,7 +4,7 @@ package gov.nih.nlm.nls.metamap.lite;
 
 import java.util.Map;
 import java.util.HashMap;
-import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
+import gov.nih.nlm.nls.metamap.lite.Normalization;
 
 /**
  *
@@ -12,23 +12,23 @@ import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
 
 public class NormalizedStringCache {
     /** string -> normalize string cache. */
-  public static Map<String,String> normalizeAstStringCache = new HashMap<String,String>();
+  public static Map<String,String> normalizeStringCache = new HashMap<String,String>();
 
   /**
-   * A memoization of MWIUtilities.normalizeAstString 
+   * A memoization of MWIUtilities.normalizeLiteString 
    * @param input string 
    * @return normalized version of input string.
    */
-  static String normalizeAstString(String astString) {
+  static String normalizeString(String originalString) {
     /* in the name of premature optimization, I'm memoizing normalizeAstString */
-    if (normalizeAstStringCache.containsKey(astString)) {
-      return normalizeAstStringCache.get(astString);
+    if (normalizeStringCache.containsKey(originalString)) {
+      return normalizeStringCache.get(originalString);
     } else {
-	String normalizedAstString = MWIUtilities.normalizeAstString(astString);
-	synchronized (normalizeAstStringCache) {
-	  normalizeAstStringCache.put(astString, normalizedAstString);
+	String normalizedString = Normalization.normalizeLiteString(originalString);
+	synchronized (normalizeStringCache) {
+	  normalizeStringCache.put(originalString, normalizedString);
 	}
-	return normalizedAstString;
+	return normalizedString;
     }
   }
 }

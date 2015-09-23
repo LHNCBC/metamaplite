@@ -35,6 +35,9 @@ import opennlp.tools.dictionary.serializer.Entry;
 
 public class Brat implements ResultFormatter {
 
+  public final String defaultTextLabel = System.getProperty("metamaplite.default.label", "MMLite");
+  String textLabel = defaultTextLabel;
+
   static class TextBoundAnnotation {
     String id;
     String type;
@@ -126,7 +129,11 @@ public class Brat implements ResultFormatter {
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
       String preferredName = ev.getConceptInfo().getPreferredName();
-      referenceSet.add(new NormalizationAnnotation("N0","T0", "ConceptId", cui, preferredName));
+      if ((cui == null) || (preferredName == null)) {
+	System.out.println("cui or preferred name is null for entity: " + entity);
+      } else {
+	referenceSet.add(new NormalizationAnnotation("N0","T0", "ConceptId", cui, preferredName));
+      }
       for (String semtype: ev.getConceptInfo().getSemanticTypeSet()) {
 	referenceSet.add(new NormalizationAnnotation("N0","T0", "SemanticType", semtype, semtype));
       }
@@ -305,9 +312,19 @@ public class Brat implements ResultFormatter {
     writeAnnotationSet(recognizerName, writer, annotationSet);
   } /* listEntities */
 
-  public void entityListFormatter(PrintWriter writer,
-			   List<Entity> entityList) {
-    writeAnnotationList("MMLite", writer, entityList);
+  public void setTextLabel(String newLabel) {
+    this.textLabel = newLabel;
   }
 
+  public void entityListFormatter(PrintWriter writer,
+			   List<Entity> entityList) {
+    String typeName = System.getProperty("metamaplite.result.formatter.property.brat.typename", this.textLabel);
+    writeAnnotationList(typeName, writer, entityList);
+  }
+
+  public void entityListFormatter(PrintWriter writer,
+				  List<Entity> entityList,
+				  String annotationTypeName) {
+    writeAnnotationList(annotationTypeName, writer, entityList);
+  }
 }

@@ -176,7 +176,7 @@ public class EntityLookup2 {
     // logger.debug("entering: transformPreposition");
     if (inputtext.indexOf(" of the") > 0) {
       // return MWIUtilities.normalizeAstString(inputtext.replaceAll(" of the", ","));
-      return NormalizedStringCache.normalizeAstString(inputtext.replaceAll(" of the", ","));
+      return NormalizedStringCache.normalizeString(inputtext.replaceAll(" of the", ","));
     } 
     // logger.debug("leaving: transformPreposition");
     return inputtext;
@@ -319,7 +319,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 	String term = originalTerm;
 	String query = term;
 	// String normTerm = MWIUtilities.normalizeAstString(term);
-	normTerm = NormalizedStringCache.normalizeAstString(term);
+	normTerm = NormalizedStringCache.normalizeString(term);
 	int offset = ((PosToken)tokenSubList.get(0)).getPosition();
 	if (CharUtils.isAlpha(term.charAt(0))) {
 	  List<Ev> evList = new ArrayList<Ev>();
@@ -355,7 +355,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 		logger.debug( cui + "|" + normTerm + " is in excluded terms file.");
 	      }
 	      if ((! excludedTerms.isExcluded(cui,normTerm)) &&
-		  (normTerm.equals(NormalizedStringCache.normalizeAstString(docStr)))) {
+		  (normTerm.equals(NormalizedStringCache.normalizeString(docStr)))) {
 		if (tokenSubList.get(0) instanceof PosToken) {
 		  ConceptInfo concept = new ConceptInfo(cui, 
 							this.findPreferredName(cui),

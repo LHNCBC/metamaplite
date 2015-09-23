@@ -98,6 +98,9 @@ public class Entity implements Annotation, Comparable<Entity>
     public boolean equals(Object other) {
       return this == other;
     }
+    public int hashCode() {
+      return this.hashCode();
+    }
   }
   
   // this should probably compare member of matchedWordSet?

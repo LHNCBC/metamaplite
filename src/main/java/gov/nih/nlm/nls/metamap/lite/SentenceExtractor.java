@@ -37,7 +37,7 @@ public class SentenceExtractor
   public static SentenceDetectorME sentenceDetector;
 
   static {
-    setModel(System.getProperty("en-sent.bin.path", "data/models/en-sent.bin"));
+    setModel(System.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
   }
 
   public static void setModel(String modelFilename)

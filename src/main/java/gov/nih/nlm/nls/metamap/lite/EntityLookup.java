@@ -192,7 +192,7 @@ public class EntityLookup {
     // logger.debug("entering: transformPreposition");
     if (inputtext.indexOf(" of the") > 0) {
       // return MWIUtilities.normalizeAstString(inputtext.replaceAll(" of the", ","));
-      return NormalizedStringCache.normalizeAstString(inputtext.replaceAll(" of the", ","));
+      return NormalizedStringCache.normalizeString(inputtext.replaceAll(" of the", ","));
     } 
     // logger.debug("leaving: transformPreposition");
     return inputtext;
@@ -309,7 +309,7 @@ public class EntityLookup {
 	String term = transformPreposition(originalTerm);
 	String query = term;
 	// String normTerm = MWIUtilities.normalizeAstString(term);
-	String normTerm = NormalizedStringCache.normalizeAstString(term);
+	String normTerm = NormalizedStringCache.normalizeString(term);
 	int offset = ((PosToken)tokenSubList.get(0)).getPosition();
 	if (CharUtils.isAlpha(term.charAt(0))) {
 	  List<Ev> evList = new ArrayList<Ev>();
@@ -335,7 +335,7 @@ public class EntityLookup {
 	      // logger.debug("term: \"" + term + 
 	      // 	     "\" == triple.get(\"str\"): \"" + doc.get("str") + "\" -> " +
 	      // 	     term.equalsIgnoreCase(docStr));
-	      if (normTerm.equals(NormalizedStringCache.normalizeAstString(docStr))) {
+	      if (normTerm.equals(NormalizedStringCache.normalizeString(docStr))) {
 		if (tokenSubList.get(0) instanceof PosToken) {
 		  ConceptInfo concept = new ConceptInfo(cui, 
 							this.findPreferredName(cui),
