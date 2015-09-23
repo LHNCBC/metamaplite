@@ -54,7 +54,7 @@ public class SentenceAnnotator {
 
     try {
       modelIn = new FileInputStream(System.getProperty("opennlp.en-pos.bin.path",
-						       "data/models/en-pos-perceptron.bin"));
+						       "data/models/en-pos-maxent.bin"));
       this.posModel = new POSModel(modelIn);
     }
     catch (IOException e) {
@@ -79,7 +79,7 @@ public class SentenceAnnotator {
 
     try {
       modelIn = new FileInputStream(properties.getProperty("opennlp.en-pos.bin.path",
-							   "data/models/en-pos-perceptron.bin"));
+							   "data/models/en-pos-maxent.bin"));
       this.posModel = new POSModel(modelIn);
     }
     catch (IOException e) {
