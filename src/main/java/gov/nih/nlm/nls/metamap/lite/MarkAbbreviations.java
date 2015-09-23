@@ -56,36 +56,38 @@ public class MarkAbbreviations {
     Map<String,List<BioCAnnotation>> shortFormMap = new HashMap<String,List<BioCAnnotation>>(); // short form -> annotation list
     Map<String,List<BioCAnnotation>> longFormMap = new HashMap<String,List<BioCAnnotation>>(); // long form -> annotation list
     for (BioCRelation relation: passage.getRelations()) {
-      if (relation.getInfon("type").equals("ABBR")) {
-	String shortForm = "";
-	String longForm = "";
-	for (BioCNode node: relation.getNodes()) {
-	  if (node.getRole().equals("ShortForm")) {
-	    String refId = node.getRefid();
-	    for (BioCAnnotation sfAnnotation: passage.getAnnotations()) {
-	      if (sfAnnotation.getID() == refId) {
-		shortForm = sfAnnotation.getText();
-		List<BioCAnnotation> newSfAnnotList = new ArrayList<BioCAnnotation>();
-		newSfAnnotList.add(sfAnnotation);
-		shortFormMap.put(shortForm, newSfAnnotList);
+      if (relation.getInfon("type") != null) {
+	if (relation.getInfon("type").equals("ABBR")) {
+	  String shortForm = "";
+	  String longForm = "";
+	  for (BioCNode node: relation.getNodes()) {
+	    if (node.getRole().equals("ShortForm")) {
+	      String refId = node.getRefid();
+	      for (BioCAnnotation sfAnnotation: passage.getAnnotations()) {
+		if (sfAnnotation.getID() == refId) {
+		  shortForm = sfAnnotation.getText();
+		  List<BioCAnnotation> newSfAnnotList = new ArrayList<BioCAnnotation>();
+		  newSfAnnotList.add(sfAnnotation);
+		  shortFormMap.put(shortForm, newSfAnnotList);
+		}
 	      }
-	    }
-	  } else if (node.getRole().equals("LongForm")) {
-	    String refId = node.getRefid();
-	    for (BioCAnnotation lfAnnotation: passage.getAnnotations()) {
-	      if (lfAnnotation.getID() == refId) {
-		longForm = lfAnnotation.getText();
-		List<BioCAnnotation> newLfAnnotList = new ArrayList<BioCAnnotation>();
-		newLfAnnotList.add(lfAnnotation);
-		longFormMap.put(longForm, newLfAnnotList);
+	    } else if (node.getRole().equals("LongForm")) {
+	      String refId = node.getRefid();
+	      for (BioCAnnotation lfAnnotation: passage.getAnnotations()) {
+		if (lfAnnotation.getID() == refId) {
+		  longForm = lfAnnotation.getText();
+		  List<BioCAnnotation> newLfAnnotList = new ArrayList<BioCAnnotation>();
+		  newLfAnnotList.add(lfAnnotation);
+		  longFormMap.put(longForm, newLfAnnotList);
+		}
 	      }
 	    }
 	  }
+	  logger.debug("abbrvMap: " + shortForm + " -> " + longForm);
+	  abbrMap.put(shortForm,longForm);
+	  logger.debug("abbrvMap: " + longForm + " -> " + shortForm);
+	  abbrMap.put(longForm,shortForm);
 	}
-	logger.debug("abbrvMap: " + shortForm + " -> " + longForm);
-	abbrMap.put(shortForm,longForm);
-	logger.debug("abbrvMap: " + longForm + " -> " + shortForm);
-	abbrMap.put(longForm,shortForm);
       }
     } /*for relation in annotation relations*/
 
