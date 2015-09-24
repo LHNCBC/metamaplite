@@ -30,7 +30,7 @@ public class Install {
   static void generateFile(File templateFile, String basedir) 
     throws FileNotFoundException, IOException
   {
-    String templateFilename = templateFile.getPath();
+    String templateFilename = templateFile.getCanonicalPath();
     if (templateFilename.lastIndexOf(".in") > 3) {
       String outputFilename = templateFilename.substring(0,templateFilename.lastIndexOf(".in"));
       System.out.println("generating " + outputFilename + " from " + templateFilename);
@@ -54,15 +54,15 @@ public class Install {
   {
     FileFilter filter = new TemplateFileFilter();
     File basedirFile = new File(System.getProperty("user.dir"));
-    System.out.println("basedir: " + basedirFile.getPath());
+    System.out.println("basedir: " + basedirFile.getCanonicalPath());
     /* generate any file having a template with extension ".in" in base and base/config directories */
     for (File templateFile:  basedirFile.listFiles(filter)) {
-      generateFile(templateFile, basedirFile.getPath());
+      generateFile(templateFile, basedirFile.getCanonicalPath());
     }
-    File configdirFile = new File(basedirFile.getPath() + "/config");
-    System.out.println("configdir: " + configdirFile.getPath());
+    File configdirFile = new File(basedirFile.getCanonicalPath() + "/config");
+    System.out.println("configdir: " + configdirFile.getCanonicalPath());
     for (File templateFile:  configdirFile.listFiles(filter)) {
-      generateFile(templateFile, basedirFile.getPath());
+      generateFile(templateFile, basedirFile.getCanonicalPath());
     }
 
   }
