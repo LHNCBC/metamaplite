@@ -156,14 +156,12 @@ public class Brat implements ResultFormatter {
       cindex++;
       String tid = "T" + cindex;
       annotation.setId(tid);
-      System.out.println(annotation.toString());
       writer.println(annotation.toString());
       if (annotation.getReferenceSet() != null) {
 	for (NormalizationAnnotation nAnnotation: annotation.getReferenceSet()) {
 	  nindex++;
 	  nAnnotation.setId("N" + nindex);
 	  nAnnotation.setTarget(tid);
-	  System.out.println(nAnnotation.toString());
 	  writer.println(nAnnotation.toString());
 	}
       }
@@ -179,14 +177,12 @@ public class Brat implements ResultFormatter {
       cindex++;
       String tid = "T" + cindex;
       annotation.setId(tid);
-      System.out.println(annotation.toString());
       writer.println(annotation.toString());
       if (annotation.getReferenceSet() != null) {
 	for (NormalizationAnnotation nAnnotation: annotation.getReferenceSet()) {
 	  nindex++;
 	  nAnnotation.setId("N" + nindex);
 	  nAnnotation.setTarget(tid);
-	  System.out.println(nAnnotation.toString());
 	  writer.println(nAnnotation.toString());
 	}
       }
