@@ -333,11 +333,13 @@ public class MetaMapLite {
       System.err.println("      " + name);
     }
     System.err.println("processing options:");
-    System.err.println("  --restrict-to-sts=<semtype>[,<semtype>,<semtype>...]");
+    System.err.println("  --restrict_to_sts=<semtype>[,<semtype>...]");
+    System.err.println("  --restrict_to_sourcess=<source>[,<source>...]");
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
     System.err.println("--list_sentences");
+    System.err.println("--list_acronyms");
   }
 
   /**

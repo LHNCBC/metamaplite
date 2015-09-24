@@ -19,15 +19,21 @@ Installation on Unix (Linux/Mac OS/X):
 
 Current options are:
 
-document processing options:
-  --freetext      Text with no markup.
-  --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
-  --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
-  --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
-output options:
-  --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
-  --mmilike|mmi               similar to MetaMap Fielded MMI output
-  --brat                      BRAT annotation format
+    document processing options:
+      --freetext      Text with no markup.
+      --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
+      --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
+      --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
+    output options:
+      --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
+      --mmilike|mmi               similar to MetaMap Fielded MMI output
+      --brat                      BRAT annotation format
+    processing options:
+      --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
+      --restrict_to_sources=<source>[,<source>...]
+    alternate output options:
+      --list_sentences
+      --list_acronyms
 
 ## Tables and Indexes
 
