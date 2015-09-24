@@ -10,8 +10,8 @@ metamaplite.varsindex: @@basedir@@/data/lucenedb/strict/vars
 # Inverted Files
 metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/strict/indices/cuiconcept
 metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/strict/indices/first_words_of_one_WIDE
-metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/strict/indices/cui_sourceinfo
-metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/strict/indices/cui_st
+metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/strict/indices/cuisourceinfo
+metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/strict/indices/cuist
 metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
 
 # default semantic.type.list: if not defined is empty (all semantic types) 
