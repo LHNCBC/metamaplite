@@ -1,11 +1,11 @@
 # MetaMap Lite configuration 
 #
 # Lucene indexes
-metamaplite.cuiconceptindex: /nfsvol/nlsaux15/lucenedb/strict/cuiconcept
-metamaplite.firstwordsofonewideindex: /nfsvol/nlsaux15/lucenedb/strict/first_words_of_one_WIDE
-metamaplite.cuisourceinfoindex: /nfsvol/nlsaux15/lucenedb/strict/cui_sourceinfo
-metamaplite.cuisemantictypeindex: /nfsvol/nlsaux15/lucenedb/strict/cui_st
-metamaplite.varsindex: /nfsvol/nlsaux15/lucenedb/strict/vars
+metamaplite.cuiconceptindex: @@basedir@@/data/lucenedb/strict/cuiconcept
+metamaplite.firstwordsofonewideindex: @@basedir@@/data/lucenedb/strict/first_words_of_one_WIDE
+metamaplite.cuisourceinfoindex: @@basedir@@/data/lucenedb/strict/cui_sourceinfo
+metamaplite.cuisemantictypeindex: @@basedir@@/data/lucenedb/strict/cui_st
+metamaplite.varsindex: @@basedir@@/data/lucenedb/strict/vars
 
 # Inverted Files
 metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/strict/indices/cuiconcept
@@ -61,5 +61,5 @@ bioc.document.loader.freetext: gov.nih.nlm.nls.metamap.document.FreeText
 bioc.document.loader.ncbicorpus: gov.nih.nlm.nls.metamap.document.NCBICorpusDocument
 
 # Excluded (special) terms
-metamaplite.excluded.termsfile: specialterms.txt
+metamaplite.excluded.termsfile: @@basedir@@/data/specialterms.txt
 
