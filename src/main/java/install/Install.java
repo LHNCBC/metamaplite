@@ -30,7 +30,7 @@ public class Install {
   static void generateFile(File templateFile, String basedir) 
     throws FileNotFoundException, IOException
   {
-    String templateFilename = templateFile.getName();
+    String templateFilename = templateFile.getPath();
     if (templateFilename.lastIndexOf(".in") > 3) {
       String outputFilename = templateFilename.substring(0,templateFilename.lastIndexOf(".in"));
       System.out.println("generating " + outputFilename + " from " + templateFilename);
