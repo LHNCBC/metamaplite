@@ -24,18 +24,30 @@ public class SpecialTerms {
   public SpecialTerms(String filename) 
     throws FileNotFoundException, IOException
   {
-    this.specialTerms = loadSpecialTerms(filename);
+    this.specialTerms = loadTerms(filename);
   }
 
   public SpecialTerms(InputStream stream) 
-    throws FileNotFoundException, IOException
+    throws IOException
   {
-    this.specialTerms = loadSpecialTerms(stream);
+    this.specialTerms = loadTerms(stream);
   }
 
   public SpecialTerms(Set<String> specialTermSet) 
   {
     this.specialTerms = specialTermSet;
+  }
+
+  public void addTerms(String filename) 
+    throws FileNotFoundException, IOException
+  {
+    this.specialTerms.addAll( loadTerms(filename) );
+  }
+
+    public void addTerms(InputStream stream) 
+    throws IOException
+  {
+    this.specialTerms.addAll( loadTerms(stream) );
   }
 
   /**
@@ -46,7 +58,7 @@ public class SpecialTerms {
    * @param filename 
    * @return 
    */
-  public Set<String> loadSpecialTerms(String filename)
+  public Set<String> loadTerms(String filename)
     throws FileNotFoundException, IOException
   {
     Set<String> termSet = new HashSet<String>();
@@ -59,17 +71,17 @@ public class SpecialTerms {
     return termSet;
   }  
 
-  public Set<String> loadSpecialTerms(InputStream stream)
+  public Set<String> loadTerms(InputStream stream)
     throws FileNotFoundException, IOException
   {
-    Set<String> specialTerms = new HashSet<String>();
+    Set<String> termSet = new HashSet<String>();
     String line;
     BufferedReader br = new BufferedReader(new InputStreamReader(stream));
      while ((line = br.readLine()) != null) {
-      this.specialTerms.add(line.trim());
+      termSet.add(line.trim());
     }
     br.close();
-    return specialTerms;
+    return termSet;
   }  
 
   public String makeKey(String cui, String term) {
@@ -82,6 +94,9 @@ public class SpecialTerms {
 
   public boolean isExcluded(String cui, String term) {
     return this.specialTerms.contains(makeKey(cui,term));
+  }
+  public int size() {
+    return this.specialTerms.size();
   }
 }
 

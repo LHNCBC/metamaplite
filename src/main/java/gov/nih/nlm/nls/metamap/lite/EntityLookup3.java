@@ -59,8 +59,6 @@ import opennlp.tools.dictionary.serializer.Entry;
  */
 public class EntityLookup3 {
   private static final Logger logger = LogManager.getLogger(EntityLookup3.class);
-  int resultLength = 
-    Integer.parseInt(System.getProperty("metamaplite.entitylookup.resultlength","1500"));
 
   public MetaMapIvfIndexes mmIndexes;
   // SpecialTerms excludedTerms = new SpecialTerms
@@ -104,6 +102,10 @@ public class EntityLookup3 {
     this.mmIndexes = new MetaMapIvfIndexes(properties);
     this.sentenceAnnotator = new SentenceAnnotator(properties);
     this.defaultAllowedPartOfSpeech();
+    if (properties.containsKey("metamaplite.excluded.termsfile") &&
+	(this.excludedTerms.size() == 0)) {
+      this.excludedTerms.addTerms(properties.getProperty("metamaplite.excluded.termsfile"));
+    }
   }
 
   /** cache of string -> concept and attributes */
