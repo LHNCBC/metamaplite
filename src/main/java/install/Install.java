@@ -1,3 +1,4 @@
+// /export/home/wjrogers/projects/metamaplite/src/main/java/install/Install.java, Wed Sep 23 17:30:27 2015, edit by Will Rogers
 
 //
 package install;
@@ -30,16 +31,18 @@ public class Install {
     throws FileNotFoundException, IOException
   {
     String templateFilename = templateFile.getName();
-    String outputFilename = templateFilename.substring(0,templateFilename.lastIndexOf('.'));
-    System.out.println("generating " + outputFilename + " from " + templateFilename);
-    BufferedReader br = new BufferedReader(new FileReader(templateFile));
-    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFilename)));
-    String line;
-    while ((line = br.readLine()) != null) {
-      out.println(line.replaceAll("@@basedir@@", basedir));
+    if (templateFilename.lastIndexOf(".in") > 3) {
+      String outputFilename = templateFilename.substring(0,templateFilename.lastIndexOf(".in"));
+      System.out.println("generating " + outputFilename + " from " + templateFilename);
+      BufferedReader br = new BufferedReader(new FileReader(templateFile));
+      PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFilename)));
+      String line;
+      while ((line = br.readLine()) != null) {
+	out.println(line.replaceAll("@@basedir@@", basedir));
+      }
+      out.close();
+      br.close();
     }
-    out.close();
-    br.close();
   }
 
   /**
@@ -51,8 +54,16 @@ public class Install {
   {
     FileFilter filter = new TemplateFileFilter();
     File basedirFile = new File(System.getProperty("user.dir"));
+    System.out.println("basedir: " + basedirFile.getPath());
+    /* generate any file having a template with extension ".in" in base and base/config directories */
     for (File templateFile:  basedirFile.listFiles(filter)) {
-      generateFile(templateFile, basedirFile.getName());
+      generateFile(templateFile, basedirFile.getPath());
     }
+    File configdirFile = new File(basedirFile.getPath() + "/config");
+    System.out.println("configdir: " + configdirFile.getPath());
+    for (File templateFile:  configdirFile.listFiles(filter)) {
+      generateFile(templateFile, basedirFile.getPath());
+    }
+
   }
 }
