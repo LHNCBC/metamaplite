@@ -21,6 +21,9 @@ public class SpecialTerms {
   /** instance special terms set */
   Set<String> specialTerms = new HashSet<String>();
 
+  public SpecialTerms() {
+  }
+
   public SpecialTerms(String filename) 
     throws FileNotFoundException, IOException
   {

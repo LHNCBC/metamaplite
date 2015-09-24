@@ -61,18 +61,13 @@ public class EntityLookup3 {
   private static final Logger logger = LogManager.getLogger(EntityLookup3.class);
 
   public MetaMapIvfIndexes mmIndexes;
-  // SpecialTerms excludedTerms = new SpecialTerms
-  //   (this.getClass().getClassLoader().getResourceAsStream
-  //    (System.getProperty("metamaplite.excluded.termsfile","specialterms.txt")));
-  SpecialTerms excludedTerms = new SpecialTerms
-    (System.getProperty("metamaplite.excluded.termsfile","/export/home/wjrogers/Projects/metamaplite/data/specialterms.txt"));
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   
   /** string column for cuisourceinfo index*/
   int strColumn = 3;		
   /** cui column for semantic type and cuisourceinfo index */
   int cuiColumn = 0;		
-
+  SpecialTerms excludedTerms = new SpecialTerms();
   static final int MAX_TOKEN_SIZE = Integer.parseInt(System.getProperty("metamaplite.entitylookup3.maxtokensize","15"));
 
   SentenceAnnotator sentenceAnnotator;
@@ -102,8 +97,10 @@ public class EntityLookup3 {
     this.mmIndexes = new MetaMapIvfIndexes(properties);
     this.sentenceAnnotator = new SentenceAnnotator(properties);
     this.defaultAllowedPartOfSpeech();
-    if (properties.containsKey("metamaplite.excluded.termsfile") &&
-	(this.excludedTerms.size() == 0)) {
+    if (System.getProperty("metamaplite.excluded.termsfile") != null) {
+      this.excludedTerms.addTerms(System.getProperty("metamaplite.excluded.termsfile"));
+    } else if (properties.containsKey("metamaplite.excluded.termsfile") &&
+	       (this.excludedTerms.size() == 0)) {
       this.excludedTerms.addTerms(properties.getProperty("metamaplite.excluded.termsfile"));
     }
   }
