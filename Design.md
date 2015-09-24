@@ -12,12 +12,16 @@
 
 ## Packaging
 
+See file dist_metamap_lite_2015.tcl in repository:
+
+    ${II_WORKAREA}/II_source_repositories/packagingv2.git.
+
 ### Required files
 
 1. Java class and supporting jars
 2. POM and ANT files
 3. Open NLP sentence model files
-4. Lucene indices
+4. Inverted Multi-key index files
 5. Local libraries which are not available through Maven.
 
 
@@ -44,7 +48,7 @@ Current implementation uses Lucene indexes
 
 ### IRUtils multi-key index
 
-Multi-key Inverted File index (Implementation in process).
+Multi-key Inverted File index is now the default implementation.
 
 ## Optimizations
 
@@ -148,3 +152,54 @@ Use extract\_mrconso\_sources.perl:
 
 
 
+## Timing
+
+NCBI Disease Training Corpus (592 documents)
+
+### MetaMapLite
+
+#### indlx1
+
+First run (indlx1):
+
+real	29m12.477s
+user	39m51.089s
+sys		1m7.615s
+
+Second run (indlx1):
+
+real	26m10.628s
+user	39m24.213s
+sys	0m37.145s
+
+#### ii-server6
+
+First run (ii-server6):
+
+real	44m47.399s
+user	52m13.420s
+sys	1m23.783s
+
+Secord run  (ii-server6):
+
+real	39m53.229s
+user	47m53.044s
+sys	2m38.590s
+
+
+### MetaMap
+
+First run (ii-server6)
+
+start time: Wed Mar 11 08:33:52 EDT 2015
+end time: Wed Mar 11 09:20:22 EDT 2015
+
+47 minutes
+
+Second run (ii-server6):
+
+start time: Wed Mar 11 09:23:50 EDT 2015
+end time: Wed Mar 11 10:05:18 EDT 2015
+2149.859u 230.497s 41:28.33 95.6%	0+0k 0+7760io 0pf+0w
+
+42 minutes

@@ -7,22 +7,11 @@
 
 ## Installation
 
+Installation on Unix (Linux/Mac OS/X):
 
-## modifying configuration file
-
-### inverted files
-
-    metamaplite.ivf.cuiconceptindex: data/ivf/strict/indices/cuiconcept
-    metamaplite.ivf.firstwordsofonewideindex: data/ivf/strict/indices/first_words_of_one_WIDE
-    metamaplite.ivf.cuisourceinfoindex: data/ivf/strict/indices/cui_sourceinfo
-    metamaplite.ivf.cuisemantictypeindex: data/ivf/strict/indices/cui_st
-    metamaplite.ivf.varsindex: data/ivf/strict/indices/vars
-
-### OpenNLP model files 
-
-    opennlp.en-sent.bin.path: data/models/en-sent.bin
-    opennlp.en-token.bin.path: data/models/en-token.bin
-    opennlp.en-pos-maxent.bin.path: data/models/en-pos-maxent.bin
+    $ tar xvfj public_mm_lite_{year}.tar.bz2
+    $ cd public_mm_lite 
+    $ sh install.sh
 
 ## Usage
 
@@ -45,7 +34,7 @@ output options:
 Currently, three tables are used:
 
 * cuisourceinfo
-* cuisemantictype
+* cuisemantictype (cuist)
 * cuiconcept
 
 ## Adding custom input document formats
