@@ -406,14 +406,12 @@ public class MetaMapLite {
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
       String modelsDirectory = System.getProperty("opennlp.models.directory", "data/models");
-      String indexDirectory = System.getProperty("metamaplite.index.directory", "data/ivf");
+      String indexDirectory = System.getProperty("metamaplite.index.directory", "data/ivf/strict");
       Properties defaultConfiguration = new Properties();
       defaultConfiguration.setProperty("metamaplite.excluded.termsfile",
 				       System.getProperty("metamaplite.excluded.termsfile", "data/specialterms.txt"));
-      defaultConfiguration.setProperty("opennlp.models.directory",
-				       System.getProperty("opennlp.models.directory", "data/models"));
-      defaultConfiguration.setProperty("metamaplite.index.directory",
-				       System.getProperty("opennlp.index.directory", "data/ivf"));
+      defaultConfiguration.setProperty("opennlp.models.directory", modelsDirectory);
+      defaultConfiguration.setProperty("metamaplite.index.directory", indexDirectory);
       defaultConfiguration.setProperty("metamaplite.document.inputtype", "freetext");
       defaultConfiguration.setProperty("metamaplite.outputformat", "mmi");
       defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
