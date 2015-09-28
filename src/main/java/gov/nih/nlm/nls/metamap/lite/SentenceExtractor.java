@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.File;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -37,7 +38,9 @@ public class SentenceExtractor
   public static SentenceDetectorME sentenceDetector;
 
   static {
-    setModel(System.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
+    if (new File("data/models/en-sent.bin").exists()) {
+      setModel(System.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
+    }
   }
 
   public static void setModel(String modelFilename)
