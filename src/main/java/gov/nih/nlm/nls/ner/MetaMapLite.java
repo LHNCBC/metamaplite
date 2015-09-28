@@ -1,16 +1,17 @@
 //
 package gov.nih.nlm.nls.ner;
 
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -76,10 +77,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import opennlp.tools.util.Span;
 
+import gov.nih.nlm.nls.utils.Configuration;
+
 /**
  * Properties precedence (from highest to lowest):
  * <ul>
  *   <li>Command line options</li>
+ *   <li>System properties</li>
  *   <li>MetaMap property file</li>
  * </ul>
  */
@@ -90,6 +94,11 @@ public class MetaMapLite {
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");
   static Map<String,String> outputExtensionMap = new HashMap<String,String>();
+  static {
+    outputExtensionMap.put("brat",".ann");
+    outputExtensionMap.put("mmi",".mmi");
+    outputExtensionMap.put("cdi",".cdi");
+  }
 
   Set<String> semanticGroup = new HashSet<String>(); // initially empty
   Set<String> sourceSet = new HashSet<String>(); // initially empty
@@ -108,6 +117,9 @@ public class MetaMapLite {
 	   IOException
   {
     this.properties = properties;
+    if (properties.getProperty("opennlp.en-sent.bin.path") != null) {
+      SentenceExtractor.setModel(properties.getProperty("opennlp.en-sent.bin.path"));
+    }
     this.sentenceAnnotator = new SentenceAnnotator(properties);
     this.entityLookup = new EntityLookup3(properties);
     BioCDocumentLoaderRegistry.register("freetext",
@@ -138,19 +150,9 @@ public class MetaMapLite {
 				     "Fielded MetaMap Indexing-like Output",
 				     new MMI());
 
-
     /** augment or override any built-in formats with ones specified by property file. */
     BioCDocumentLoaderRegistry.register(properties);
     ResultFormatterRegistry.register(properties);
-
-    outputExtensionMap.put("brat",".ann");
-    outputExtensionMap.put("mmi",".mmi");
-    outputExtensionMap.put("cdi",".cdi");
-
-
-    System.setProperty("opennlp.en-sent.bin.path",
-		       properties.getProperty("opennlp.en-sent.bin.path",
-					      "data/models/en-sent.bin"));
   }
 
   void setSemanticGroup(String[] semanticTypeList) {
@@ -249,7 +251,8 @@ public class MetaMapLite {
       MarkAbbreviations.markAbbreviations
       (passageWithSentsAndAbbrevs,
        this.entityLookup.processPassage
-       ("0000000.tx", passageWithSentsAndAbbrevs, this.useContext, this.semanticGroup, this.sourceSet));
+       ((passage.getInfon("section") != null) ? passage.getInfon("section") : "text",
+	passageWithSentsAndAbbrevs, this.useContext, this.semanticGroup, this.sourceSet));
     logger.debug("exit processPassage");
     return entityList;
   }
@@ -338,10 +341,41 @@ public class MetaMapLite {
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
-    System.err.println("--list_sentences");
-    System.err.println("--list_acronyms");
+    System.err.println("  --list_sentences");
+    System.err.println("  --list_acronyms");
+    System.err.println("configuration options:");
+    System.err.println("  --configfile=<filename>");
+    System.err.println("  --indexdir=<directory>");
+    System.err.println("  --modelsdir=<directory>");
+    System.err.println("  --specialtermsfile=<filename>");
   }
 
+  public static void expandModelsDir(Properties properties) {
+    String modelsDir = properties.getProperty("metamaplite.models.directory");
+    if (modelsDir != null) {
+      properties.setProperty("opennlp.en-sent.bin.path", modelsDir + "/data/models/en-sent.bin");
+      properties.setProperty("opennlp.en-token.bin.path", modelsDir + "/data/models/en-token.bin");
+      properties.setProperty("opennlp.en-pos-maxent.bin.path", modelsDir + "/data/models/en-pos-maxent.bin");
+    }
+  }
+  public static void expandIndexDir(Properties properties) {
+    String indexDirName = properties.getProperty("metamaplite.index.directory");
+    if (indexDirName != null) {
+      properties.setProperty("metamaplite.ivf.cuiconceptindex", indexDirName + "/indices/cuiconcept");
+      properties.setProperty("metamaplite.ivf.firstwordsofonewideindex", indexDirName + "/indices/first_words_of_one_WIDE");
+      properties.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirName + "/indices/cuisourceinfo");
+      properties.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirName + "/indices/cuist");
+      properties.setProperty("metamaplite.ivf.varsindex", indexDirName + "/indices/vars");
+    }
+  }
+  
+  public static void displayProperties(String label, Properties properties) {
+      System.out.println(label);
+      for (String name: properties.stringPropertyNames()) {
+	System.out.println("   " + name + ": " + properties.getProperty(name));
+      }
+  }
+  
   /**
    * MetaMapLite application commandline.
    * <p>
@@ -381,74 +415,89 @@ public class MetaMapLite {
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException,
-	   InvocationTargetException, 
+	   InvocationTargetException,
 	   Exception
   {
     if (args.length > 0) {
-      MetaMapLite metaMapLiteInst = initMetaMapLite();
-      Properties properties = metaMapLiteInst.properties;
-
-      /** set any options in properties configuration file and system properties first */
-      BioCDocumentLoaderRegistry.register(properties);
-
       List<String> filenameList = new ArrayList<String>();
-      String documentInputOption =
-	properties.getProperty("metamaplite.document.inputtype", "freetext");
-      String outputFormatOption =
- 	properties.getProperty("metamaplite.outputformat", "mmi");
-      String outputExtension =
- 	properties.getProperty("metamaplite.outputextension",  ".mmi");
-      String outputFile =
- 	properties.getProperty("metamaplite.outputfilename", null);
-      String entityLookupResultLengthString = 
- 	properties.getProperty("metamaplite.entitylookup.resultlength", "");
-      metaMapLiteInst.setSemanticGroup
-	(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
-      metaMapLiteInst.useContext = 
-	Boolean.parseBoolean(properties.getProperty("metamaplite.usecontext", "false"));
-      boolean listSentences = false;
-      boolean listAcronyms = false;
+      String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
+      String modelsDirectory = System.getProperty("metamaplite.opennlp.models.directory", "data/models");
+      String indexDirectory = System.getProperty("metamaplite.index.directory", "data/ivf");
+      Properties defaultConfiguration = new Properties();
+      defaultConfiguration.setProperty("metamaplite.excluded.termsfile",
+				       System.getProperty("metamaplite.excluded.termsfile", "data/specialterms.txt"));
+      defaultConfiguration.setProperty("metamaplite.opennlp.models.directory",
+				       System.getProperty("metamaplite.opennlp.models.directory", "data/models"));
+      defaultConfiguration.setProperty("metamaplite.index.directory",
+				       System.getProperty("metamaplite.opennlp.index.directory", "data/ivf"));
+      defaultConfiguration.setProperty("metamaplite.document.inputtype", "freetext");
+      defaultConfiguration.setProperty("metamaplite.outputformat", "mmi");
+      defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
+      defaultConfiguration.setProperty("metamaplite.semanticgroup", "all");
+      defaultConfiguration.setProperty("metamaplite.sourceset", "all");
+      defaultConfiguration.setProperty("metamaplite.usecontext", "false");
+
+      defaultConfiguration.setProperty("opennlp.en-sent.bin.path", modelsDirectory + "/en-sent.bin");
+      defaultConfiguration.setProperty("opennlp.en-token.bin.path", modelsDirectory + "/en-token.bin");
+      defaultConfiguration.setProperty("opennlp.en-pos.bin.path", modelsDirectory + "/en-pos-maxent.bin");
+
+      defaultConfiguration.setProperty("metamaplite.ivf.cuiconceptindex", indexDirectory + "/strict/indices/cuiconcept");
+      defaultConfiguration.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirectory + "/strict/indices/cuisourceinfo");
+      defaultConfiguration.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirectory + "/strict/indices/cuist");
+      
+      defaultConfiguration.setProperty("bioc.document.loader.chemdner", "gov.nih.nlm.nls.metamap.document.ChemDNER");
+      defaultConfiguration.setProperty("bioc.document.loader.freetext", "gov.nih.nlm.nls.metamap.document.FreeText");
+      defaultConfiguration.setProperty("bioc.document.loader.ncbicorpus", "gov.nih.nlm.nls.metamap.document.NCBICorpusDocument");
+
+      System.out.println("Reading options");
+      Properties optionsConfiguration = new Properties();
       int i = 0;
       while (i < args.length) {
         if (args[i].substring(0,2).equals("--")) {
 	  String[] fields = args[i].split("=");
-	  if (fields[0].equals("--inputdocformat")) {
-	    documentInputOption = fields[1];
+	  if (fields[0].equals("--configfile") ||
+	      fields[0].equals("--propertiesfile")) {
+	    propertiesFilename = fields[1];
+	  } else if (fields[0].equals("--indexdir")) {
+	    optionsConfiguration.setProperty ("metamaplite.index.directory",fields[1]);
+	  } else if (fields[0].equals("--modelsdir")) {
+	    optionsConfiguration.setProperty ("metamaplite.opennlp.models.directory",fields[1]);
+	  } else if (fields[0].equals("--specialtermsfile")) {
+	    optionsConfiguration.setProperty ("metamaplite.excluded.termsfile",fields[1]);
+	  } else if (fields[0].equals("--inputdocformat")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype",fields[1]);
 	  } else if (fields[0].equals("--freetext")) {
-	    documentInputOption = "freetext";
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
 	  } else if (fields[0].equals("--outputformat")) {
-	    outputFormatOption = fields[1];
-	    outputExtension = outputExtensionMap.get(outputFormatOption);
+	    optionsConfiguration.setProperty("metamaplite.outputformat",fields[1]);
+	    optionsConfiguration.setProperty("metamaplite.outputextension", outputExtensionMap.get(fields[1]));
 	  } else if (fields[0].equals("--brat") || 
 		     fields[0].equals("--BRAT")) {
-	    outputFormatOption = "brat";
-	    outputExtension = outputExtensionMap.get(outputFormatOption);
+	    optionsConfiguration.setProperty("metamaplite.outputformat","brat");
+	    optionsConfiguration.setProperty("metamaplite.outputextension", outputExtensionMap.get("brat"));
 	  } else if (fields[0].equals("--mmi") || 
 		     fields[0].equals("--mmilike")) {
-	    outputFormatOption = "mmi";
-	    outputExtension = outputExtensionMap.get(outputFormatOption);
-	  } else if (fields[0].equals("--luceneresultlen")) {
-	    entityLookupResultLengthString = fields[1];
+	    optionsConfiguration.setProperty("metamaplite.outputformat","mmi");
+	    optionsConfiguration.setProperty("metamaplite.outputextension", outputExtensionMap.get("mmi"));
 	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
 		     fields[0].equals("--restrict-to-sts") ||
 		     fields[0].equals("--restrict_to_semantic_types") ||
 		     fields[0].equals("--restrict_to_sts")) {
-	    String[] semanticTypeList = fields[1].split(",");
-	    metaMapLiteInst.setSemanticGroup(semanticTypeList);
+	    optionsConfiguration.setProperty("metamaplite.semanticgroup", fields[1]);
 	  } else if (fields[0].equals("--restrict-to-sources") ||
 		     fields[0].equals("--restrict-to-src") ||
 		     fields[0].equals("--restrict_to_sources") ||
 		     fields[0].equals("--restrict_to_src")) {
-	    String[] sourceList = fields[1].split(",");
-	    metaMapLiteInst.setSourceSet(sourceList);
+	    optionsConfiguration.setProperty("metamaplite.sourceset", fields[1]);
 	  } else if (fields[0].equals("--usecontext")) {
-	    metaMapLiteInst.useContext = true;
+	    optionsConfiguration.setProperty("metamaplite.usecontext", "true");
 	  } else if (fields[0].equals("--brat_type_name")) {
-	    System.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
+	    optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
 	  } else if (args[i].equals("--list_sentences")) {
-	    listSentences = true;
+	    optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
 	  } else if (args[i].equals("--list_acronyms")) {
-	    listAcronyms = true;
+	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
 	  } else if (args[i].equals("--help")) {
 	    displayHelp();
 	    System.exit(1);
@@ -459,11 +508,46 @@ public class MetaMapLite {
 	i++;
       }
 
-      if (entityLookupResultLengthString.length() > 0) {
-	System.setProperty("metamaplite.entitylookup.resultlength", 
-			   entityLookupResultLengthString);
+      Properties localConfiguration = new Properties();
+      File localConfigurationFile = new File(propertiesFilename);
+      if (localConfigurationFile.exists()) {
+	System.out.println("loading local configuration from " + localConfigurationFile);
+	localConfiguration.load(new FileReader(localConfigurationFile));
+	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
       }
- 
+      expandModelsDir(defaultConfiguration);
+      expandModelsDir(localConfiguration);
+      expandModelsDir(optionsConfiguration);
+
+      expandIndexDir(defaultConfiguration);
+      expandIndexDir(localConfiguration);
+      expandIndexDir(optionsConfiguration);
+
+      displayProperties("defaultConfiguration:", defaultConfiguration);
+      displayProperties("localConfiguration:", localConfiguration);
+      displayProperties("optionsConfiguration:", optionsConfiguration);
+
+      Properties properties = Configuration.getConfiguration(defaultConfiguration, localConfiguration, optionsConfiguration);
+      
+      displayProperties("properties:", properties);
+      MetaMapLite metaMapLiteInst = new MetaMapLite(properties);
+      /** set any options in properties configuration file and system properties first */
+      BioCDocumentLoaderRegistry.register(properties);
+
+      String documentInputOption = properties.getProperty("metamaplite.document.inputtype", "freetext");
+      String outputFormatOption = properties.getProperty("metamaplite.outputformat","mmi");
+      String outputExtension =	properties.getProperty("metamaplite.outputextension", ".mmi");
+      metaMapLiteInst.setSemanticGroup(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
+      metaMapLiteInst.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
+      System.setProperty("metamaplite.result.formatter.property.brat.typename",
+			 properties.getProperty("metamaplite.result.formatter.property.brat.typename", "metamaplite"));
+      metaMapLiteInst.useContext = 
+	Boolean.parseBoolean(properties.getProperty("metamaplite.usecontext", "false"));
+      boolean listSentences =
+	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
+      boolean listAcronyms =
+	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
+
       logger.info("Loading and processing documents");
       for (String filename: filenameList) {
 	System.out.println("Loading and processing " + filename);
