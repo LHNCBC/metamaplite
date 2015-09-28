@@ -5,6 +5,29 @@
 * Java 1.7
 * Maven or Ant
 
+## Using MetaMapLite without installing
+
+    $ java -cp public_mm_lite/target/metamaplite-1.0-SNAPSHOT.jar gov.nih.nlm.nls.ner.MetaMapLite [options]
+
+Configuration Options:
+
+    --configfile=<filename>        Use configuration file
+
+Options that can be used to override configuration file or when
+configuration file is not present:
+
+    --indexdir=<directory>         location of program's index directory
+    --modelsdir=<directory>        location of models for sentence breaker and part-of-speech tagger
+	--specialtermsfile=<filename>  location of file of terms to be excluded
+
+Example of use:
+
+     $ java -cp public_mm_lite/target/metamaplite-1.0-SNAPSHOT.jar \
+          gov.nih.nlm.nls.ner.MetaMapLite \
+          --indexdir=public_mm_lite/data/ivf/strict \
+          --modelsdir=public_mm_lite/data/models \
+          --specialtermsfile=public_mm_lite/data/specialterms.txt
+
 ## Installation
 
 Installation on Unix (Linux/Mac OS/X):
@@ -42,6 +65,10 @@ Currently, three tables are used:
 * cuisourceinfo
 * cuisemantictype (cuist)
 * cuiconcept
+
+### Generating the indexes from the tables
+
+
 
 ## Adding custom input document formats
 
