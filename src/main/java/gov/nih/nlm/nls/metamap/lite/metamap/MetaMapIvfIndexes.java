@@ -62,7 +62,7 @@ public class MetaMapIvfIndexes {
     this.cuiConceptIndex =
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (System.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
+       (properties.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
   }
 
 }
