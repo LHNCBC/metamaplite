@@ -511,7 +511,7 @@ public class MetaMapLite {
       displayProperties("localConfiguration:", localConfiguration);
       displayProperties("optionsConfiguration:", optionsConfiguration);
 
-      Properties properties = Configuration.getConfiguration(defaultConfiguration, localConfiguration, optionsConfiguration);
+      Properties properties = Configuration.mergeConfiguration(defaultConfiguration, localConfiguration, optionsConfiguration);
       
       displayProperties("properties:", properties);
       MetaMapLite metaMapLiteInst = new MetaMapLite(properties);
