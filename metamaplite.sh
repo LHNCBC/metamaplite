@@ -1,28 +1,46 @@
 #!/bin/sh
 
-PROJECTDIR=/net/indlx1/export/home/wjrogers/Projects/metamaplite
+# PROJECTDIR=/net/indlx1/export/home/wjrogers/Projects/metamaplite
+PROJECTDIR=$(dirname $0)
 
-ANALYZERS=$HOME/.m2/repository/org/apache/lucene/lucene-analyzers-common/4.10.0/lucene-analyzers-common-4.10.0.jar
-CORE=$HOME/.m2/repository/org/apache/lucene/lucene-core/4.10.0/lucene-core-4.10.0.jar
-QUERYPARSER=$HOME/.m2/repository/org/apache/lucene/lucene-queryparser/4.10.0/lucene-queryparser-4.10.0.jar
-OPENNLPTOOLS=$HOME/.m2/repository/org/apache/opennlp/opennlp-tools/1.5.3/opennlp-tools-1.5.3.jar
-OPENNLPMAXENT=$HOME/.m2/repository/org/apache/opennlp/opennlp-maxent/3.0.3/opennlp-maxent-3.0.3.jar
-LOG4JAPI=$HOME/.m2/repository/org/apache/logging/log4j/log4j-api/2.1/log4j-api-2.1.jar
-LOG4JCORE=$HOME/.m2/repository/org/apache/logging/log4j/log4j-core/2.1/log4j-core-2.1.jar
-BIOC=$HOME/.m2/repository/bioc/bioc/1.0.1/bioc-1.0.1.jar
-NLP=$HOME/.m2/repository/gov/nih/nlm/nls/nlp/2.4.C/nlp-2.4.C.jar
-CONTEXT=$HOME/.m2/repository/context/context/2012/context-2012.jar
+BIOC=$PROJECTDIR/lib/bioc-1.0.1.jar
+LOG4JAPI=$PROJECTDIR/lib/log4j-api-2.1.jar
+ANALYZERS=$PROJECTDIR/lib/lucene-analyzers-common-4.10.0.jar
+QUERYIES=$PROJECTDIR/lib/lucene-queries-4.10.0.jar
+NLP=$PROJECTDIR/lib/nlp-2.4.C.jar
+OPENNLPTOOLS=$PROJECTDIR/lib/opennlp-tools-1.5.3.jar
+CONTEXT=$PROJECTDIR/lib/context-2012.jar
+LOG4JCORE=$PROJECTDIR/lib/log4j-core-2.1.jar
+CORE=$PROJECTDIR/lib/lucene-core-4.10.0.jar
+QUERYPARSER=$PROJECTDIR/lib/lucene-queryparser-4.10.0.jar
+OPENNLPMAXENT=$PROJECTDIR/lib/opennlp-maxent-3.0.3.jar
+OPENCSV=$PROJECTDIR/lib/opencsv-2.3.jar
+IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
 
-JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT
+JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS
 
-# OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
-OPENNLP_MODELS=$PROJECTDIR/data/models
+OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
+# OPENNLP_MODELS=$PROJECTDIR/data/models
+CONFIGDIR=$PROJECTDIR/config
 
-JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
-    -Den-token.bin.path=$OPENNLP_MODELS/en-token.bin \
-    -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin \
-    -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
-    -Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
-    -Dmetamaplite.entitylookup.resultlength=1500"
+JVMOPTS="-Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
+    -Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
+    -Dopennlp.en-token.bin.path=$OPENNLP_MODELS/en-token.bin \
+    -Dopennlp.en-pos.bin.path=$OPENNLP_MODELS/en-pos-perceptron.bin \
+    -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2-debug.xml \
+    -Dmetamaplite.property.file=$CONFIGDIR/metamaplite.properties \
+    -Dmetamaplite.entitylookup.resultlength=1500 \
+    -Dmetamaplite.ivf.cuiconceptindex=$PROJECTDIR/data/ivf/strict/indices/cuiconcept \
+    -Dmetamaplite.ivf.firstwordsofonewideindex=$PROJECTDIR/data/ivf/strict/indices/first_words_of_one_WIDE \
+    -Dmetamaplite.ivf.cuisourceinfoindex$PROJECTDIR/data/ivf/strict/indices/cui_sourceinfo \
+    -Dmetamaplite.ivf.cuisemantictypeindex=$PROJECTDIR/data/ivf/strict/indices/cui_st \
+    -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars"
 
-java -cp $PROJECTDIR/target/classes:$JARSPATH $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
+    # -Dmetamaplite.cuiconceptindex=$PROJECTDIR/data/lucenedb/strict/cuiconcept \
+    # -Dmetamaplite.firstwordsofonewideindex=$PROJECTDIR/data/lucenedb/strict/first_words_of_one_WIDE \
+    # -Dmetamaplite.cuisourceinfoindex$PROJECTDIR/data/lucenedb/strict/cui_sourceinfo \
+    # -Dmetamaplite.cuisemantictypeindex=$PROJECTDIR/data/lucenedb/strict/cui_st \
+    # -Dmetamaplite.varsindex=$PROJECTDIR/data/lucenedb/strict/vars"
+
+java -Xmx12g -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
+
