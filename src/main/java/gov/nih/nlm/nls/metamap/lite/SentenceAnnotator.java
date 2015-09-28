@@ -3,6 +3,7 @@
 package gov.nih.nlm.nls.metamap.lite;
 
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.Set;
@@ -56,6 +57,7 @@ public class SentenceAnnotator {
       modelIn = new FileInputStream(System.getProperty("opennlp.en-pos.bin.path",
 						       "data/models/en-pos-maxent.bin"));
       this.posModel = new POSModel(modelIn);
+    this.posTagger = new POSTaggerME(this.posModel);
     }
     catch (IOException e) {
       // Model loading failed, handle the error
@@ -70,7 +72,6 @@ public class SentenceAnnotator {
 	}
       }
     }
-    this.posTagger = new POSTaggerME(this.posModel);
   }
 
   public SentenceAnnotator(Properties properties)
@@ -81,6 +82,7 @@ public class SentenceAnnotator {
       modelIn = new FileInputStream(properties.getProperty("opennlp.en-pos.bin.path",
 							   "data/models/en-pos-maxent.bin"));
       this.posModel = new POSModel(modelIn);
+      this.posTagger = new POSTaggerME(this.posModel);
     }
     catch (IOException e) {
       // Model loading failed, handle the error
@@ -95,7 +97,7 @@ public class SentenceAnnotator {
 	}
       }
     }
-    this.posTagger = new POSTaggerME(this.posModel);
+
   }
   
   /**

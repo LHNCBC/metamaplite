@@ -335,11 +335,11 @@ public class MetaMapLite {
   }
 
   public static void expandModelsDir(Properties properties) {
-    String modelsDir = properties.getProperty("metamaplite.models.directory");
+    String modelsDir = properties.getProperty("opennlp.models.directory");
     if (modelsDir != null) {
-      properties.setProperty("opennlp.en-sent.bin.path", modelsDir + "/data/models/en-sent.bin");
-      properties.setProperty("opennlp.en-token.bin.path", modelsDir + "/data/models/en-token.bin");
-      properties.setProperty("opennlp.en-pos-maxent.bin.path", modelsDir + "/data/models/en-pos-maxent.bin");
+      properties.setProperty("opennlp.en-sent.bin.path", modelsDir + "/en-sent.bin");
+      properties.setProperty("opennlp.en-token.bin.path", modelsDir + "/en-token.bin");
+      properties.setProperty("opennlp.en-pos.bin.path", modelsDir + "/en-pos-maxent.bin");
     }
   }
   public static void expandIndexDir(Properties properties) {
@@ -405,15 +405,15 @@ public class MetaMapLite {
     if (args.length > 0) {
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
-      String modelsDirectory = System.getProperty("metamaplite.opennlp.models.directory", "data/models");
+      String modelsDirectory = System.getProperty("opennlp.models.directory", "data/models");
       String indexDirectory = System.getProperty("metamaplite.index.directory", "data/ivf");
       Properties defaultConfiguration = new Properties();
       defaultConfiguration.setProperty("metamaplite.excluded.termsfile",
 				       System.getProperty("metamaplite.excluded.termsfile", "data/specialterms.txt"));
-      defaultConfiguration.setProperty("metamaplite.opennlp.models.directory",
-				       System.getProperty("metamaplite.opennlp.models.directory", "data/models"));
+      defaultConfiguration.setProperty("opennlp.models.directory",
+				       System.getProperty("opennlp.models.directory", "data/models"));
       defaultConfiguration.setProperty("metamaplite.index.directory",
-				       System.getProperty("metamaplite.opennlp.index.directory", "data/ivf"));
+				       System.getProperty("opennlp.index.directory", "data/ivf"));
       defaultConfiguration.setProperty("metamaplite.document.inputtype", "freetext");
       defaultConfiguration.setProperty("metamaplite.outputformat", "mmi");
       defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
@@ -445,7 +445,7 @@ public class MetaMapLite {
 	  } else if (fields[0].equals("--indexdir")) {
 	    optionsConfiguration.setProperty ("metamaplite.index.directory",fields[1]);
 	  } else if (fields[0].equals("--modelsdir")) {
-	    optionsConfiguration.setProperty ("metamaplite.opennlp.models.directory",fields[1]);
+	    optionsConfiguration.setProperty ("opennlp.models.directory",fields[1]);
 	  } else if (fields[0].equals("--specialtermsfile")) {
 	    optionsConfiguration.setProperty ("metamaplite.excluded.termsfile",fields[1]);
 	  } else if (fields[0].equals("--inputdocformat")) {
