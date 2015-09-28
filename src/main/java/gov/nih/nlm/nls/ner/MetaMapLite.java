@@ -299,22 +299,6 @@ public class MetaMapLite {
     return infos;
   }
 
-
-  public static MetaMapLite initMetaMapLite()
-    throws IOException, FileNotFoundException,
-	   ClassNotFoundException, InstantiationException,
-	   NoSuchMethodException, IllegalAccessException
-  {
-    Properties properties = new Properties();
-    properties.load(new FileReader(configPropertyFilename));
-    if (logger.isDebugEnabled()) {
-      for (Map.Entry<Object,Object> entry: properties.entrySet()) {
-	logger.debug(entry.getKey() + " -> " + entry.getValue());
-      }
-    }
-    return new MetaMapLite(properties);
-  }
-
   static void displayHelp() {
     System.err.println("usage: [options] filenames");
     System.err.println("document processing options:");
