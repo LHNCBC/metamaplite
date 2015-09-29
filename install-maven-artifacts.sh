@@ -16,20 +16,26 @@ mvn install:install-file  -Dfile=lib/biolemmatizer-core-1.2.jar \
                           -Dpackaging=jar 
 
 
-mvn install:install-file  -Dfile=lib/bioc_1.0.1.jar \
+mvn install:install-file  -Dfile=lib/bioc-1.0.1.jar \
                           -DgroupId=bioc \
                           -DartifactId=bioc \
                           -Dversion=1.0.1 \
                           -Dpackaging=jar 
 
-mvn install:install-file  -Dfile=lib/Context.jar \
+mvn install:install-file  -Dfile=lib/context-2012.jar \
                           -DgroupId=context \
                           -DartifactId=context \
                           -Dversion=2012 \
                           -Dpackaging=jar 
 
 mvn install:install-file  -Dfile=lib/nlp-2.4.C.jar \
-                          -DgroupId=gov/nih/nlm/nls \
+                          -DgroupId=gov.nih.nlm.nls \
                           -DartifactId=nlp \
                           -Dversion=2.4.C \
+                          -Dpackaging=jar
+
+mvn install:install-file  -Dfile=lib/irutils-2.0-SNAPSHOT.jar \
+                          -DgroupId=irutils \
+                          -DartifactId=irutils \
+                          -Dversion=2.0-SNAPSHOT \
                           -Dpackaging=jar
