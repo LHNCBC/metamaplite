@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.FileFilter;
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  *
@@ -27,7 +28,7 @@ public class Install {
     }
   }
 
-  static void generateFile(File templateFile, String basedir) 
+  static void generateFile(File templateFile, Path baseDirPath) 
     throws FileNotFoundException, IOException
   {
     String templateFilename = templateFile.getCanonicalPath();
@@ -38,7 +39,7 @@ public class Install {
       PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFilename)));
       String line;
       while ((line = br.readLine()) != null) {
-	out.println(line.replaceAll("@@basedir@@", basedir));
+	out.println(line.replaceAll("@@basedir@@", baseDirPath.toAbsolutePath().toString().replaceAll("\\\\","\\\\\\\\")));
       }
       out.close();
       br.close();
@@ -57,12 +58,12 @@ public class Install {
     System.out.println("basedir: " + basedirFile.getCanonicalPath());
     /* generate any file having a template with extension ".in" in base and base/config directories */
     for (File templateFile:  basedirFile.listFiles(filter)) {
-      generateFile(templateFile, basedirFile.getCanonicalPath());
+      generateFile(templateFile, basedirFile.toPath());
     }
     File configdirFile = new File(basedirFile.getCanonicalPath() + "/config");
     System.out.println("configdir: " + configdirFile.getCanonicalPath());
     for (File templateFile:  configdirFile.listFiles(filter)) {
-      generateFile(templateFile, basedirFile.getCanonicalPath());
+      generateFile(templateFile, basedirFile.toPath());
     }
 
   }
