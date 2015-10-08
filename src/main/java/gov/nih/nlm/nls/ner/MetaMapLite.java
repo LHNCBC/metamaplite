@@ -194,7 +194,7 @@ public class MetaMapLite {
     // Brat.listEntities(result);
     logger.debug("exit processSentence");
     return result;
- }
+  }
 
   /**
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
@@ -287,7 +287,7 @@ public class MetaMapLite {
     return sentenceList;
   }
 
-    public List<AbbrInfo> getAcronymList(List<BioCDocument> documentList) {
+  public List<AbbrInfo> getAcronymList(List<BioCDocument> documentList) {
     List <AbbrInfo> infos = new ArrayList<AbbrInfo>();
     for (BioCDocument document: documentList) {
       for (BioCPassage passage: document.getPassages()) {
@@ -354,12 +354,77 @@ public class MetaMapLite {
   }
   
   public static void displayProperties(String label, Properties properties) {
-      System.out.println(label);
-      for (String name: properties.stringPropertyNames()) {
-	System.out.println("   " + name + ": " + properties.getProperty(name));
-      }
+    System.out.println(label);
+    for (String name: properties.stringPropertyNames()) {
+      System.out.println("   " + name + ": " + properties.getProperty(name));
+    }
   }
-  
+
+  public static Properties getDefaultConfiguration() {
+    String modelsDirectory = System.getProperty("opennlp.models.directory", "data/models");
+    String indexDirectory = System.getProperty("metamaplite.index.directory", "data/ivf/strict");
+    Properties defaultConfiguration = new Properties();
+    defaultConfiguration.setProperty("metamaplite.excluded.termsfile",
+				     System.getProperty("metamaplite.excluded.termsfile", "data/specialterms.txt"));
+    defaultConfiguration.setProperty("opennlp.models.directory", modelsDirectory);
+    defaultConfiguration.setProperty("metamaplite.index.directory", indexDirectory);
+    defaultConfiguration.setProperty("metamaplite.document.inputtype", "freetext");
+    defaultConfiguration.setProperty("metamaplite.outputformat", "mmi");
+    defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
+    defaultConfiguration.setProperty("metamaplite.semanticgroup", "all");
+    defaultConfiguration.setProperty("metamaplite.sourceset", "all");
+    defaultConfiguration.setProperty("metamaplite.usecontext", "false");
+
+    defaultConfiguration.setProperty("opennlp.en-sent.bin.path", modelsDirectory + "/en-sent.bin");
+    defaultConfiguration.setProperty("opennlp.en-token.bin.path", modelsDirectory + "/en-token.bin");
+    defaultConfiguration.setProperty("opennlp.en-pos.bin.path", modelsDirectory + "/en-pos-maxent.bin");
+
+    defaultConfiguration.setProperty("metamaplite.ivf.cuiconceptindex", indexDirectory + "/strict/indices/cuiconcept");
+    defaultConfiguration.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirectory + "/strict/indices/cuisourceinfo");
+    defaultConfiguration.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirectory + "/strict/indices/cuist");
+      
+    defaultConfiguration.setProperty("bioc.document.loader.chemdner", "gov.nih.nlm.nls.metamap.document.ChemDNER");
+    defaultConfiguration.setProperty("bioc.document.loader.freetext", "gov.nih.nlm.nls.metamap.document.FreeText");
+    defaultConfiguration.setProperty("bioc.document.loader.ncbicorpus", "gov.nih.nlm.nls.metamap.document.NCBICorpusDocument");
+    return defaultConfiguration;
+  }
+
+  static Properties setConfiguration(String propertiesFilename,
+				     Properties defaultConfiguration,
+				     Properties optionsConfiguration,
+				     boolean verbose)
+    throws IOException, FileNotFoundException
+  {
+    Properties localConfiguration = new Properties();
+    File localConfigurationFile = new File(propertiesFilename);
+    if (localConfigurationFile.exists()) {
+      if (verbose) {
+	System.out.println("loading local configuration from " + localConfigurationFile);
+      }
+      localConfiguration.load(new FileReader(localConfigurationFile));
+      if (verbose) {
+	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
+      }
+    }
+    expandModelsDir(defaultConfiguration);
+    expandModelsDir(localConfiguration);
+    expandModelsDir(optionsConfiguration);
+
+    expandIndexDir(defaultConfiguration);
+    expandIndexDir(localConfiguration);
+    expandIndexDir(optionsConfiguration);
+
+    // displayProperties("defaultConfiguration:", defaultConfiguration);
+    // displayProperties("localConfiguration:", localConfiguration);
+    // displayProperties("optionsConfiguration:", optionsConfiguration);
+
+    Properties properties =
+      Configuration.mergeConfiguration(defaultConfiguration,
+				       localConfiguration,
+				       optionsConfiguration);
+    return properties;
+  }
+
   /**
    * MetaMapLite application commandline.
    * <p>
@@ -403,35 +468,10 @@ public class MetaMapLite {
 	   Exception
   {
     if (args.length > 0) {
+      boolean verbose = false;
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
-      String modelsDirectory = System.getProperty("opennlp.models.directory", "data/models");
-      String indexDirectory = System.getProperty("metamaplite.index.directory", "data/ivf/strict");
-      Properties defaultConfiguration = new Properties();
-      defaultConfiguration.setProperty("metamaplite.excluded.termsfile",
-				       System.getProperty("metamaplite.excluded.termsfile", "data/specialterms.txt"));
-      defaultConfiguration.setProperty("opennlp.models.directory", modelsDirectory);
-      defaultConfiguration.setProperty("metamaplite.index.directory", indexDirectory);
-      defaultConfiguration.setProperty("metamaplite.document.inputtype", "freetext");
-      defaultConfiguration.setProperty("metamaplite.outputformat", "mmi");
-      defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
-      defaultConfiguration.setProperty("metamaplite.semanticgroup", "all");
-      defaultConfiguration.setProperty("metamaplite.sourceset", "all");
-      defaultConfiguration.setProperty("metamaplite.usecontext", "false");
-
-      defaultConfiguration.setProperty("opennlp.en-sent.bin.path", modelsDirectory + "/en-sent.bin");
-      defaultConfiguration.setProperty("opennlp.en-token.bin.path", modelsDirectory + "/en-token.bin");
-      defaultConfiguration.setProperty("opennlp.en-pos.bin.path", modelsDirectory + "/en-pos-maxent.bin");
-
-      defaultConfiguration.setProperty("metamaplite.ivf.cuiconceptindex", indexDirectory + "/strict/indices/cuiconcept");
-      defaultConfiguration.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirectory + "/strict/indices/cuisourceinfo");
-      defaultConfiguration.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirectory + "/strict/indices/cuist");
-      
-      defaultConfiguration.setProperty("bioc.document.loader.chemdner", "gov.nih.nlm.nls.metamap.document.ChemDNER");
-      defaultConfiguration.setProperty("bioc.document.loader.freetext", "gov.nih.nlm.nls.metamap.document.FreeText");
-      defaultConfiguration.setProperty("bioc.document.loader.ncbicorpus", "gov.nih.nlm.nls.metamap.document.NCBICorpusDocument");
-
-      System.out.println("Reading options");
+      Properties defaultConfiguration = getDefaultConfiguration();
       Properties optionsConfiguration = new Properties();
       int i = 0;
       while (i < args.length) {
@@ -480,7 +520,14 @@ public class MetaMapLite {
 	    optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
 	  } else if (args[i].equals("--list_acronyms")) {
 	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
+	  } else if (args[i].equals("--verbose")) {
+	    verbose = true;
 	  } else if (args[i].equals("--help")) {
+	    Properties properties = setConfiguration(propertiesFilename,
+						     defaultConfiguration,
+						     optionsConfiguration,
+						     verbose);
+	    BioCDocumentLoaderRegistry.register(properties);
 	    displayHelp();
 	    System.exit(1);
 	  } 
@@ -489,29 +536,13 @@ public class MetaMapLite {
 	}
 	i++;
       }
-
-      Properties localConfiguration = new Properties();
-      File localConfigurationFile = new File(propertiesFilename);
-      if (localConfigurationFile.exists()) {
-	System.out.println("loading local configuration from " + localConfigurationFile);
-	localConfiguration.load(new FileReader(localConfigurationFile));
-	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
+      Properties properties = setConfiguration(propertiesFilename,
+					       defaultConfiguration,
+					       optionsConfiguration,
+					       verbose);
+      if (verbose) {
+	displayProperties("properties:", properties);
       }
-      expandModelsDir(defaultConfiguration);
-      expandModelsDir(localConfiguration);
-      expandModelsDir(optionsConfiguration);
-
-      expandIndexDir(defaultConfiguration);
-      expandIndexDir(localConfiguration);
-      expandIndexDir(optionsConfiguration);
-
-      displayProperties("defaultConfiguration:", defaultConfiguration);
-      displayProperties("localConfiguration:", localConfiguration);
-      displayProperties("optionsConfiguration:", optionsConfiguration);
-
-      Properties properties = Configuration.mergeConfiguration(defaultConfiguration, localConfiguration, optionsConfiguration);
-      
-      displayProperties("properties:", properties);
       MetaMapLite metaMapLiteInst = new MetaMapLite(properties);
       /** set any options in properties configuration file and system properties first */
       BioCDocumentLoaderRegistry.register(properties);
@@ -532,7 +563,8 @@ public class MetaMapLite {
 
       logger.info("Loading and processing documents");
       for (String filename: filenameList) {
-	System.out.println("Loading and processing " + filename);
+	if (verbose)
+	  System.out.println("Loading and processing " + filename);
 	logger.info("Loading and processing " + filename);
 
 	// load documents
@@ -585,6 +617,7 @@ public class MetaMapLite {
       } /* for filename */
 
     } else {
+      // BioCDocumentLoaderRegistry.register(defaultConfiguration);
       displayHelp();
       System.exit(1);
     }   
