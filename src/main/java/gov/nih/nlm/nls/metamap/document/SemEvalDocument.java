@@ -18,6 +18,7 @@ import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
+import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.regex.Pattern;
@@ -208,6 +209,22 @@ public class SemEvalDocument implements BioCDocumentLoader {
     return removeNonParsableStrings(inputDocumentText);
   }
   
+  public static String read(Reader inputReader)
+    throws IOException {
+    BufferedReader br;
+    String line;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    StringBuilder sb = new StringBuilder();
+    while ((line = br.readLine()) != null) {
+      sb.append(line).append("\n");
+    }
+    return sb.toString();
+  }
+
   public static String loadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
@@ -234,6 +251,7 @@ public class SemEvalDocument implements BioCDocumentLoader {
     return document;
   }
 
+  @Override
   public BioCDocument loadFileAsBioCDocument(String filename) 
     throws FileNotFoundException, IOException
   {
@@ -242,11 +260,29 @@ public class SemEvalDocument implements BioCDocumentLoader {
     return document;
   }
 
+  @Override
   public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
     throws FileNotFoundException, IOException
   {
     List<BioCDocument> docList = new ArrayList<BioCDocument>();
     docList.add(loadFileAsBioCDocument(filename));
+    return docList;
+  }
+
+  public BioCDocument readAsBioCDocument(Reader inputReader) 
+    throws IOException
+  {
+    String inputtext = FreeText.read(inputReader);
+    BioCDocument document = instantiateBioCDocument(inputtext);
+    return document;
+  }
+
+  @Override
+  public List<BioCDocument> readAsBioCDocumentList(Reader reader)
+    throws IOException
+  {
+    List<BioCDocument> docList = new ArrayList<BioCDocument>();
+    docList.add(readAsBioCDocument(reader));
     return docList;
   }
 

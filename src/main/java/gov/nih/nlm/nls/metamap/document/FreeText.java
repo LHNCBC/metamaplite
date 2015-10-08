@@ -5,6 +5,7 @@ package gov.nih.nlm.nls.metamap.document;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.Reader;
 import java.io.IOException;
 import java.io.BufferedReader;
 
@@ -21,7 +22,8 @@ import org.apache.logging.log4j.Logger;
  * Unstructured text.
  */
 
-public class FreeText implements BioCDocumentLoader {
+public class FreeText implements BioCDocumentLoader
+{
   /** log4j logger instance */
   private static final Logger logger = LogManager.getLogger(FreeText.class);
 
@@ -32,6 +34,22 @@ public class FreeText implements BioCDocumentLoader {
     return this.text;
   }
   public void setText(String text) { this.text = text; }
+
+  public static String read(Reader inputReader)
+    throws IOException {
+    BufferedReader br;
+    String line;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    StringBuilder sb = new StringBuilder();
+    while ((line = br.readLine()) != null) {
+      sb.append(line).append("\n");
+    }
+    return sb.toString();
+  }
 
   public static String loadFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -60,6 +78,17 @@ public class FreeText implements BioCDocumentLoader {
     return document;
   }
 
+  /** Read free text document from reader. */
+  public static List<BioCDocument> readFreeText(Reader reader) 
+    throws IOException
+  {
+    String inputtext = FreeText.read(reader);
+    List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+    BioCDocument document = instantiateBioCDocument(inputtext);
+    documentList.add(document);
+    return documentList;
+  }
+
   public static List<BioCDocument> loadFreeTextFile(String filename) 
     throws FileNotFoundException, IOException
   {
@@ -70,6 +99,7 @@ public class FreeText implements BioCDocumentLoader {
     return documentList;
   }
 
+  @Override
   public BioCDocument loadFileAsBioCDocument(String filename) 
     throws FileNotFoundException, IOException
   {
@@ -78,10 +108,17 @@ public class FreeText implements BioCDocumentLoader {
     return document;
   }
 
+  @Override
   public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
     throws FileNotFoundException, IOException
   {
     return loadFreeTextFile(filename);
   }
 
+  /** read freetext into BioC Document instance */
+  @Override
+  public List<BioCDocument> readAsBioCDocumentList(Reader reader)
+    throws IOException {
+    return readFreeText(reader);
+  }
 }

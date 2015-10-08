@@ -8,6 +8,7 @@ import bioc.BioCPassage;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.Reader;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -48,6 +49,23 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
     return doc;
   }
 
+  public static List<BioCDocument> bioCLoadFile(Reader inputReader)
+    throws IOException {
+    BufferedReader br;
+    List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+    int i = 0;
+    String line;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    while ((line = br.readLine()) != null) {
+      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
+    }
+    return documentList;
+  }
+  
   /**
    * Load list of BioCDocument documents
    * @param inputFilename input text filename
@@ -90,12 +108,19 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
     BioCDocument document = instantiateBioCDocument(inputtext);
     return document;
   }
-  
+
+  @Override
  public List<BioCDocument> loadFileAsBioCDocumentList(String filename) 
     throws FileNotFoundException, IOException
   {
     return bioCLoadFile(filename);
   }
 
+  /** read freetext into BioC Document instance */
+  @Override
+  public List<BioCDocument> readAsBioCDocumentList(Reader reader)
+    throws IOException {
+    return bioCLoadFile(reader);
+  }
 
 }

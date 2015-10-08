@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
@@ -425,6 +426,104 @@ public class MetaMapLite {
     return properties;
   }
 
+  /** list entities using document list from stdin */
+  void listSentences(List<BioCDocument> documentList)
+  {
+    // output results for file
+    // create output filename
+    logger.info("outputing results to Standard Output");
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    for (Sentence sent: this.getSentenceList(documentList)) {
+      pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
+    }
+    pw.flush();
+  }
+
+  void listAcronyms(List<BioCDocument> documentList) {
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    for (AbbrInfo acronym: this.getAcronymList(documentList)) {
+      pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
+		 acronym.longForm + "|" + acronym.longFormIndex );
+    }
+    pw.flush();
+  }
+
+  void listEntities(List<BioCDocument> documentList, String outputFormatOption)
+    throws IllegalAccessException, InvocationTargetException, IOException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+    // output results for file
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    // format output
+    ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
+    if (formatter != null) {
+      formatter.entityListFormatter(pw, entityList);
+    } else {
+      System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
+    }
+    pw.flush();
+  }
+
+  void listSentences(String filename, 
+		     List<BioCDocument> documentList)
+    throws IOException
+  {
+    // output results for file
+    // create output filename
+    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String outputFilename = basename + ".sentences";
+    logger.info("outputing results to " + outputFilename);
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    for (Sentence sent: this.getSentenceList(documentList)) {
+      pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
+    }
+    pw.close();
+  }
+
+  void listAcronyms(String filename, 
+		    List<BioCDocument> documentList)
+    throws IOException
+  {
+    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String outputFilename = basename + ".acronyms";
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    for (AbbrInfo acronym: this.getAcronymList(documentList)) {
+      pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
+		 acronym.longForm + "|" + acronym.longFormIndex );
+    }
+    pw.close();
+  }
+
+  void listEntities(String filename, 
+		    List<BioCDocument> documentList,
+		    String outputExtension,
+		    String outputFormatOption)
+    throws IOException, IllegalAccessException, InvocationTargetException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+    
+    // create output filename
+    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String outputFilename = basename + outputExtension;
+    logger.info("outputing results to " + outputFilename);
+    
+    // output results for file
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    // format output
+    ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
+    if (formatter != null) {
+      formatter.entityListFormatter(pw, entityList);
+    } else {
+      System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
+    }
+    pw.close();
+  } /* processFile */
+
   /**
    * MetaMapLite application commandline.
    * <p>
@@ -469,6 +568,7 @@ public class MetaMapLite {
   {
     if (args.length > 0) {
       boolean verbose = false;
+      boolean inputFromStdin = false;
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
       Properties defaultConfiguration = getDefaultConfiguration();
@@ -477,7 +577,9 @@ public class MetaMapLite {
       while (i < args.length) {
         if (args[i].substring(0,2).equals("--")) {
 	  String[] fields = args[i].split("=");
-	  if (fields[0].equals("--configfile") ||
+	  if (fields[0].equals("--")) {
+	    inputFromStdin = true;
+	  } else if (fields[0].equals("--configfile") ||
 	      fields[0].equals("--propertiesfile")) {
 	    propertiesFilename = fields[1];
 	  } else if (fields[0].equals("--indexdir")) {
@@ -532,7 +634,11 @@ public class MetaMapLite {
 	    System.exit(1);
 	  } 
 	} else {
-	  filenameList.add(args[i]);
+	  if (inputFromStdin) {
+	    System.err.println("unexpected filename in command line argument list: " + args[i]);
+	  } else {
+	    filenameList.add(args[i]);
+	  }
 	}
 	i++;
       }
@@ -561,61 +667,37 @@ public class MetaMapLite {
       boolean listAcronyms =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
 
-      logger.info("Loading and processing documents");
-      for (String filename: filenameList) {
-	if (verbose)
-	  System.out.println("Loading and processing " + filename);
-	logger.info("Loading and processing " + filename);
-
-	// load documents
-	BioCDocumentLoader docLoader = BioCDocumentLoaderRegistry.get(documentInputOption);
-	List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
-
-	if (listSentences) {
-	  // output results for file
-	  // create output filename
-	  String basename = filename.substring(0,filename.lastIndexOf(".")); // 
-	  String outputFilename = basename + ".sentences";
-	  logger.info("outputing results to " + outputFilename);
-	  PrintWriter pw = new PrintWriter(new BufferedWriter
-					   (new FileWriter(outputFilename)));
-	  for (Sentence sent: metaMapLiteInst.getSentenceList(documentList)) {
-	    pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
-	  }
-	  pw.close();
-	} else if (listAcronyms) {
-	  String basename = filename.substring(0,filename.lastIndexOf(".")); // 
-	  String outputFilename = basename + ".acronyms";
-	  PrintWriter pw = new PrintWriter(new BufferedWriter
-					   (new FileWriter(outputFilename)));
-	  for (AbbrInfo acronym: metaMapLiteInst.getAcronymList(documentList)) {
-	    pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
-		       acronym.longForm + "|" + acronym.longFormIndex );
-	  }
-	  pw.close();
-	} else {
-	  // process documents
-	  List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
-	  
-	  // create output filename
-	  String basename = filename.substring(0,filename.lastIndexOf(".")); // 
-	  String outputFilename = basename + outputExtension;
-	  logger.info("outputing results to " + outputFilename);
-	  
-	  // output results for file
-	  PrintWriter pw = new PrintWriter(new BufferedWriter
-					   (new FileWriter(outputFilename)));
-	  // format output
-	  ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
-	  if (formatter != null) {
-	    formatter.entityListFormatter(pw, entityList);
-	  } else {
-	    System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
-	  }
-	  pw.close();
+      // load documents
+      BioCDocumentLoader docLoader = BioCDocumentLoaderRegistry.get(documentInputOption);
+      if (inputFromStdin) {
+	if (verbose) {
+	  logger.info("Reading and processing documents from standard input");
 	}
-      } /* for filename */
-
+	List<BioCDocument> documentList = docLoader.readAsBioCDocumentList(new InputStreamReader(System.in));
+	if (listSentences) {
+	  metaMapLiteInst.listSentences(documentList);
+	} else if (listAcronyms) {
+	  metaMapLiteInst.listAcronyms(documentList);
+	} else {
+	  metaMapLiteInst.listEntities(documentList,outputFormatOption);
+	}
+      } else {
+	logger.info("Loading and processing documents");
+	for (String filename: filenameList) {
+	  if (verbose) {
+	    System.out.println("Loading and processing " + filename);
+	  }
+	  logger.info("Loading and processing " + filename);
+	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
+	  if (listSentences) {
+	    metaMapLiteInst.listSentences(filename, documentList);
+	  } else if (listAcronyms) {
+	    metaMapLiteInst.listAcronyms(filename, documentList);
+	  } else {
+	    metaMapLiteInst.listEntities(filename, documentList, outputExtension, outputFormatOption);
+	  }
+	} /*for filename */
+      }
     } else {
       // BioCDocumentLoaderRegistry.register(defaultConfiguration);
       displayHelp();

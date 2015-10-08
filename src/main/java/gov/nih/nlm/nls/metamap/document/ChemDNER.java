@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -73,6 +74,28 @@ public class ChemDNER implements BioCDocumentLoader {
   }
 
   /**
+   * Read list of PubMedDocumentImpl documents
+   * @param inputReader input text reader
+   * @return List of strings, one document per line.
+   */
+  public static List<PubMedDocument> read(Reader inputReader)
+    throws IOException
+  {
+    BufferedReader br;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    List<PubMedDocument> documentList = new ArrayList<PubMedDocument>();
+    String line;
+    while ((line = br.readLine()) != null) {
+      documentList.add(ChemDNER.instantiateDocument(line));
+    }
+    return documentList;
+  }
+
+  /**
    * Load list of PubMedDocumentImpl documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
@@ -87,6 +110,28 @@ public class ChemDNER implements BioCDocumentLoader {
       documentList.add(ChemDNER.instantiateDocument(line));
     }
     br.close();
+    return documentList;
+  }
+
+  /**
+   * Read list of BioCDocument documents
+   * @param inputReader input text reader
+   * @return List of strings, one document per line.
+   */
+  public static List<BioCDocument> bioCRead(Reader inputReader)
+    throws IOException
+  {
+    BufferedReader br;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+    String line;
+    while ((line = br.readLine()) != null) {
+      documentList.add(ChemDNER.instantiateBioCDocument(line));
+    }
     return documentList;
   }
 
@@ -121,6 +166,12 @@ public class ChemDNER implements BioCDocumentLoader {
     throws FileNotFoundException, IOException
   {
     return bioCLoadFile(filename);
+  }
+
+  public List<BioCDocument> readAsBioCDocumentList(Reader reader)
+    throws IOException
+  {
+    return bioCRead(reader);
   }
 
 }

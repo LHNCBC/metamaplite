@@ -5,8 +5,10 @@ package gov.nih.nlm.nls.metamap.document;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -82,6 +84,25 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
     return doc;
   }
 
+  
+  public static List<PubMedDocument> read(Reader inputReader)
+    throws IOException
+  {
+    BufferedReader br;
+    List<PubMedDocument> documentList = new ArrayList<PubMedDocument>();
+    String line;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    while ((line = br.readLine()) != null) {
+      documentList.add(NCBICorpusDocument.instantiateDocument(line));
+    }
+    return documentList;
+  }
+  
+
   /**
    * Load list of PubMed documents
    * @param inputFilename input text filename
@@ -91,14 +112,34 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
     throws FileNotFoundException, IOException
   {
     BufferedReader br = new BufferedReader(new FileReader(inputFilename));
-    List<PubMedDocument> documentList = new ArrayList<PubMedDocument>();
+    List<PubMedDocument> documentList = read(br);
+    br.close();
+    return documentList;
+  }
+
+  /**
+   * Read list of BioC documents
+   * @param inputReader input reader
+   * @return List of strings, one document per line.
+   */
+  public static List<BioCDocument> bioCRead(Reader inputReader)
+    throws FileNotFoundException, IOException
+  {
+    BufferedReader br;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {
-      documentList.add(NCBICorpusDocument.instantiateDocument(line));
+      documentList.add(NCBICorpusDocument.instantiateBioCDocument(line));
     }
     br.close();
     return documentList;
   }
+  
 
 
   /**
@@ -131,6 +172,13 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
     throws FileNotFoundException, IOException
   {
     return bioCLoadFile(filename);
+  }
+
+  @Override
+   public List<BioCDocument> readAsBioCDocumentList(Reader reader) 
+    throws IOException
+  {
+    return bioCRead(reader);
   }
 
 }

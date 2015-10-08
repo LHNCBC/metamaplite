@@ -4,6 +4,7 @@ package gov.nih.nlm.nls.metamap.document;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.List;
@@ -94,6 +95,28 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
   }
 
   /**
+   * Read list of BioCDocument documents
+   * @param inputReader input reader
+   * @return List of strings, one document per line.
+   */
+  public static List<BioCDocument> bioCReadSLDI(Reader inputReader)
+    throws IOException
+  {
+    BufferedReader br;
+    if (inputReader instanceof BufferedReader) {
+      br = (BufferedReader)inputReader;
+    } else {
+      br = new BufferedReader(inputReader);
+    }
+    List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+    String line;
+    while ((line = br.readLine()) != null) {
+      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
+    }
+    return documentList;
+  }
+
+  /**
    * Load list of BioCDocument documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
@@ -111,7 +134,6 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     return documentList;
   }
 
-
   public BioCDocument loadFileAsBioCDocument(String filename) 
     throws FileNotFoundException, IOException
   {
@@ -126,5 +148,10 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     return bioCLoadSLDIFile(filename);
   }
     
+  public List<BioCDocument> readAsBioCDocumentList(Reader reader)
+    throws IOException
+  {
+    return bioCReadSLDI(reader);
+  }
 }
 
