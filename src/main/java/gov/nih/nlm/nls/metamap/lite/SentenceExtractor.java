@@ -114,7 +114,20 @@ public class SentenceExtractor
     }
     return sentenceList;
   }
-  
+
+  public static List<Sentence> createSentenceList(String text, int offset) {
+    logger.debug("createSentenceList");
+    int sentenceCount = 0;
+    String[] sentenceArray = sentenceDetector.sentDetect(text);
+    List<Sentence> sentenceList = new ArrayList<Sentence>();
+    for (String sentenceText: sentenceArray) {
+      sentenceList.add(new SentenceImpl("", sentenceText, offset));
+      offset = offset + sentenceText.length();
+      sentenceCount++;
+    }
+    return sentenceList;
+  }
+
   public static BioCPassage createSentences(BioCPassage passage) {
     logger.debug("createSentenceList");
     int sentenceCount = 0;

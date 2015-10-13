@@ -69,7 +69,6 @@ public class MMI implements ResultFormatter {
     for (Entity entity: entityList) {
       System.out.println(entityToString(entity));
     }
-    System.out.println("-==-");
   }
 
   public static void displayEntityList(PrintWriter pw, List<Entity> entityList) 
@@ -78,7 +77,6 @@ public class MMI implements ResultFormatter {
     for (Entity entity: entityList) {
       pw.println(entityToString(entity));
     }
-    System.out.println("-==-");
   }
 
   public void entityListFormatter(PrintWriter writer,

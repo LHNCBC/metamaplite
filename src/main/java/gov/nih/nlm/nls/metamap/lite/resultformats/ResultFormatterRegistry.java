@@ -20,9 +20,9 @@ import java.util.Properties;
 
 public class ResultFormatterRegistry {
   /** Map of Result Formatters by format name */
-  static Map<String,ResultFormatter> formatterMap = new HashMap<String,ResultFormatter>();
+  static final Map<String,ResultFormatter> formatterMap = new HashMap<String,ResultFormatter>();
   /** Map of Result Formatter description by format name */
-  static Map<String,String> descriptionMap = new HashMap<String,String>();
+  static final Map<String,String> descriptionMap = new HashMap<String,String>();
 
   /**
    * Register loader.
@@ -38,8 +38,12 @@ public class ResultFormatterRegistry {
     Object classInstance = Class.forName(className).newInstance();
     if (classInstance instanceof ResultFormatter) {
       ResultFormatter instance = (ResultFormatter)classInstance;
-      formatterMap.put(name,instance);
-      descriptionMap.put(name,description);
+      synchronized(formatterMap) {
+	formatterMap.put(name,instance);
+      }
+      synchronized(descriptionMap) {
+	descriptionMap.put(name,description);
+      }
     } else {
       throw new RuntimeException("Class instance does not implement the BioCResultformatter interface.");
     }
@@ -54,8 +58,12 @@ public class ResultFormatterRegistry {
   public static void register(String name, String description, 
 			      ResultFormatter instance)
   {
-    formatterMap.put(name, instance);
-    descriptionMap.put(name,description);
+    synchronized(formatterMap) {
+      formatterMap.put(name, instance);
+    }
+    synchronized(descriptionMap) {
+      descriptionMap.put(name,description);
+    }
   }
 
   public static Set<String> listNameSet() {
@@ -82,8 +90,8 @@ public class ResultFormatterRegistry {
      throws ClassNotFoundException, InstantiationException, NoSuchMethodException,IllegalAccessException
   {
     for (String propname: properties.stringPropertyNames()) {
-      if (propname.indexOf("mml.result.formatter.") > 0) {
-	String name = propname.substring("bioc.document.loader.".length(), propname.length() - 1);
+      if (propname.indexOf("metamaplite.result.formatter.") > 0) {
+	String name = propname.substring("metamaplite.result.formatter.".length());
 	register(name,"",properties.getProperty(propname));
       }
     }

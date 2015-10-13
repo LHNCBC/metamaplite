@@ -1,5 +1,4 @@
 //
-//
 package gov.nih.nlm.nls.metamap.document;
 
 import java.util.HashMap;
@@ -10,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * list document loaders in properties file in the following format:
@@ -17,12 +18,13 @@ import java.util.Properties;
  * bioc.document.loader.<name>: classname
  * </pre>
  */
-
 public class BioCDocumentLoaderRegistry {
+  /** log4j logger instance */
+  private static final Logger logger = LogManager.getLogger(BioCDocumentLoaderRegistry.class);
   /** Map of BioC document loader by document type name */
-  static Map<String,BioCDocumentLoader> bioCDocumentLoaderMap = new HashMap<String,BioCDocumentLoader>();
+  static final Map<String,BioCDocumentLoader> bioCDocumentLoaderMap = new HashMap<String,BioCDocumentLoader>();
   /** Map of document loader description by document type name */
-  static Map<String,String> descriptionMap = new HashMap<String,String>();
+  static final Map<String,String> descriptionMap = new HashMap<String,String>();
 
   /**
    * Register loader.
@@ -38,9 +40,16 @@ public class BioCDocumentLoaderRegistry {
     Object classInstance = Class.forName(className).newInstance();
     if (classInstance instanceof BioCDocumentLoader) {
       BioCDocumentLoader instance = (BioCDocumentLoader)classInstance;
-      bioCDocumentLoaderMap.put(name,instance);
-      descriptionMap.put(name,description);
+      synchronized(bioCDocumentLoaderMap) {
+	bioCDocumentLoaderMap.put(name,instance);
+      }
+      synchronized(descriptionMap) {
+	descriptionMap.put(name,description);
+      }
     } else {
+      logger.fatal("class " + className +
+		   " for document input type " + name +
+		   " is not of class BioCDocumentLoader.  Not adding entry for input type " + name);
       throw new RuntimeException("Class instance does not implement the BioCDocumentLoader interface.");
     }
   }
@@ -54,8 +63,12 @@ public class BioCDocumentLoaderRegistry {
   public static void register(String name, String description, 
 			      BioCDocumentLoader instance)
   {
-    bioCDocumentLoaderMap.put(name, instance);
-    descriptionMap.put(name,description);
+    synchronized(bioCDocumentLoaderMap) {
+      bioCDocumentLoaderMap.put(name, instance);
+    }
+    synchronized(descriptionMap) {
+      descriptionMap.put(name,description);
+    }
   }
 
   public static Set<String> listNameSet() {
@@ -74,6 +87,10 @@ public class BioCDocumentLoaderRegistry {
     return bioCDocumentLoaderMap.get(name);
   }
   
+  public static boolean contains(String name) {
+    return bioCDocumentLoaderMap.containsKey(name);
+  }
+
   public static BioCDocumentLoader get(String name) {
     return bioCDocumentLoaderMap.get(name);
   }
@@ -82,9 +99,15 @@ public class BioCDocumentLoaderRegistry {
      throws ClassNotFoundException, InstantiationException, NoSuchMethodException,IllegalAccessException
   {
     for (String propname: properties.stringPropertyNames()) {
-      if (propname.indexOf("bioc.document.loader.") > 0) {
-	String name = propname.substring("bioc.document.loader.".length(), propname.length() - 1);
-	register(name,"",properties.getProperty(propname));
+      if (propname.indexOf("bioc.document.loader.") >= 0) {
+	String name = propname.substring("bioc.document.loader.".length());
+	String description = properties.getProperty("bioc.document.loader-description.", "");
+	register(name, description, properties.getProperty(propname));
+      }
+    }
+    if (logger.isDebugEnabled()) {
+      for (Map.Entry<String,BioCDocumentLoader> entry: bioCDocumentLoaderMap.entrySet()) {
+	logger.debug(entry.getKey() + " -> " + entry.getValue().getClass().getName());
       }
     }
   }
