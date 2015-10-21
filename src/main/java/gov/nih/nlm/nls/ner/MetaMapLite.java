@@ -111,7 +111,9 @@ public class MetaMapLite {
   boolean useContext = false;
   SentenceAnnotator sentenceAnnotator;
   EntityLookup3 entityLookup;
-
+  boolean segmentSentences = true;
+  boolean segmentBlanklines = false;
+  
   public MetaMapLite(Properties properties)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException,
@@ -162,6 +164,14 @@ public class MetaMapLite {
 
   void setSourceSet(String[] sourceList) {
     this.sourceSet = new HashSet<String>(Arrays.asList(sourceList));
+  }
+
+  void setSegmentSentences(boolean status) {
+    this.segmentSentences = status;
+  }
+  
+  void setSegmentBlanklines(boolean status) {
+    this.segmentBlanklines = status;
   }
 
   /**
@@ -219,7 +229,7 @@ public class MetaMapLite {
     return passage;
   }
 
-  public List<Entity> processPassage(BioCPassage passage, boolean segmentSentences)
+  public List<Entity> processPassage(BioCPassage passage)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
     logger.debug("enter processPassage");
@@ -227,6 +237,23 @@ public class MetaMapLite {
     BioCPassage passage0;
     if (segmentSentences) {
       passage0 = SentenceExtractor.createSentences(passage);
+    } else if (segmentBlanklines) {
+      List<BioCSentence> sentenceList = new ArrayList<BioCSentence>();
+      int offset = passage.getOffset();
+      int passageOffset = passage.getOffset();
+      String text = passage.getText();
+      String[] segmentList = text.split("\n\n");
+      for (String segment: segmentList) {
+	BioCSentence sentence = new BioCSentence();
+	offset = text.indexOf(segment, offset);
+	sentence.setOffset(offset);
+	sentence.setText(segment);
+	sentence.setInfons(passage.getInfons());
+	sentenceList.add(sentence);
+	passage.addSentence(sentence);
+	offset = segment.length(); 
+      }
+      passage0 = passage;
     } else {
       // copy entire text of passage into one sentence
       List<BioCSentence> sentenceList = new ArrayList<BioCSentence>();
@@ -272,23 +299,22 @@ public class MetaMapLite {
     return entityList;
   }
 
-  public List<Entity> processDocument(BioCDocument document, boolean segmentSentences) 
+  public List<Entity> processDocument(BioCDocument document) 
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
     List<Entity> entityList = new ArrayList<Entity>();    
     for (BioCPassage passage: document.getPassages()) {
-      entityList.addAll(processPassage(passage, segmentSentences));
+      entityList.addAll(processPassage(passage));
     }
     return entityList;
   }
 
-  public List<Entity> processDocumentList(List<BioCDocument> documentList,
-					  boolean segmentSentences)
+  public List<Entity> processDocumentList(List<BioCDocument> documentList)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
     List<Entity> entityList = new ArrayList<Entity>();    
     for (BioCDocument document: documentList) {
-      entityList.addAll(this.processDocument(document, segmentSentences));
+      entityList.addAll(this.processDocument(document));
     }
     return entityList;
   }
@@ -313,6 +339,20 @@ public class MetaMapLite {
       }
     }
     return infos;
+  }
+
+  public static List<String> loadInputFileList(String inputfileListFileName)
+    throws FileNotFoundException, IOException
+  {
+    List<String> inputFileList = new ArrayList<String>();
+    BufferedReader br = 
+      new BufferedReader(new FileReader(inputfileListFileName));
+    String line;
+    while ((line = br.readLine()) != null) {
+      inputFileList.add(line.trim());
+    }
+    br.close();
+    return inputFileList;
   }
 
   static void displayHelp() {
@@ -340,7 +380,9 @@ public class MetaMapLite {
     System.err.println("processing options:");
     System.err.println("  --restrict_to_sts=<semtype>[,<semtype>...]");
     System.err.println("  --restrict_to_sourcess=<source>[,<source>...]");
-    System.err.println("  --segment_sentences=<true|false>    set to false to disable sentence seqmentation");
+    System.err.println("  --segment_sentences=<true|false>    set to false to disable sentence segmentation");
+    System.err.println("  --segment_blanklines=<true|false>   set to true to enable blank line segmentation");
+    System.err.println("                                      (--segment_sentences must be false.)");
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
@@ -351,6 +393,8 @@ public class MetaMapLite {
     System.err.println("  --indexdir=<directory>");
     System.err.println("  --modelsdir=<directory>");
     System.err.println("  --specialtermsfile=<filename>");
+    System.err.println("  --filelistfn=<filename>");
+    System.err.println("  --filelist=<file0,file1,...>");
   }
 
   public static void expandModelsDir(Properties properties) {
@@ -481,12 +525,11 @@ public class MetaMapLite {
     pw.flush();
   }
 
-  void listEntities(List<BioCDocument> documentList, String outputFormatOption,
-		    boolean segmentSentences)
+  void listEntities(List<BioCDocument> documentList, String outputFormatOption)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
     // process documents
-    List<Entity> entityList = this.processDocumentList(documentList, segmentSentences);
+    List<Entity> entityList = this.processDocumentList(documentList);
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
     // format output
@@ -534,12 +577,11 @@ public class MetaMapLite {
   void listEntities(String filename, 
 		    List<BioCDocument> documentList,
 		    String outputExtension,
-		    String outputFormatOption,
-		    boolean segmentSentences)
+		    String outputFormatOption)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
     // process documents
-    List<Entity> entityList = this.processDocumentList(documentList, segmentSentences);
+    List<Entity> entityList = this.processDocumentList(documentList);
     
     // create output filename
     String basename = filename.substring(0,filename.lastIndexOf(".")); // 
@@ -630,6 +672,8 @@ public class MetaMapLite {
 	    optionsConfiguration.setProperty ("metamaplite.document.inputtype",fields[1]);
 	  } else if (fields[0].equals("--segment_sentences")) {
 	    optionsConfiguration.setProperty ("metamaplite.segment.sentences",fields[1]);
+	  } else if (fields[0].equals("--segment_blanklines")) {
+	    optionsConfiguration.setProperty ("metamaplite.segment.blanklines",fields[1]);
 	  } else if (fields[0].equals("--freetext")) {
 	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
 	  } else if (fields[0].equals("--outputformat")) {
@@ -659,9 +703,22 @@ public class MetaMapLite {
 	    optionsConfiguration.setProperty("metamaplite.usecontext", "true");
 	  } else if (fields[0].equals("--brat_type_name")) {
 	    optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
-	  } else if (args[i].equals("--list_sentences")) {
+	  } else if (args[i].equals("--filelist")) {
+	    if (fields.length < 2) {
+	      System.err.println("missing argument in \"" + args[i] + "\" option");
+	    } else {
+	      optionsConfiguration.setProperty("metamaplite.inputfilelist", fields[1]);
+	    }
+	  } else if (fields[0].equals("--filelistfn") ||
+		     fields[0].equals("--filelistfilename")) {
+	    if (fields.length < 2) {
+	      System.err.println("missing argument in \"" + args[i] + "\" option");
+	    } else {
+	      optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
+	    }
+	  } else if (fields[0].equals("--list_sentences")) {
 	    optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
-	  } else if (args[i].equals("--list_acronyms")) {
+	  } else if (fields[0].equals("--list_acronyms")) {
 	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
 	  } else if (args[i].equals("--verbose")) {
 	    verbose = true;
@@ -713,8 +770,28 @@ public class MetaMapLite {
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
       boolean listAcronyms =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
-      boolean segmentSentences = 
-	Boolean.parseBoolean(properties.getProperty("metamaplite.segment.sentences","true"));
+      metaMapLiteInst.setSegmentSentences
+	(Boolean.parseBoolean(properties.getProperty("metamaplite.segment.sentences","true")));
+      metaMapLiteInst.setSegmentBlanklines
+	(Boolean.parseBoolean(properties.getProperty("metamaplite.segment.blanklines","false")));
+
+      String inputfileListPropValue = properties.getProperty("metamaplite.inputfilelist");
+      if (inputfileListPropValue != null) {
+	if (filenameList.size() > 0) {
+	  filenameList.addAll(Arrays.asList(inputfileListPropValue.split(",")));
+	} else {
+	  filenameList = Arrays.asList(inputfileListPropValue.split(","));
+	}
+      }
+      String inputfileListFilenamePropValue = properties.getProperty("metamaplite.inputfilelist.filename");
+      if (inputfileListFilenamePropValue != null) {
+	if (filenameList.size() > 0) {
+	  filenameList.addAll(loadInputFileList(inputfileListFilenamePropValue));
+	} else {
+	  filenameList = loadInputFileList(inputfileListFilenamePropValue);
+	}
+      }
+      
       // load documents
       logger.debug("documentInputOutput: " + documentInputOption);
       BioCDocumentLoader docLoader = new FreeText();
@@ -742,7 +819,7 @@ public class MetaMapLite {
 	} else if (listAcronyms) {
 	  metaMapLiteInst.listAcronyms(documentList);
 	} else {
-	  metaMapLiteInst.listEntities(documentList,outputFormatOption, segmentSentences);
+	  metaMapLiteInst.listEntities(documentList,outputFormatOption);
 	}
       } else {
 	logger.info("Loading and processing documents");
@@ -758,7 +835,7 @@ public class MetaMapLite {
 	    metaMapLiteInst.listAcronyms(filename, documentList);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
-					 outputExtension, outputFormatOption, segmentSentences);
+					 outputExtension, outputFormatOption);
 	  }
 	} /*for filename */
       }
@@ -768,5 +845,4 @@ public class MetaMapLite {
       System.exit(1);
     }   
   }
-
 }
