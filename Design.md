@@ -24,31 +24,112 @@ See file dist_metamap_lite_2015.tcl in repository:
 4. Inverted Multi-key index files
 5. Local libraries which are not available through Maven.
 
-
 ### Organization
 
      metamaplite -+- src 
                   +- config
                   +- data -+- models
-                  |        +- lucenedb -+- strict -+- cui_sourceinfo 
-                  |                                +- cui_st
+                  |        +- ivf -+- strict -+- indices -+- cuisourceinfo
+                  |                                       +- cuiconcept
+				  |                                       +- cuist
                   +- logs
                   +- scripts
                   +- target
 
 ## Possible implementations
 
-### Trie based
-
- Trie based NER using a lexically enhanced trie dictionary.
-
-### Lucene index based
-
-Current implementation uses Lucene indexes
-
 ### IRUtils multi-key index
 
 Multi-key Inverted File index is now the default implementation.
+
+current tables:
+
+    cuiconcept
+    cuisourceinfo
+    cuist
+
+### Generating Tables
+
+#### cuiconcept
+
+format:
+
+cui|preferred name
+
+example records:
+
+program: 
+
+    MRCONSO.RFF -> ExtractMrconsoPreferredNames -> cuiconcept
+
+example of running program:
+
+    $ java -cp $CLASSPATH \
+    gov.nih.nlm.nls.metamap.dfbuilder.ExtractMrconsoPreferredNames \
+	data/ivf/2015AA/mrconso.eng \
+	data/ivf/2015AA/strict/tables/cuiconcept.txt
+
+#### cuisourceinfo
+
+format:
+
+    cui|sui|seqno|string|src|tty
+
+example records:
+
+    C0000005|S0007492|1|(131)I-Macroaggregated Albumin|MSH|PEN
+    C0000005|S0007491|2|(131)I-MAA|MSH|EN
+    C0000039|S0007564|1|1,2-Dipalmitoylphosphatidylcholine|MSH|MH
+    C0000039|S0007564|2|1,2-Dipalmitoylphosphatidylcholine|NDFRT|PT
+    C0000039|S0007564|3|1,2-Dipalmitoylphosphatidylcholine|MTH|PN
+
+program: gov.nih.nlm.nls.metamap.dfbuilder.ExtractMrconsoSources
+
+    MRCONSO.RRF -> ExtractMrconsoSources -> cuisourceinfo
+
+example of running program:
+
+    $ java -cp $CLASSPATH \
+	gov.nih.nlm.nls.mmtx.dfbuilder.ExtractMrconsoSources \
+	data/ivf/2015AA/mrconso.eng \
+	data/ivf/2015AA/cuisourceinfo.txt
+
+#### cuist
+
+format:
+
+    cui|semantic type abbreviation
+
+example records:
+
+    C0000005|aapp
+    C0000005|irda
+    C0000005|phsu
+    C0000039|orch
+    C0000039|phsu
+
+program: gov.nih.nlm.nls.metamap.dfbuilder.ExtractMrstySemanticTypes
+
+    MRSTY.RRF -> ExtractMrstySemanticTypes -> cuist
+
+example of running program:
+
+    $ java -cp $CLASSPATH \
+	gov.nih.nlm.nls.metamap.dfbuilder.ExtractMrstySemanticTypes \
+	data/ivf/2015AA/mrsty.rrf \
+	data/ivf/2015AA/strict/tables/cuist.txt
+
+### Building the inverted file indexes
+
+
+
+### Trie based
+
+Trie based NER using a lexically enhanced trie dictionary.
+
+### Lucene index based
+
+Tables represented by Lucene indices. 
 
 ## Optimizations
 
