@@ -181,6 +181,25 @@ public class ExtractMrconsoPreferredNames {
       }
     return sb.toString();
   }
+
+  public static void createTable(String inFilename, String outFilename,
+				 String language, boolean displayWarnings,
+				 String releaseFormat)
+    throws Exception
+  {
+    ExtractMrconsoPreferredNames filter = 
+      new ExtractMrconsoPreferredNames(language, displayWarnings, releaseFormat);
+    filter.setThreaded(false);
+    System.out.println(filter.getOptionsMessage());
+    System.out.println("Processing " + inFilename + " --> " +
+		       outFilename + ".");
+      BufferedReader infile = new BufferedReader(new FileReader(inFilename));
+      PrintWriter outfile = 
+	new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
+      filter.processInput(infile, outfile);
+      outfile.close();
+      infile.close();
+  }
   
   /**
    * main program
@@ -253,27 +272,15 @@ public class ExtractMrconsoPreferredNames {
       System.exit(-1);
     }
     
-    ExtractMrconsoPreferredNames filter = 
-      new ExtractMrconsoPreferredNames(language, displayWarnings, releaseFormat);
-    filter.setThreaded(false);
-    System.out.println(filter.getOptionsMessage());
-    System.out.println("Processing " + inFilename + " --> " +
-		       outFilename + ".");
     try {
-      BufferedReader infile = new BufferedReader(new FileReader(inFilename));
-      PrintWriter outfile = 
-	new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
-      filter.processInput(infile, outfile);
-      outfile.close();
-      infile.close();
-
-      log.println();
-      log.close();
+      createTable(inFilename, outFilename, language, displayWarnings, releaseFormat);
     } catch (Exception exception) {
       System.err.println("Exception: " + exception.getMessage());
       exception.printStackTrace(System.err);
       System.exit(-1);
     }
+    log.println();
+    log.close();
     System.exit(0);
   }
 

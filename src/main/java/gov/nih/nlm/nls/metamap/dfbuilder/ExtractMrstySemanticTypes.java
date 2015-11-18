@@ -233,6 +233,26 @@ public class ExtractMrstySemanticTypes {
     this.threaded = isThreaded;
   }
 
+  static void createTable(String inFilename, String outFilename,
+			  boolean displayWarnings,
+			  String releaseFormat,
+			  String stRawFilename)
+    throws IOException, Exception
+  {
+    ExtractMrstySemanticTypes filter = 
+      new ExtractMrstySemanticTypes(displayWarnings, releaseFormat, stRawFilename);
+    filter.setThreaded(false);
+    System.out.println(filter.getOptionsMessage());
+    System.out.println("Processing " + inFilename + " --> " +
+		       outFilename + ".");
+    BufferedReader infile = new BufferedReader(new FileReader(inFilename));
+    PrintWriter outfile = 
+      new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
+    filter.processInput(infile, outfile);
+    outfile.close();
+    infile.close();
+  }
+  
   /**
    * main program
    * @param args command line arguments
@@ -296,21 +316,9 @@ public class ExtractMrstySemanticTypes {
       System.err.println(usageMsg);
       System.exit(-1);
     }
-    
-    ExtractMrstySemanticTypes filter = 
-      new ExtractMrstySemanticTypes(displayWarnings, releaseFormat, stRawFilename);
-    filter.setThreaded(false);
-    System.out.println(filter.getOptionsMessage());
-    System.out.println("Processing " + inFilename + " --> " +
-		       outFilename + ".");
     try {
-      BufferedReader infile = new BufferedReader(new FileReader(inFilename));
-      PrintWriter outfile = 
-	new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
-      filter.processInput(infile, outfile);
-      outfile.close();
-      infile.close();
-
+      createTable(inFilename, outFilename, displayWarnings,
+		  releaseFormat, stRawFilename);
       log.println();
       log.close();
     } catch (Exception exception) {

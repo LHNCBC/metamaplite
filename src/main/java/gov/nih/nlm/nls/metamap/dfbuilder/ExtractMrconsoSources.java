@@ -84,6 +84,157 @@ public class ExtractMrconsoSources
     return sb.toString();
   }
 
+
+  /**
+   * Process input mrconso file and output cuiinfo -> src file.
+   * @param infile   Input mrconso file 
+   * @param outfile  Output filtered mrconso file
+   */
+  public void processInput(BufferedReader infile, PrintWriter outfile)
+    throws IOException, Exception
+  {
+    String line = null;
+    String cui0 = "C......";
+    while ((line = infile.readLine()) != null)
+      { 
+	CuiInfo cuiInfo = this.parseLine(line);
+	cuiInfo.line = line;	// add line to cui info
+	if (cui0.equals(cuiInfo.cui)) {
+	  if (this.firstOfEachSourceOnly) { // test to see if source is already there
+	    if (! this.cuiInfoMap.containsKey(cuiInfo.sab)) {
+	      this.cuiInfoMap.put(cuiInfo.sab, cuiInfo);
+	      this.cuiInfoLines.add(cuiInfo);
+	    }
+	  } else { // always add source line.
+	      this.cuiInfoMap.put(cuiInfo.sab, cuiInfo);
+	      this.cuiInfoLines.add(cuiInfo);
+	  }
+	} else {
+	  if (! cui0.equals("C......")) {
+	    writeCuiInfo(outfile);
+	  }
+	  cui0 = cuiInfo.cui;
+	  this.cuiInfoMap = new HashMap<String,CuiInfo>(2);
+	  this.cuiInfoLines.removeAll(this.cuiInfoLines);
+	  this.cuiInfoMap.put(cuiInfo.sab, cuiInfo);
+	  this.cuiInfoLines.add(cuiInfo);
+	}
+      }
+     if (! cui0.equals("C......")) {
+       writeCuiInfo(outfile);
+     }
+  }
+
+  /**
+   * process a line.
+   * @param line     mrconso record.
+   * @return list containing cui, str, sab, tty
+   */
+  public CuiInfo parseLine(String line)
+    throws Exception
+  {
+    CuiInfo result = new CuiInfo();
+    try {
+      String[] tokens = line.split("\\|");
+      if (this.releaseFormatRRF) {
+	result.cui = tokens[0];  // set CUI
+	result.sui = tokens[5];  // set SUI
+	result.sab = tokens[11]; // set SAB
+	result.tty = tokens[12]; // set TTY
+	result.str = tokens[14]; // set STR
+      } else {
+	String cls = tokens[0];
+	String[] clsTokens = cls.split("\\:");
+	result.cui = clsTokens[0]; // set CUI
+	result.sui = clsTokens[2]; // set SUI
+	result.str = tokens[4];    // set STR
+	result.sab = tokens[5];    // set SAB
+	result.tty = tokens[6];    // set TTY
+      }
+    } catch (Exception exception) {
+      exception.printStackTrace(System.err);
+      System.err.println("line: " + line);
+      throw exception;
+    }
+    return result;
+  }
+
+  public void writeCuiInfo(PrintWriter outfile)
+  {
+    /* I so want to use generics here.  (couldn't I just use lisp?) */
+    int n = 1;
+    Iterator<CuiInfo> cuiInfoIter = this.cuiInfoLines.iterator();
+    if (this.includeSuiInfo) {
+      while (cuiInfoIter.hasNext()) {
+	CuiInfo ci = cuiInfoIter.next();
+	outfile.println(ci.cui + "|" + ci.sui + "|" + n + "|" +
+			ci.str + "|" + ci.sab + "|" + ci.tty);
+	n++;
+      }
+    } else {
+      while (cuiInfoIter.hasNext()) {
+	CuiInfo ci = cuiInfoIter.next();
+	outfile.println(ci.cui + "|" + n + "|" +
+			ci.str + "|" + ci.sab + "|" + ci.tty);
+	n++;
+      }
+    }
+  }
+
+  /**
+   * Returns false if not being run from a thread, true otherwise.
+   * @return true if being run as a thread, false if otherwise.
+   */
+  public boolean isThreaded()
+  {
+    return this.threaded;
+  }
+
+  /**
+   * Set thread state of class. I.E. is this being run from a thread.
+   * @param isThreaded set to true if are being run from a thread.
+   */
+  public void setThreaded(boolean isThreaded)
+  {
+    this.threaded = isThreaded;
+  }
+
+  /**
+   * This class represents one record in MRCONSO.
+   */
+  class CuiInfo
+  {
+    public String cui;
+    public String line;
+    public String str;
+    public String sab;
+    public String tty;
+    public String sui;
+  }
+
+  public static void createTable(String inFilename, String outFilename,
+				 boolean firstOfEachSourceOnly,
+				 boolean includeSuiInfo,
+				 boolean displayWarnings,
+				 String releaseFormat)
+    throws Exception
+  {
+    ExtractMrconsoSources filter = 
+      new ExtractMrconsoSources(firstOfEachSourceOnly, includeSuiInfo,
+				displayWarnings, releaseFormat);
+
+    filter.setThreaded(false);
+    System.out.println(filter.getOptionsMessage());
+    System.out.println("Processing " + inFilename + " --> " +
+		       outFilename + ".");
+      BufferedReader infile = new BufferedReader(new FileReader(inFilename));
+      PrintWriter outfile = 
+	new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
+      filter.processInput(infile, outfile);
+      outfile.close();
+      infile.close();
+  }
+
   /**
    * main program
    * @param args command line arguments
@@ -151,157 +302,20 @@ public class ExtractMrconsoSources
       System.err.println(usageMsg);
       System.exit(-1);
     }
-    
-    ExtractMrconsoSources filter = 
-      new ExtractMrconsoSources(firstOfEachSourceOnly,includeSuiInfo,displayWarnings, releaseFormat);
-    filter.setThreaded(false);
-    System.out.println(filter.getOptionsMessage());
-    System.out.println("Processing " + inFilename + " --> " +
-		       outFilename + ".");
     try {
-      BufferedReader infile = new BufferedReader(new FileReader(inFilename));
-      PrintWriter outfile = 
-	new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
-      filter.processInput(infile, outfile);
-      outfile.close();
-      infile.close();
-
-      log.println();
-      log.close();
+      createTable(inFilename, outFilename,
+		  firstOfEachSourceOnly, includeSuiInfo,
+		  displayWarnings, releaseFormat);
     } catch (Exception exception) {
       System.err.println("Exception: " + exception.getMessage());
       exception.printStackTrace(System.err);
       System.exit(-1);
     }
+    log.println();
+    log.close();
     System.exit(0);
   }
 
-  /**
-   * Process input mrconso file and output cuiinfo -> src file.
-   * @param infile   Input mrconso file 
-   * @param outfile  Output filtered mrconso file
-   */
-  public void processInput(BufferedReader infile, PrintWriter outfile)
-    throws IOException, Exception
-  {
-    String line = null;
-    String cui0 = "C......";
-    while ((line = infile.readLine()) != null)
-      { 
-	CuiInfo cuiInfo = this.parseLine(line);
-	cuiInfo.line = line;	// add line to cui info
-	if (cui0.equals(cuiInfo.cui)) {
-	  if (this.firstOfEachSourceOnly) { // test to see if source is already there
-	    if (! this.cuiInfoMap.containsKey(cuiInfo.sab)) {
-	      this.cuiInfoMap.put(cuiInfo.sab, cuiInfo);
-	      this.cuiInfoLines.add(cuiInfo);
-	    }
-	  } else { // always add source line.
-	      this.cuiInfoMap.put(cuiInfo.sab, cuiInfo);
-	      this.cuiInfoLines.add(cuiInfo);
-	  }
-	} else {
-	  if (! cui0.equals("C......")) {
-	    writeCuiInfo(outfile, this.cuiInfoMap);
-	  }
-	  cui0 = cuiInfo.cui;
-	  this.cuiInfoMap = new HashMap<String,CuiInfo>(2);
-	  this.cuiInfoLines.removeAll(this.cuiInfoLines);
-	  this.cuiInfoMap.put(cuiInfo.sab, cuiInfo);
-	  this.cuiInfoLines.add(cuiInfo);
-	}
-      }
-     if (! cui0.equals("C......")) {
-       writeCuiInfo(outfile, this.cuiInfoMap);
-     }
-  }
-
-  /**
-   * process a line.
-   * @param line     mrconso record.
-   * @return list containing cui, str, sab, tty
-   */
-  public CuiInfo parseLine(String line)
-    throws Exception
-  {
-    CuiInfo result = new CuiInfo();
-    try {
-      String[] tokens = line.split("\\|");
-      if (this.releaseFormatRRF) {
-	result.cui = tokens[0];  // set CUI
-	result.sui = tokens[5];  // set SUI
-	result.sab = tokens[11]; // set SAB
-	result.tty = tokens[12]; // set TTY
-	result.str = tokens[14]; // set STR
-      } else {
-	String cls = tokens[0];
-	String[] clsTokens = cls.split("\\:");
-	result.cui = clsTokens[0]; // set CUI
-	result.sui = clsTokens[2]; // set SUI
-	result.str = tokens[4];    // set STR
-	result.sab = tokens[5];    // set SAB
-	result.tty = tokens[6];    // set TTY
-      }
-    } catch (Exception exception) {
-      exception.printStackTrace(System.err);
-      System.err.println("line: " + line);
-      throw exception;
-    }
-    return result;
-  }
-
-  public void writeCuiInfo(PrintWriter outfile, Map cuiInfoMap)
-  {
-    /* I so want to use generics here.  (couldn't I just use lisp?) */
-    int n = 1;
-    Iterator cuiInfoIter = this.cuiInfoLines.iterator();
-    if (this.includeSuiInfo) {
-      while (cuiInfoIter.hasNext()) {
-	CuiInfo ci = (CuiInfo)cuiInfoIter.next();
-	outfile.println(ci.cui + "|" + ci.sui + "|" + n + "|" +
-			ci.str + "|" + ci.sab + "|" + ci.tty);
-	n++;
-      }
-    } else {
-      while (cuiInfoIter.hasNext()) {
-	CuiInfo ci = (CuiInfo)cuiInfoIter.next();
-	outfile.println(ci.cui + "|" + n + "|" +
-			ci.str + "|" + ci.sab + "|" + ci.tty);
-	n++;
-      }
-    }
-  }
-
-  /**
-   * Returns false if not being run from a thread, true otherwise.
-   * @return true if being run as a thread, false if otherwise.
-   */
-  public boolean isThreaded()
-  {
-    return this.threaded;
-  }
-
-  /**
-   * Set thread state of class. I.E. is this being run from a thread.
-   * @param isThreaded set to true if are being run from a thread.
-   */
-  public void setThreaded(boolean isThreaded)
-  {
-    this.threaded = isThreaded;
-  }
-
-  /**
-   * This class represents one record in MRCONSO.
-   */
-  class CuiInfo
-  {
-    public String cui;
-    public String line;
-    public String str;
-    public String sab;
-    public String tty;
-    public String sui;
-  }
 }
 
 
