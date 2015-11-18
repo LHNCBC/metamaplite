@@ -58,6 +58,12 @@ cui|preferred name
 
 example records:
 
+    C0000005|(131)I-Macroaggregated Albumin
+    C0000039|1,2-Dipalmitoylphosphatidylcholine
+    C0000052|1,4-alpha-Glucan Branching Enzyme
+    C0000074|1-Alkyl-2-Acylphosphatidates
+    C0000084|1-Carboxyglutamic Acid
+
 program: 
 
     MRCONSO.RFF -> ExtractMrconsoPreferredNames -> cuiconcept
@@ -121,6 +127,14 @@ example of running program:
 
 ### Building the inverted file indexes
 
+The CreateIndexes class generates tables cuiconcept, cuisourceinfo,
+and cuist from MRCONSO.RRF and MRSTY.RRF and then produces
+corresponding indexes for tables.
+
+Usage: 
+
+     java -cp target/metamaplite-1.0-SNAPSHOT.jar \
+      gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
 
 
 ### Trie based

@@ -42,25 +42,49 @@ Installation on Unix (Linux/Mac OS/X):
 
 Current options are:
 
-    input options:
+  input options:
+
       --              Read from standard input
-    document processing options:
+
+  document processing options:
+
       --freetext      Text with no markup.
       --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
       --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
       --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
 	  --inputformat=<loadername>
-    output options:
+
+  output options:
+
       --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
       --mmilike|mmi               similar to MetaMap Fielded MMI output
       --brat                      BRAT annotation format
-    processing options:
+
+  processing options:
+
       --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
       --restrict_to_sources=<source>[,<source>...]
 	  --segment_sentences=[<true>|<false>]
-    alternate output options:
+      --segment_blanklines=[<true>|<false>]
+	  --usecontext                Use ConText Negation Detector
+
+  alternate output options:
+
       --list_sentences
       --list_acronyms
+
+## Properties
+
+    metamaplite.index.directory: data/ivf/strict
+    metamaplite.ivf.cuiconceptindex: data/ivf/strict/indices/cuiconcept
+    metamaplite.ivf.firstwordsofonewideindex: data/ivf/strict/indices/first\_words\_of\_one_WIDE
+    metamaplite.ivf.cuisourceinfoindex: data/ivf/strict/indices/cuisourceinfo
+    metamaplite.ivf.cuisemantictypeindex: data/ivf/strict/indices/cuist
+    metamaplite.ivf.varsindex: data/ivf/strict/indices/vars
+
+# irutils indexes
+
+
 
 ## Tables and Indexes
 
@@ -72,6 +96,30 @@ Currently, three tables are used:
 
 ### Generating the indexes from the tables
 
+The CreateIndexes class generates tables cuiconcept, cuisourceinfo,
+and cuist from MRCONSO.RRF and MRSTY.RRF and then produces
+corresponding indexes for tables.
+
+Usage: 
+
+     java -cp target/metamaplite-1.0-SNAPSHOT.jar \
+      gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
+
+The resulting indices are in <ivfdir>/indices.  The tables the indexes
+are generated from are in <ivfdir>/tables.
+
+To use the new indexes do one of the following:
+
+Use the --indexdir=<directory> option:
+
+    java -cp target/metamaplite-1.0-SNAPSHOT.jar \
+     gov.nih.nlm.nls.metamap.ner.MetaMapLite --indexdir=<ivfdir> <other-options> <otherargs>
+
+Modify the configuration file config/metamap.properties:
+
+    metamaplite.ivf.cuiconceptindex: data/multi-key-index-test/indices/cuiconcept
+    mmetamaplite.ivf.cuisourceinfoindex: data/multi-key-index-test/indices/cuisourceinfo
+    metamaplite.ivf.cuisemantictypeindex: data/multi-key-index-test/indices/cuist
 
 
 ## Adding custom input document formats
