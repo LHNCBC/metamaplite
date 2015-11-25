@@ -358,7 +358,8 @@ public class MetaMapLite {
   static void displayHelp() {
     System.err.println("usage: [options] filenames");
     System.err.println("input options:");
-    System.err.println("  --              Read from standard input");
+    System.err.println("  --              Read from standard input, write to standard output");
+    System.err.println("  --pipe          Read from standard input, write to standard output");
     System.err.println("document processing options:");
     System.err.println("  --freetext (default)");
     System.err.println("  --inputformat=<document type>");
@@ -383,6 +384,7 @@ public class MetaMapLite {
     System.err.println("  --segment_sentences=<true|false>    set to false to disable sentence segmentation");
     System.err.println("  --segment_blanklines=<true|false>   set to true to enable blank line segmentation");
     System.err.println("                                      (--segment_sentences must be false.)");
+    System.err.println("  --usecontext                        Use ConText negation algorithm.");
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
@@ -654,7 +656,8 @@ public class MetaMapLite {
       while (i < args.length) {
         if (args[i].substring(0,2).equals("--")) {
 	  String[] fields = args[i].split("=");
-	  if (fields[0].equals("--")) {
+	  if (fields[0].equals("--") ||
+	      fields[0].equals("--pipe")) {
 	    inputFromStdin = true;
 	  } else if (fields[0].equals("--configfile") ||
 	      fields[0].equals("--propertiesfile")) {
