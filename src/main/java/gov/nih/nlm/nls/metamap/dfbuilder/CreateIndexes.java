@@ -136,7 +136,7 @@ public class CreateIndexes {
       
       System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
       List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
-      System.out.println("Generating index for " indexName);
+      System.out.println("Generating index for " + indexName);
       MultiKeyIndexGeneration instance = new MultiKeyIndexGeneration();
       System.out.println("Generating maps for columns " +
 			 MultiKeyIndexGeneration.renderColumns(columns) ); 
