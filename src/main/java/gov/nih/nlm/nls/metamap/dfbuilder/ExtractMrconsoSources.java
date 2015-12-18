@@ -86,9 +86,11 @@ public class ExtractMrconsoSources
 
 
   /**
-   * Process input mrconso file and output cuiinfo -> src file.
+   * Process input mrconso file and output cuiinfo -&gt; src file.
    * @param infile   Input mrconso file 
    * @param outfile  Output filtered mrconso file
+   * @throws Exception any exception
+   * @throws IOException IO exception
    */
   public void processInput(BufferedReader infile, PrintWriter outfile)
     throws IOException, Exception
@@ -129,6 +131,7 @@ public class ExtractMrconsoSources
    * process a line.
    * @param line     mrconso record.
    * @return list containing cui, str, sab, tty
+   * @throws Exception any exception
    */
   public CuiInfo parseLine(String line)
     throws Exception
@@ -238,6 +241,7 @@ public class ExtractMrconsoSources
   /**
    * main program
    * @param args command line arguments
+   * @throws Exception any exception
    */
   public static void main(String[] args)
     throws Exception

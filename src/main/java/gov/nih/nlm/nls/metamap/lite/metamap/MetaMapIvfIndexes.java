@@ -17,11 +17,11 @@ import irutils.MappedMultiKeyIndexLookup;
  */
 
 public class MetaMapIvfIndexes {
-  /** cui -> source index */
+  /** cui -&gt; source index */
   public MappedMultiKeyIndexLookup cuiSourceInfoIndex;
-  /** cui -> semantic type index */
+  /** cui -&gt; semantic type index */
   public MappedMultiKeyIndexLookup cuiSemanticTypeIndex;
-  /** cui -> concept index (actually bi-directional) */
+  /** cui -&gt; concept index (actually bi-directional) */
   public MappedMultiKeyIndexLookup cuiConceptIndex;
 
   String root =

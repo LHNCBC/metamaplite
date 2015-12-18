@@ -20,7 +20,7 @@ public class ConceptInfo {
   String cui;
   String preferredName;
   Set<String> sourceSet = null; 
-  Set<String> semanticTypeSet = null; 
+  Set<String> semanticTypeSet = null;
 
   public ConceptInfo(String cui, String prefname, 
 		Set<String> newSourceSet,

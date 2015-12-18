@@ -6,8 +6,8 @@ import java.util.Properties;
 
 /**
  * <ol>
- * <li> Place default configuration in  key --> value map.
- * <li> Read options and place options in key --> value map.
+ * <li> Place default configuration in  key --&gt; value map.
+ * <li> Read options and place options in key --&gt; value map.
  * <li> If configfile option present in map use it in next step other use default
  * <li> Load properties file and apply if present.
  * <li> apply any system properties if present

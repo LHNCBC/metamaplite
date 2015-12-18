@@ -83,7 +83,7 @@ public class ExtractMrstySemanticTypes {
   /** are we using Rich Release Format (RRF) */
   boolean releaseFormatRRF = true;
  
-  /** mapping of TUIs -> semantic type abbreviation for instance */
+  /** mapping of TUIs -&gt; semantic type abbreviation for instance */
   Map<String,String> semanticTypeToStAbbrevMap;
 
   /**
@@ -150,7 +150,8 @@ public class ExtractMrstySemanticTypes {
    * process a line.
    * @param line     mrsty record.
    * @return instance containing cui, tui, stn, sty, atui
-   */
+   * @throws Exception any exception
+     */
   public CuiInfo parseLine(String line)
     throws Exception
   {
@@ -184,9 +185,11 @@ public class ExtractMrstySemanticTypes {
 
 
   /**
-   * Process input mrsty file and output cuiinfo -> src file.
+   * Process input mrsty file and output cuiinfo -&gt; src file.
    * @param infile   Input mrsty file 
    * @param outfile  Output filtered mrsty file
+   * @throws Exception any exception
+   * @throws IOException Input/Output exception
    */
   public void processInput(BufferedReader infile, PrintWriter outfile)
     throws IOException, Exception
@@ -256,6 +259,7 @@ public class ExtractMrstySemanticTypes {
   /**
    * main program
    * @param args command line arguments
+   * @throws Exception any exception
    */
   public static void main(String[] args)
     throws Exception

@@ -23,7 +23,11 @@ public class ContextWrapper {
   static ConText contextInstance = new ConText();
 
   /** Given annotated sentence list with entities, determine hedging
-   * relations using ConText.*/
+   * relations using ConText.
+   * @param conceptList list of concepts
+   * @param sentenceList list of sentences
+   * @throws Exception any exception
+   */
   public static List<List<String>> applyContext(List<String> conceptList, List<String> sentenceList) 
     throws Exception {
     List<List<String>> resultlist = new ArrayList<List<String>>();
@@ -51,7 +55,8 @@ public class ContextWrapper {
   }
 
   /** Given annotated sentence list with entities, determine hedging
-   * relations using ConText.*/
+   * relations using ConText.
+   */
   public static List<List<String>> applyContextUsingEntities(List<Entity> entityList, 
 							     List<Sentence> sentenceList) 
     throws Exception {

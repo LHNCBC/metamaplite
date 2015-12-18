@@ -17,15 +17,15 @@ import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
  * id|MMI|score|preferredname|cui|semtypelist|triggerinfo|location|posinfo|treecodes
  * </pre>
  * Triggerinfo (dash separated):  (ex:  "UMLS concept-loc-locPos-text-Part of Speech-Negation Flag". )
- * <pre>
+ * <p>
  *  UMLS Concept (Preferred or Synonym Text)
- *  <ul>
+ * <ul>
  *  <li>loc - Location in the text if identifiable. ti - Title, ab - Abstract, and tx - Free Text 
  *  <li>locPos - Number of the utterance within the loc starting with one (1). For example, "ti-1" denotes first utterance in title. 
  *  <li>text - The actual text mapped to this UMLS concept identification.
  *  <li>Part of Speech - N/A
  *  <li>Negation Flag
- * </pre>
+ * </ul>
  */
 
 public class MMI implements ResultFormatter {

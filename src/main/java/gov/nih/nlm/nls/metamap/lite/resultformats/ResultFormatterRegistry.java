@@ -14,7 +14,7 @@ import java.util.Properties;
 /**
  * list result formatters in properties file in the following format:
  * <pre>
- * mml.result.formatter.<name>: classname
+ * mml.result.formatter.{name}: classname
  * </pre>
  */
 
@@ -28,7 +28,7 @@ public class ResultFormatterRegistry {
    * Register loader.
    * @param name name of loader
    * @param description description of loader
-   * @param classname full classname of loader
+   * @param className full classname of loader
    */
   public static void register(String name, String description, 
 			      String className)
@@ -53,7 +53,7 @@ public class ResultFormatterRegistry {
    * Register loader.
    * @param name name of loader
    * @param description description of loader
-   * @param class instance of document loader
+   * @param instance class instance of document loader
    */
   public static void register(String name, String description, 
 			      ResultFormatter instance)

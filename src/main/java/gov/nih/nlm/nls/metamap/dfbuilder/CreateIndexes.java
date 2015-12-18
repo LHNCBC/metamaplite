@@ -148,9 +148,15 @@ public class CreateIndexes {
 
   /**
    * main program 
+   * <p>
+   * usage: CreateIndexes {mrconsofile} {mrstyfile} {ivfdir}
    * @param args argument vector.
-   *
-   * usage: CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
+   * @throws BSPIndexCreateException index create exception 
+   * @throws BSPIndexInvalidException invalid index exception
+   * @throws ClassNotFoundException class not found exception
+   * @throws Exception any exception
    */
   public static void main(String[] args)
     throws java.io.FileNotFoundException,

@@ -83,7 +83,7 @@ public class EntityLookup {
     }
   }
 
-  /** cache of string -> concept and attributes */
+  /** cache of string -&gt; concept and attributes */
   public static Map<String,List<ConceptInfo>> termConceptCache = new HashMap<String,List<ConceptInfo>>();
 
   public void cacheConcept(String term, ConceptInfo concept) {
@@ -100,7 +100,7 @@ public class EntityLookup {
     }
   }
 
-  /** cache of string -> lucene document hit list */
+  /** cache of string -&gt; lucene document hit list */
   public static Map<String,List<Document>> termHitListCache = new HashMap<String,List<Document>>();
 
   public void cacheHitList(String term, List<Document> hitList) {
@@ -111,7 +111,7 @@ public class EntityLookup {
 
   /**
    * A memoization of lucene cuiSourceinfoindex lookup.
-   * @param String containing query
+   * @param query String containing query
    * @return list of lucene index documents
    */
   List<Document> cuiSourceInfoIndexLookup(String query)
@@ -177,7 +177,7 @@ public class EntityLookup {
 
   /**
    * Given the string:
-   *   "cancer of the lung" -> "cancer, lung" -> "lung cancer"
+   *   "cancer of the lung" -&gt; "cancer, lung" -&gt; "lung cancer"
    *
    * what it does:
    *  1. replace "of the" with comma (",")
@@ -377,13 +377,13 @@ public class EntityLookup {
    *
    * What actually happens is this:
    *
-   *   1. Query the cui <--> sourceinfo index using the prefix of the term.
+   *   1. Query the cui &lt;--&gt; sourceinfo index using the prefix of the term.
    *   2. Given the hitlist from the query, keep any matches that are
    *      a subset of the token list that has the prefix at the head of
    *      the tokenlist.
    *
    *
-   *  Organization of cui <--> sourceinfo table: cui|sui|seqno|str|src|tty
+   *  Organization of cui &lt;--&gt; sourceinfo table: cui|sui|seqno|str|src|tty
    *
    * Example from Experimental Factor Ontology [non-UMLS]:
    *

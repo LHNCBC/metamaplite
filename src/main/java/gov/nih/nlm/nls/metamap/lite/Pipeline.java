@@ -44,12 +44,12 @@ import org.apache.logging.log4j.Logger;
 
  * pipe-elements: (properties)
  * <pre>
- * metamaplite.pipe.element.<element-name>: transformation method|input class|output class
+ * metamaplite.pipe.element.{element-name}: transformation method|input class|output class
  * </pre>
  *
  * pipeline:  (one property line)
  * <pre>
- * metamaplite.pipeline.<name>: element1|element2|...
+ * metamaplite.pipeline.{name}: element1|element2|...
  * </pre>
  *
  *<pre>
@@ -77,6 +77,8 @@ public class Pipeline {
    * Apply processing pipeline to sentence.
    * @param sentence String containing a properly segmented sentence.
    * @return result from final plugin in processing pipeline.
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class
    */
   public Object processSentence(Sentence sentence)
     throws IllegalAccessException, InvocationTargetException
@@ -97,6 +99,8 @@ public class Pipeline {
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
    * @param sentenceList list of strings, one sentence per string.
    * @return list of results from sentence processing pipeline, one per sentence in input list.
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class
    */
   public List<Object> processSentenceList(List<Sentence> sentenceList) 
     throws IllegalAccessException, InvocationTargetException
@@ -113,6 +117,12 @@ public class Pipeline {
   /**
    * Initialize pipeline application.
    * @return pipeline application instance
+   * @throws ClassNotFoundException class not found exception
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception instantiating instance of class
+   * @throws NoSuchMethodException  no method in class
    */
   static Pipeline initPipeline()
     throws IOException, FileNotFoundException,
@@ -145,6 +155,8 @@ public class Pipeline {
   /**
    * Apply text processing pipeline to input text.
    * @param text input text
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
    */
   public void processText(String text)
     throws IllegalAccessException, InvocationTargetException
@@ -197,9 +209,17 @@ public class Pipeline {
    * <dt>--chemdnerSLDI
    * <dd>CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
    * </dl>
-   * The application currently only outputs to standard output. (See method: gov.nih.nlm.nls.metamap.lite.EntityLookup.displayEntitySet) 
-   * </pre>
+   * The application currently only outputs to standard output.
+   * (See method: gov.nih.nlm.nls.metamap.lite.EntityLookup.displayEntitySet) 
    * @param args - Arguments passed from the command line
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
+   * @throws InstantiationException exception instantiating instance of class
+   * @throws NoSuchMethodException  no method in class
+   * @throws IllegalAccessException illegal access of class
+   * @throws ParseException except while parsing
+   * @throws InvocationTargetException exception while invoking target class
+   * @throws ClassNotFoundException class not found exception
    */
   public static void main(String[] args)
     throws IOException, FileNotFoundException,

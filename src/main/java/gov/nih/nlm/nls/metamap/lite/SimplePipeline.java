@@ -123,7 +123,7 @@ public class SimplePipeline {
   public void initPOSTagger()
     throws IOException, FileNotFoundException
   {
-    InputStream modelIn = new FileInputStream(System.getProperty("en-pos-maxent.bin.path", "en-pos-maxent.bin"));
+    InputStream modelIn = new FileInputStream(System.getProperty("opennlp.en-pos.bin.path", "en-pos-maxent.bin"));
 
     try {
       this.posModel = new POSModel(modelIn);
@@ -173,6 +173,9 @@ public class SimplePipeline {
    *
    * @param sentence sentence to be examined.
    * @return set of entities found in the sentence.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
+   * @throws ParseException except while parsing
    */
   public Set<Entity> processSentence(String sentence)
     throws FileNotFoundException, IOException, ParseException

@@ -204,9 +204,19 @@ public class BioCPipeline {
    * <dt>--chemdnerSLDI
    * <dd>CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
    * </dl>
-   * The application currently only outputs to standard output. (See method: gov.nih.nlm.nls.metamap.lite.EntityLookup.displayEntitySet) 
-   * </pre>
+   * The application currently only outputs to standard output. (See
+   * method:
+   * gov.nih.nlm.nls.metamap.lite.EntityLookup.displayEntitySet)
+   * 
    * @param args - Arguments passed from the command line
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
+   * @throws InstantiationException exception instantiating instance of class
+   * @throws NoSuchMethodException  no method in class
+   * @throws IllegalAccessException illegal access of class
+   * @throws ParseException except while parsing
+   * @throws InvocationTargetException exception while invoking target class
+   * @throws ClassNotFoundException class not found exception
    */
   public static void main(String[] args)
     throws IOException, FileNotFoundException,

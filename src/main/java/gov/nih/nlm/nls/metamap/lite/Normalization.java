@@ -23,8 +23,8 @@ public class Normalization {
    *    <li>conversion to lowercase;
    *    <li>stripping of possessives.
    * </ul>
-   * </p>
-   * @param string meta string to normalize.
+   * <p>
+   * @param astString string meta string to normalize.
    * @return normalized AST string.
    */
   public static String normalizeLiteString(String astString)
@@ -56,14 +56,13 @@ public class Normalization {
    * Similarly, the concept "Lung Cancer" has string "Cancer, Lung".
    * And the concept "1,4-alpha-Glucan Branching Enzyme" has a string
    * "1,4 alpha Glucan Branching Enzyme".
-   * </p>
    * <p>
    * Note that the order in which the various normalizations occur is important.
    * The above order is correct.
    * important; e.g., parentheticals must be removed before either lowercasing
    * or normalized syntactic uninversion (which includes NOS normalization)
    * are performed.
-   * </p>
+   * <p>
    * @param string meta string to normalize.
    * @return normalized meta string.
    */

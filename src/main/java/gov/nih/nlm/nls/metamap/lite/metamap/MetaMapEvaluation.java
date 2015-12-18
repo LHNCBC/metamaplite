@@ -37,7 +37,9 @@ public class MetaMapEvaluation {
   }
 
 
-  /** only possible to calculate if you have parsed the sentence into phrases. */
+  /** only possible to calculate if you have parsed the sentence into phrases. 
+   * @return value of centrality measure
+   */
   public double calculateCentrality() {
     return 1.0;
   }
@@ -72,6 +74,10 @@ public class MetaMapEvaluation {
    *    C: coverage
    *
    *       C = ((wl / vl) + ml) / 3.0"
+   * @param tokenList tokens list of variant
+   * @param word target word
+   * @param nMetaWords number of MetaThesaurus words
+   * @return result of coverage measure
    */
   public double calculateCoverage(String[] tokenList, String word, int nMetaWords)
   {
@@ -82,6 +88,8 @@ public class MetaMapEvaluation {
   }
 
   /**
+   * Cohesiveness measure.
+   * @return value of cohesiveness measure
    */
   public double calculateCohesiveness() {
 

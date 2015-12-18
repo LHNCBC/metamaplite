@@ -33,7 +33,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 /**
- * Load cui -> concept table into Lucene index.
+ * Load cui -&gt; concept table into Lucene index.
  * <p>
  * Example of use:
  * <pre>

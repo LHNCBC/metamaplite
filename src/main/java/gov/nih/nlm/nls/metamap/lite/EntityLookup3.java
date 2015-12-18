@@ -105,7 +105,7 @@ public class EntityLookup3 {
     }
   }
 
-  /** cache of string -> concept and attributes */
+  /** cache of string -&gt; concept and attributes */
   public static Map<String,List<ConceptInfo>> termConceptCache = new HashMap<String,List<ConceptInfo>>();
 
   public void cacheConcept(String term, ConceptInfo concept) {
@@ -175,6 +175,8 @@ public class EntityLookup3 {
    * Get semantic type set for cui (concept unique identifier)
    * @param cui target cui
    * @return set of semantic type abbreviations a for cui or empty set if none found.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
    */
   public Set<String> getSemanticTypeSet(String cui)
     throws FileNotFoundException, IOException
@@ -191,7 +193,7 @@ public class EntityLookup3 {
 
   /**
    * Given the string:
-   *   "cancer of the lung" -> "cancer, lung" -> "lung cancer"
+   *   "cancer of the lung" -&gt; "cancer, lung" -&gt; "lung cancer"
    *
    * what it does:
    *  1. replace "of the" with comma (",")
@@ -323,6 +325,12 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *             "Thyroid Carcinoma"
    *             "Thyroid"
    *    ...
+   * @param docid document id
+   * @param tokenList tokenlist of document
+   * @param semanticTypeRestrictSet semantic type to restrict to
+   * @param sourceRestrictSet sources to restrict to
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException IO exception
    */
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
 						      List<ERToken> tokenList,
@@ -431,13 +439,13 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *
    * What actually happens is this:
    *
-   *   1. Query the cui <--> sourceinfo index using the prefix of the term.
+   *   1. Query the cui &lt;--&gt; sourceinfo index using the prefix of the term.
    *   2. Given the hitlist from the query, keep any matches that are
    *      a subset of the token list that has the prefix at the head of
    *      the tokenlist.
    *
    *
-   *  Organization of cui <--> sourceinfo table: cui|sui|seqno|str|src|tty
+   *  Organization of cui &lt;--&gt; sourceinfo table: cui|sui|seqno|str|src|tty
    *
    * Example from Experimental Factor Ontology [non-UMLS]:
    *
@@ -456,6 +464,8 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *  http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/nls/tree/mmtx/sources/gov/nih/nlm/nls/mmtx/dfbuilder/ExtractMrconsoSources.java
    *
    * @param sentenceTokenList sentence to be examined.
+   * @param semTypeRestrictSet semantic type 
+   * @param sourceRestrictSet source list to restrict to
    * @return set of entities found in the sentence.
    */
   public Set<Entity> processSentenceTokenList(String docid, List<ERToken> sentenceTokenList,
@@ -543,7 +553,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
   }
 
 
-  /** process passage */
+  /** Process passage */
   public List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
 					    Set<String> semTypeRestrictSet,
 					    Set<String> sourceRestrictSet) 

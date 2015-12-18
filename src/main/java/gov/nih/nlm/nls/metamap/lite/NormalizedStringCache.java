@@ -11,12 +11,12 @@ import gov.nih.nlm.nls.metamap.lite.Normalization;
  */
 
 public class NormalizedStringCache {
-    /** string -> normalize string cache. */
+    /** string -&gt; normalize string cache. */
   public static Map<String,String> normalizeStringCache = new HashMap<String,String>();
 
   /**
    * A memoization of MWIUtilities.normalizeLiteString 
-   * @param input string 
+   * @param originalString input string 
    * @return normalized version of input string.
    */
   static String normalizeString(String originalString) {

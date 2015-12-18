@@ -9,9 +9,9 @@ import java.text.*;
 /**
  * Generate table consisting records each with a pair containing a
  * concept unique identifier and the preferred name for that concept.
- * <p>
- * MRCONSO fields used:
+ *
  * <table>
+ *  <caption>MRCONSO fields used:</caption>
  *  <tr><th>CUI <td>concept unique identifier <td>field 0</tr>
  *  <tr><th>LAT <td>language of term          <td>field 1</tr>
  *  <tr><th>TS  <td>term status               <td>field 2</tr>
@@ -92,6 +92,7 @@ public class ExtractMrconsoPreferredNames {
    * process a line.
    * @param line     mrconso record.
    * @return list containing cui, str, sab, tty
+   * @throws Exception any exception
    */
   public CuiInfo parseLine(String line)
     throws Exception
@@ -129,9 +130,11 @@ public class ExtractMrconsoPreferredNames {
   }
 
   /**
-   * Process input mrconso file and output cuiinfo -> src file.
+   * Process input mrconso file and output cuiinfo -&gt; src file.
    * @param infile   Input mrconso file 
    * @param outfile  Output filtered mrconso file
+   * @throws IOException IO exception
+   * @throws Exception any exception
    */
   public void processInput(BufferedReader infile, PrintWriter outfile)
     throws IOException, Exception
@@ -204,6 +207,7 @@ public class ExtractMrconsoPreferredNames {
   /**
    * main program
    * @param args command line arguments
+   * @throws Exception any exception
    */
   public static void main(String[] args)
     throws Exception

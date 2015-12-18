@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * list document loaders in properties file in the following format:
  * <pre>
- * bioc.document.loader.<name>: classname
+ * bioc.document.loader.{name}: classname
  * </pre>
  */
 public class BioCDocumentLoaderRegistry {
@@ -30,7 +30,7 @@ public class BioCDocumentLoaderRegistry {
    * Register loader.
    * @param name name of loader
    * @param description description of loader
-   * @param classname full classname of loader
+   * @param className full classname of loader
    */
   public static void register(String name, String description, 
 			      String className)
@@ -58,7 +58,7 @@ public class BioCDocumentLoaderRegistry {
    * Register loader.
    * @param name name of loader
    * @param description description of loader
-   * @param class instance of document loader
+   * @param instance class instance of document loader
    */
   public static void register(String name, String description, 
 			      BioCDocumentLoader instance)

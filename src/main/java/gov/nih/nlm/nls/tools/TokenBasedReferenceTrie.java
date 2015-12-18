@@ -15,7 +15,7 @@ import gov.nih.nlm.nls.metamap.prefix.Token;
  * trie.insert(Tokenize.mmPosTokenize("fas antigen", 0), new Integer(355));
  * trie.insert(Tokenize.mmPosTokenize("Fas ligand",  0), new Integer(356));
  * trie.insert(Tokenize.mmPosTokenize("fas ligand",  0), new Integer(356));
- * System.out.println("trie.hasReference(Tokenize.mmPosTokenize(\"fas antigen\", 0)) -> " + 
+ * System.out.println("trie.hasReference(Tokenize.mmPosTokenize(\"fas antigen\", 0)) -&gt; " + 
  * 		       trie.hasReference(Tokenize.mmPosTokenize("fas antigen", 0)));
  * </pre>
  * Created: Tue Jul  9 13:35:13 2013

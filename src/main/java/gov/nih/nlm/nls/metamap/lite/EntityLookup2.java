@@ -92,7 +92,7 @@ public class EntityLookup2 {
     }
   }
 
-  /** cache of string -> concept and attributes */
+  /** cache of string -&gt; concept and attributes */
   public static Map<String,List<ConceptInfo>> termConceptCache = new HashMap<String,List<ConceptInfo>>();
 
   public void cacheConcept(String term, ConceptInfo concept) {
@@ -161,7 +161,7 @@ public class EntityLookup2 {
 
   /**
    * Given the string:
-   *   "cancer of the lung" -> "cancer, lung" -> "lung cancer"
+   *   "cancer of the lung" -&gt; "cancer, lung" -&gt; "lung cancer"
    *
    * what it does:
    *  1. replace "of the" with comma (",")
@@ -394,13 +394,13 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *
    * What actually happens is this:
    *
-   *   1. Query the cui <--> sourceinfo index using the prefix of the term.
+   *   1. Query the cui &lt;--&gt; sourceinfo index using the prefix of the term.
    *   2. Given the hitlist from the query, keep any matches that are
    *      a subset of the token list that has the prefix at the head of
    *      the tokenlist.
    *
    *
-   *  Organization of cui <--> sourceinfo table: cui|sui|seqno|str|src|tty
+   *  Organization of cui &lt;--&gt; sourceinfo table: cui|sui|seqno|str|src|tty
    *
    * Example from Experimental Factor Ontology [non-UMLS]:
    *

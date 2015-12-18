@@ -47,8 +47,10 @@ public class Install {
   }
 
   /**
-   *
+   * Main program
    * @param args - Arguments passed from the command line
+   * @throws IOException io exception
+   * @throws FileNotFoundException file not found exception
    **/
   public static void main(String[] args)
     throws FileNotFoundException, IOException

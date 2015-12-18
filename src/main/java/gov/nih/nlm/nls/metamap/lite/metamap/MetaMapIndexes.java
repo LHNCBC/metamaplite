@@ -19,13 +19,13 @@ import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
  */
 
 public class MetaMapIndexes {
-  /** cui -> concept index (actually bi-directional) */
+  /** cui -&gt; concept index (actually bi-directional) */
   public SearchIndex cuiConceptIndex;
   /** first words of one wide index */
   public SearchIndex firstWordsOfOneWideIndex;
-  /** cui -> source info index */
+  /** cui -&gt; source info index */
   public SearchIndex cuiSourceInfoIndex;
-  /** cui -> semantic type index */
+  /** cui -&gt; semantic type index */
   public SearchIndex cuiSemanticTypeIndex;
   /** variants index */
   public SearchIndex varsIndex;

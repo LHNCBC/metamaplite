@@ -64,7 +64,7 @@ public class SemanticGroups {
 
   /**
    * Create semantic type set from string representation.
-   * @param string containing semantic type abbreviations separated by commas.
+   * @param semanticTypeSetRepresentation string containing semantic type abbreviations separated by commas.
    * @return set of semantic types
    */
   public static Set<String> createSemanticTypeSet(String semanticTypeSetRepresentation) {

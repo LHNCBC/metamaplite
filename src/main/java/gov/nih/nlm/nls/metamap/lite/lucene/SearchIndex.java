@@ -59,7 +59,7 @@ public class SearchIndex {
   DirectoryReader ireader;
   IndexSearcher isearcher;
 
-  /** cache of string -> lucene document hit list */
+  /** cache of string -&gt; lucene document hit list */
   public Map<String,List<Document>> termHitListCache = new HashMap<String,List<Document>>();
 
   /**
@@ -157,7 +157,7 @@ public class SearchIndex {
    * using supplied query parser.
    * 
    * A memoization of lucene cuiSourceinfoindex lookup.
-   * @param String containing query
+   * @param query String containing query
    * @param queryParser  query parser for field
    * @param resultLength expected size of query result.
    * @return list of lucene index documents

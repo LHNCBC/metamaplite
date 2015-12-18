@@ -274,7 +274,8 @@ public class SentenceAnnotator {
     return sentence;
   }
 
-  /** apply analyze text to tokenize sentence and then add tokenlist annotation to sentence. 
+  /** apply analyze text to tokenize sentence and then add tokenlist annotation to sentence.
+   * @param sentence sentence to be tokenized.
    * @deprecated
    */
   @Deprecated
