@@ -49,7 +49,7 @@ public class MMI implements ResultFormatter {
 	.append("]|")
 	.append(triggerInfoToString(entity, ev)).append("|")
 	.append("tx").append("|")
-	.append(entity.getStart()).append(":").append(entity.getLength()).append("|")
+	.append(entity.getStart()).append(":").append(entity.getLength()).append("|").append('\n')
       	;
     }
     return sb.toString();
