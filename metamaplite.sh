@@ -19,8 +19,8 @@ IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
 
 JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS
 
-OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
-# OPENNLP_MODELS=$PROJECTDIR/data/models
+# OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
+OPENNLP_MODELS=$PROJECTDIR/data/models
 CONFIGDIR=$PROJECTDIR/config
 
 JVMOPTS="-Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
@@ -32,8 +32,8 @@ JVMOPTS="-Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
     -Dmetamaplite.entitylookup.resultlength=1500 \
     -Dmetamaplite.ivf.cuiconceptindex=$PROJECTDIR/data/ivf/strict/indices/cuiconcept \
     -Dmetamaplite.ivf.firstwordsofonewideindex=$PROJECTDIR/data/ivf/strict/indices/first_words_of_one_WIDE \
-    -Dmetamaplite.ivf.cuisourceinfoindex$PROJECTDIR/data/ivf/strict/indices/cui_sourceinfo \
-    -Dmetamaplite.ivf.cuisemantictypeindex=$PROJECTDIR/data/ivf/strict/indices/cui_st \
+    -Dmetamaplite.ivf.cuisourceinfoindex=$PROJECTDIR/data/ivf/strict/indices/cuisourceinfo \
+    -Dmetamaplite.ivf.cuisemantictypeindex=$PROJECTDIR/data/ivf/strict/indices/cuist \
     -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars"
 
     # -Dmetamaplite.cuiconceptindex=$PROJECTDIR/data/lucenedb/strict/cuiconcept \

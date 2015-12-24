@@ -29,10 +29,6 @@ JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dlog4j.configurationFile=file://$PROJECTDIR/config/log4j2.xml \
     -Dmetamaplite.property.file=$CONFIGDIR/metamaplite.properties \
     -Dmetamaplite.entitylookup.resultlength=1500 \
-    -Dmetamaplite.cuiconceptindex=$PROJECTDIR/data/lucenedb/strict/cuiconcept \
-    -Dmetamaplite.firstwordsofonewideindex=$PROJECTDIR/data/lucenedb/strict/first_words_of_one_WIDE \
-    -Dmetamaplite.cuisourceinfoindex$PROJECTDIR/data/lucenedb/strict/cui_sourceinfo \
-    -Dmetamaplite.cuisemantictypeindex=$PROJECTDIR/data/lucenedb/strict/cui_st \
     -Dmetamaplite.varsindex=$PROJECTDIR/data/lucenedb/strict/vars"
 
 java -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
