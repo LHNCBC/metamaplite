@@ -48,6 +48,7 @@ import gov.nih.nlm.nls.metamap.lite.SemanticGroups;
 import gov.nih.nlm.nls.metamap.lite.EntityAnnotation;
 import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
+import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
 import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
@@ -380,7 +381,7 @@ public class MetaMapLite {
     }
     System.err.println("processing options:");
     System.err.println("  --restrict_to_sts=<semtype>[,<semtype>...]");
-    System.err.println("  --restrict_to_sourcess=<source>[,<source>...]");
+    System.err.println("  --restrict_to_sources=<source>[,<source>...]");
     System.err.println("  --segment_sentences=<true|false>    set to false to disable sentence segmentation");
     System.err.println("  --segment_blanklines=<true|false>   set to true to enable blank line segmentation");
     System.err.println("                                      (--segment_sentences must be false.)");
@@ -439,7 +440,7 @@ public class MetaMapLite {
     defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
     defaultConfiguration.setProperty("metamaplite.semanticgroup", "all");
     defaultConfiguration.setProperty("metamaplite.sourceset", "all");
-    defaultConfiguration.setProperty("metamaplite.usecontext", "false");
+    defaultConfiguration.setProperty("metamaplite.usecontext", "true");
     defaultConfiguration.setProperty("metamaplite.segment.sentences", "true");
 
     defaultConfiguration.setProperty("opennlp.en-sent.bin.path", 
@@ -527,6 +528,22 @@ public class MetaMapLite {
     pw.flush();
   }
 
+  void listSentencesWithPosTags(List<BioCDocument> documentList)
+    throws IOException
+  {
+    logger.info("outputing results to Standard Output");
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    for (Sentence sent: this.getSentenceList(documentList)) {
+      List<ERToken> tokenList = sentenceAnnotator.addPartOfSpeech(sent);
+      pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
+      for (ERToken token: tokenList) {
+	pw.print(token.getText() + "(" + token.getPartOfSpeech() + "),");
+      }
+      pw.println();
+    }
+    pw.close();
+  }
+
   void listEntities(List<BioCDocument> documentList, String outputFormatOption)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
@@ -576,6 +593,28 @@ public class MetaMapLite {
     pw.close();
   }
 
+  void listSentencesWithPosTags(String filename, 
+				List<BioCDocument> documentList)
+    throws IOException
+  {
+    // output results for file
+    // create output filename
+    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String outputFilename = basename + ".sentences";
+    logger.info("outputing results to " + outputFilename);
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    for (Sentence sent: this.getSentenceList(documentList)) {
+      List<ERToken> tokenList = sentenceAnnotator.addPartOfSpeech(sent);
+      pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
+      for (ERToken token: tokenList) {
+	pw.print(token.getText() + "(" + token.getPartOfSpeech() + "),");
+      }
+      pw.println();
+    }
+    pw.close();
+  }
+  
   void listEntities(String filename, 
 		    List<BioCDocument> documentList,
 		    String outputExtension,
@@ -584,9 +623,13 @@ public class MetaMapLite {
   {
     // process documents
     List<Entity> entityList = this.processDocumentList(documentList);
-    
+    String basename = "output";
     // create output filename
-    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    if (filename.lastIndexOf(".") >= 0) {
+      basename = filename.substring(0,filename.lastIndexOf(".")); //
+    } else {
+      basename = filename;
+    }
     String outputFilename = basename + outputExtension;
     logger.info("outputing results to " + outputFilename);
     
@@ -634,6 +677,7 @@ public class MetaMapLite {
    * </dl>
    * The application currently only outputs to standard output. (See
    * method:
+   * <pre>
    * gov.nih.nlm.nls.metamap.lite.EntityAnnotation.displayEntitySet)
    * </pre>
    * @param args - Arguments passed from the command line
@@ -723,6 +767,8 @@ public class MetaMapLite {
 	    optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
 	  } else if (fields[0].equals("--list_acronyms")) {
 	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
+	  } else if (fields[0].equals("--list_sentences_postags")) {
+	    optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
 	  } else if (args[i].equals("--verbose")) {
 	    verbose = true;
 	  } else if (args[i].equals("--help")) {
@@ -773,6 +819,9 @@ public class MetaMapLite {
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
       boolean listAcronyms =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
+      boolean listSentencesWithPosTags =
+	Boolean.parseBoolean(properties.getProperty
+			     ("metamaplite.list.sentences.with.postags", "false"));
       metaMapLiteInst.setSegmentSentences
 	(Boolean.parseBoolean(properties.getProperty("metamaplite.segment.sentences","true")));
       metaMapLiteInst.setSegmentBlanklines
@@ -821,6 +870,8 @@ public class MetaMapLite {
 	  metaMapLiteInst.listSentences(documentList);
 	} else if (listAcronyms) {
 	  metaMapLiteInst.listAcronyms(documentList);
+	} else if (listSentencesWithPosTags) {
+	  metaMapLiteInst.listSentencesWithPosTags(documentList);
 	} else {
 	  metaMapLiteInst.listEntities(documentList,outputFormatOption);
 	}
@@ -836,6 +887,8 @@ public class MetaMapLite {
 	    metaMapLiteInst.listSentences(filename, documentList);
 	  } else if (listAcronyms) {
 	    metaMapLiteInst.listAcronyms(filename, documentList);
+	  } else if (listSentencesWithPosTags) {
+	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
 					 outputExtension, outputFormatOption);

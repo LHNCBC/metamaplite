@@ -25,8 +25,8 @@ public class ConceptInfo {
   public ConceptInfo(String cui, String prefname, 
 		Set<String> newSourceSet,
 		Set<String> newSemanticTypeSet) {
-    this.cui = cui;
-    this.preferredName = prefname; 
+    this.cui = cui.intern();
+    this.preferredName = prefname.intern(); 
     this.sourceSet = newSourceSet;
     this.semanticTypeSet = newSemanticTypeSet;
   }
@@ -41,7 +41,7 @@ public class ConceptInfo {
   public String getCUI() { return this.cui; }
   public void setCUI(String cui) { this.cui = cui; }
   public String getPreferredName() { return this.preferredName; }
-  public void setPreferredName(String name) { this.preferredName = name; }
+  public void setPreferredName(String name) { this.preferredName = name.intern(); }
   public void addSourceSet(Collection<String> newSourceList) {
     this.sourceSet.addAll(newSourceList);
   }
@@ -61,4 +61,13 @@ public class ConceptInfo {
     sb.append(Arrays.toString(this.sourceSet.toArray()).replaceAll("(^\\[)|(\\]$)",""));
     return sb.toString();
   }
+
+  public boolean equals(Object obj) {
+    return ((ConceptInfo)obj).getCUI().equals(this.cui);
+  }
+
+  public int hashCode() {
+    return this.cui.hashCode();
+  }
+
 }

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import gov.nih.nlm.nls.types.Annotation;
+import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.TokenListAnnotation;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup3;
@@ -174,6 +175,13 @@ public class SentenceAnnotator {
       sentence.addAnnotation(bioCPosTag);
       i++;
     }
+  }
+
+
+  public List<ERToken> addPartOfSpeech(Sentence sentence) {
+    List<ERToken> tokenList = Scanner.analyzeText(sentence);
+    addPartOfSpeech(tokenList);
+    return tokenList;
   }
 
   public static void addAbbreviationsToEntitySet(BioCPassage passage, Set<BioCAnnotation> entitySet) {

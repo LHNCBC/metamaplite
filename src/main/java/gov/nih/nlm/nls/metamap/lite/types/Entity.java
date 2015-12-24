@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Collection;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.List;
 import java.util.ArrayList;
@@ -21,11 +22,22 @@ public class Entity implements Annotation, Comparable<Entity>
   int start;
   int length;
   double score;
-  boolean negationStatus = false;
-  String temporality = "";
-  int locationPosition = 0;
+  boolean negationStatus = false; // negation status from ConText
+  String temporality = "";	// temporality set from ConText
+  int locationPosition = 0;	// 
+  Set<Ev> evSet;
 
-  List<Ev> evList = null;
+  public Entity(String docid,  
+		String matchedText, int start, int length,
+		double scoreValue,
+		Set<Ev> evSet) {
+    this.docid = docid;
+    this.matchedText = matchedText;
+    this.score = scoreValue;
+    this.start = start;
+    this.length = length;
+    this.evSet = evSet;
+  }
 
   public Entity(String docid,  
 		String matchedText, int start, int length,
@@ -36,7 +48,7 @@ public class Entity implements Annotation, Comparable<Entity>
     this.score = scoreValue;
     this.start = start;
     this.length = length;
-    this.evList = evList;
+    this.evSet = new HashSet<Ev>(evList);
   }
 
   public Entity(Entity entity) {
@@ -45,7 +57,7 @@ public class Entity implements Annotation, Comparable<Entity>
     this.score = entity.getScore();
     this.start = entity.getStart();
     this.length = entity.getLength();    
-    this.evList = entity.getEvList();
+    this.evSet = new HashSet<Ev>(entity.getEvList());
   }
 
   public void setMatchedText(String text) {
@@ -86,10 +98,11 @@ public class Entity implements Annotation, Comparable<Entity>
   public void setStart(int start) { this.start = start; }
   public void setLength(int length) { this.length = length; }
 
-  public List<Ev> getEvList() { return this.evList; }
-  public void addEv(Ev ev) { this.evList.add(ev); }
-  public void addAllEv(Collection<Ev> evCollection) { this.evList.addAll(evCollection); }
-  public void setEvList(List<Ev> newEvList) { this.evList = newEvList; }
+  public List<Ev> getEvList() { return new ArrayList<Ev>(this.evSet); }
+  public Set<Ev> getEvSet() { return this.evSet; }
+  public void addEv(Ev ev) { this.evSet.add(ev); }
+  public void addAllEv(Collection<Ev> evCollection) { this.evSet.addAll(evCollection); }
+  public void setEvList(List<Ev> newEvList) { this.evSet.addAll(newEvList); }
 
   public static class EntityScoreComparator implements Comparator<Entity> {
     public int compare(Entity o1, Entity o2) {
@@ -152,7 +165,7 @@ public class Entity implements Annotation, Comparable<Entity>
     sb.append(this.docid).append("|").append(this.id).append("|");
     sb.append(this.matchedText).append("|");
     sb.append("|").append(this.start).append(":").append(this.length).append("|");
-    for (Ev ev: this.evList) {
+    for (Ev ev: this.evSet) {
       sb.append(ev).append("|");
     }
     return sb.toString();

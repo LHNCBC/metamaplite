@@ -25,11 +25,23 @@ public class Ev implements Annotation {
   double score;
   int start;
   int length;
+  String partOfSpeech;
+
+  public Ev(ConceptInfo conceptInfo,  String matchedText,
+	    int start, int length, double scoreValue,
+	    String partOfSpeech) {
+    this.conceptInfo = conceptInfo;
+    this.matchedText = matchedText.intern();
+    this.start = start;
+    this.length = length;
+    this.score = scoreValue;
+    this.partOfSpeech = partOfSpeech;
+  }
 
   public Ev(ConceptInfo conceptInfo,  String matchedText,
 	    int start, int length, double scoreValue) {
     this.conceptInfo = conceptInfo;
-    this.matchedText = matchedText;
+    this.matchedText = matchedText.intern();
     this.start = start;
     this.length = length;
     this.score = scoreValue;
@@ -37,7 +49,7 @@ public class Ev implements Annotation {
 
   public Ev(Ev ev) {
     this.conceptInfo = ev.getConceptInfo();
-    this.matchedText = ev.getMatchedText();
+    this.matchedText = ev.getMatchedText().intern();
     this.start = ev.getStart();
     this.length = ev.getLength();
     this.score = ev.getScore();
@@ -45,8 +57,8 @@ public class Ev implements Annotation {
 
   public void setConceptInfo(ConceptInfo conceptInfo) { this.conceptInfo = conceptInfo; }
   public ConceptInfo getConceptInfo() { return this.conceptInfo; }
-  public void setMatchedText(String text) { this.matchedText = text;  }
-  public void setText(String text) { this.matchedText = text; }
+  public void setMatchedText(String text) { this.matchedText = text.intern();  }
+  public void setText(String text) { this.matchedText = text.intern(); }
   public double getScore() { return this.score; }
   public void setScore(double value) { this.score = value; }
   public int getStart() { return this.start; }
@@ -71,6 +83,8 @@ public class Ev implements Annotation {
 
   public String getMatchedText() { return this.matchedText; }
 
+  public String getPartOfSpeech() { return this.partOfSpeech; }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(this.id).append("|");
@@ -80,4 +94,15 @@ public class Ev implements Annotation {
     sb.append(this.conceptInfo);
     return sb.toString();
   }
+
+  public boolean equals(Object obj) {
+    return (((Ev)obj).start == this.start) &&
+      (((Ev)obj).length == this.length) &&
+      (((Ev)obj).getConceptInfo().equals(this.conceptInfo));
+  }
+
+  public int hashCode() {
+    return this.length + this.start + this.conceptInfo.hashCode();
+  }
+
 }

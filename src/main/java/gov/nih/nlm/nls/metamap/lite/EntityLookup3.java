@@ -106,7 +106,7 @@ public class EntityLookup3 {
   }
 
   /** cache of string -&gt; concept and attributes */
-  public static Map<String,List<ConceptInfo>> termConceptCache = new HashMap<String,List<ConceptInfo>>();
+  public static Map<String,Set<ConceptInfo>> termConceptCache = new HashMap<String,Set<ConceptInfo>>();
 
   public void cacheConcept(String term, ConceptInfo concept) {
     synchronized (termConceptCache) {
@@ -115,13 +115,12 @@ public class EntityLookup3 {
 	  termConceptCache.get(term).add(concept);
 	}
       } else {
-	List<ConceptInfo> newConceptList = new ArrayList<ConceptInfo>();
-	newConceptList.add(concept);
-	termConceptCache.put(term, newConceptList);
+	Set<ConceptInfo> newConceptSet = new HashSet<ConceptInfo>();
+	newConceptSet.add(concept);
+	termConceptCache.put(term, newConceptSet);
       }
     }
   }
-
 
   public static Map<String,String> cuiPreferredNameCache =  new HashMap<String,String>();
   
@@ -194,11 +193,11 @@ public class EntityLookup3 {
   /**
    * Given the string:
    *   "cancer of the lung" -&gt; "cancer, lung" -&gt; "lung cancer"
-   *
+   * <pre>
    * what it does:
    *  1. replace "of the" with comma (",")
    *  2. inversion
-   *
+   * </pre>
    * TBD: should be updated for other relevant prepositions.
    *
    * @param inputtext input text
@@ -240,23 +239,23 @@ public class EntityLookup3 {
     int getLength() { return this.length; }
   }
 
-  public void addEvListToSpanMap(Map<String,Entity> spanMap, List<Ev> evList, 
+  public void addEvSetToSpanMap(Map<String,Entity> spanMap, Set<Ev> evSet, 
 				 String docid, String matchedText, 
 				 int offset, int length) {
     String span = offset + ":" + length;
     if (spanMap.containsKey(span)) {
       Entity entity = spanMap.get(span);
       Set<String> currentCuiSet = new HashSet<String>();
-      for (Ev currentEv: entity.getEvList()) {
+      for (Ev currentEv: entity.getEvSet()) {
 	currentCuiSet.add(currentEv.getConceptInfo().getCUI());
       }
-      for (Ev newEv: evList) {
+      for (Ev newEv: evSet) {
 	if (! currentCuiSet.contains(newEv.getConceptInfo().getCUI())) {
 	  entity.addEv(newEv);
 	}
       }
     } else {
-      Entity entity = new Entity(docid, matchedText, offset, length, 0.0, evList);
+      Entity entity = new Entity(docid, matchedText, offset, length, 0.0, evSet);
       spanMap.put(span, entity);
     }
   }
@@ -369,20 +368,23 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 	  normTerm = NormalizedStringCache.normalizeString(term);
 	  int offset = ((PosToken)tokenSubList.get(0)).getPosition();
 	  if (CharUtils.isAlpha(term.charAt(0))) {
-	    List<Ev> evList = new ArrayList<Ev>();
+	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
 	    if (termConceptCache.containsKey(normTerm)) {
 	      for (ConceptInfo concept: termConceptCache.get(normTerm)) {
-		Ev ev = new Ev(concept,
-			       originalTerm,
-			       ((PosToken)tokenSubList.get(0)).getPosition(),
-			       termLength,
-			       0.0);
-		// logger.debug("add ev: " + ev);
-		String cui = ev.getConceptInfo().getCUI();
+		String cui = concept.getCUI();
 		if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
 		    isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-		  evList.add(ev);
+		  Ev ev = new Ev(concept,
+				 originalTerm,
+				 ((PosToken)tokenSubList.get(0)).getPosition(),
+				 termLength,
+				 0.0,
+				 ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+		  if (! evSet.contains(ev)) {
+		    logger.debug("add ev: " + ev);
+		    evSet.add(ev);
+		  }
 		}
 	      }
 	    } else {
@@ -406,25 +408,31 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 							this.getSourceSet(cui),
 							this.getSemanticTypeSet(cui));
 		  this.cacheConcept(docStr, concept);
-		  Ev ev = new Ev(concept,
-				 originalTerm,
-				 offset,
-				 termLength,
-				 0.0);
-		  // logger.debug("add ev: " + ev);
+		  cui = concept.getCUI();
 		  if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
-		  isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-		    evList.add(ev);
+		      isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
+		    Ev ev = new Ev(concept,
+				   originalTerm,
+				   offset,
+				   termLength,
+				   0.0,
+				   ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+		    if (! evSet.contains(ev)) {
+		      logger.debug("add ev: " + ev);
+		      evSet.add(ev);
+		    }
 		  }
 		} /*if token instance of PosToken*/
 	      } /*if term equals doc string */
 	    } /* for doc in documentList */
 	  } /* if term in concept cache */
-	  this.addEvListToSpanMap(spanMap, evList, 
+	    if (evSet.size() > 0) {
+	      this.addEvSetToSpanMap(spanMap, evSet, 
 				  docid,
 				  originalTerm,
 				  offset, termLength);
-	  longestMatchedTokenLength = Math.max(longestMatchedTokenLength,tokenTextSubList.size());
+	      longestMatchedTokenLength = Math.max(longestMatchedTokenLength,tokenTextSubList.size());
+	    }
 
 	} /* if term alphabetic */
       } /* if term length > 0 */
@@ -635,5 +643,41 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
   }
 
 
+  BioCPassage bioCProcessPassage(String docid, BioCPassage passage, boolean useContext,
+					    Set<String> semTypeRestrictSet,
+				 Set<String> sourceRestrictSet)
+  throws IOException, FileNotFoundException, Exception {
+    List<Entity> entityList = processPassage(docid, passage, useContext,
+					    semTypeRestrictSet,
+					     sourceRestrictSet);
+    BioCPassage newPassage = new BioCPassage(passage);
+    List<BioCAnnotation> annotationList = new ArrayList<>();
+    for (Entity entity: entityList) {
+      for (Ev ev: entity.getEvList()) {
+	// convert ev to set of bioCAnnotations
+	BioCAnnotation annotation = new BioCAnnotation();
+	annotation.setLocation(ev.getStart(), ev.getLength());
+	annotation.setText(ev.getMatchedText());
+	annotation.putInfon("part-of-speech", ev.getPartOfSpeech());
+	annotation.putInfon("score", Double.toString(ev.getScore()));
+	annotation.putInfon("evalution-id", ev.getId());
+	annotation.putInfon("entity-id", entity.getId());
+	annotation.putInfon("negation", Boolean.toString(entity.isNegated()));
+	annotation.putInfon("temporality", entity.getTemporality());
+	annotation.putInfon("location", Integer.toString(entity.getLocationPosition()));
+	annotation.putInfon("cui", ev.getConceptInfo().getCUI());
+	annotation.putInfon("preferredName",  ev.getConceptInfo().getPreferredName());
+	for (String semanticType: ev.getConceptInfo().getSemanticTypeSet()) {
+	  annotation.putInfon("semanticType", semanticType);
+	}
+	for (String source: ev.getConceptInfo().getSourceSet()) {
+	  annotation.putInfon("UMLS Source",  source);
+	}
+	annotationList.add(annotation);
+      }
+    }
+    newPassage.setAnnotations(annotationList);
+    return newPassage;
+  }
 }
 
