@@ -747,7 +747,11 @@ public class MetaMapLite {
 		     fields[0].equals("--restrict_to_src")) {
 	    optionsConfiguration.setProperty("metamaplite.sourceset", fields[1]);
 	  } else if (fields[0].equals("--usecontext")) {
-	    optionsConfiguration.setProperty("metamaplite.usecontext", "true");
+	    if (fields.length > 1) {
+	      optionsConfiguration.setProperty("metamaplite.usecontext", fields[1]);
+	    } else {
+	      optionsConfiguration.setProperty("metamaplite.usecontext", "true");
+	    }
 	  } else if (fields[0].equals("--brat_type_name")) {
 	    optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
 	  } else if (args[i].equals("--filelist")) {
