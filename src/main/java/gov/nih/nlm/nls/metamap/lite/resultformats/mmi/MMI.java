@@ -110,7 +110,7 @@ public class MMI implements ResultFormatter {
     }
     StringBuilder sb = new StringBuilder();
     for (String resultString: stringSet) {
-      sb.append(resultString).append("\n");
+      sb.append(resultString);
     }
     return sb.toString();
   }
@@ -126,7 +126,7 @@ public class MMI implements ResultFormatter {
     }
     StringBuilder sb = new StringBuilder();
     for (String resultString: stringSet) {
-      System.out.println(resultString);
+      System.out.print(resultString);
     }
   }
 
@@ -141,7 +141,7 @@ public class MMI implements ResultFormatter {
     }
     StringBuilder sb = new StringBuilder();
     for (String resultString: stringSet) {
-      pw.println(resultString);
+      pw.print(resultString);
     }
   }
 
