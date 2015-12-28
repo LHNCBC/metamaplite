@@ -651,7 +651,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 					    semTypeRestrictSet,
 					     sourceRestrictSet);
     BioCPassage newPassage = new BioCPassage(passage);
-    List<BioCAnnotation> annotationList = new ArrayList<>();
+    List<BioCAnnotation> annotationList = new ArrayList<BioCAnnotation>();
     for (Entity entity: entityList) {
       for (Ev ev: entity.getEvList()) {
 	// convert ev to set of bioCAnnotations
