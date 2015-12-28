@@ -2,12 +2,18 @@
 
 ## Prerequisites
 
-* Java 1.7
+### For running
+
+* Java 1.7 JRE
+
+### For Development
+
+* Java 1.7 JDK
 * Maven or Ant
 
 ## Using MetaMapLite without installing
 
-    $ java -cp public_mm_lite/target/metamaplite-1.0-SNAPSHOT.jar gov.nih.nlm.nls.ner.MetaMapLite [options]
+    $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar gov.nih.nlm.nls.ner.MetaMapLite [options]
 
 Configuration Options:
 
@@ -22,21 +28,13 @@ configuration file is not present:
 
 Example of use:
 
-     $ java -cp public_mm_lite/target/metamaplite-1.0-SNAPSHOT.jar \
+     $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar \
           gov.nih.nlm.nls.ner.MetaMapLite \
           --indexdir=public_mm_lite/data/ivf/strict \
           --modelsdir=public_mm_lite/data/models \
           --specialtermsfile=public_mm_lite/data/specialterms.txt
 
-## Installation
-
-Installation on Unix (Linux/Mac OS/X):
-
-    $ tar xvfj public_mm_lite_{year}.tar.bz2
-    $ cd public_mm_lite 
-    $ sh install.sh
-
-## Usage
+## Command Line Usage
 
     ./metamaplite.sh [options] [<input file>|--]
 
@@ -75,12 +73,64 @@ Current options are:
 
 ## Properties
 
-    metamaplite.index.directory: data/ivf/strict
-    metamaplite.ivf.cuiconceptindex: data/ivf/strict/indices/cuiconcept
-    metamaplite.ivf.firstwordsofonewideindex: data/ivf/strict/indices/first\_words\_of\_one_WIDE
-    metamaplite.ivf.cuisourceinfoindex: data/ivf/strict/indices/cuisourceinfo
-    metamaplite.ivf.cuisemantictypeindex: data/ivf/strict/indices/cuist
-    metamaplite.ivf.varsindex: data/ivf/strict/indices/vars
+### Processing properties
+
+    | metamaplite.segment.sentences         | use sentence segmenter (default: true)
+    | metamaplite.segment.blanklines        | segment using blankline as separator. (default: false)
+    | metamaplite.sourceset                 | use only concepts from listed sources (default: all)
+    | metamaplite.semanticgroup             | use only concepts belonging to listed semantic types (default: all)
+    | metamaplite.usecontext                | Use ConText for negation detection (default: true)
+
+### Configuration properties
+
+    | metamaplite.excluded.termsfile        | cui/terms pairs that are exclude from results (default: data/specialterms.txt)
+    | metamaplite.index.directory           | the directory the indexes resides (sets the following properties)
+    | metamaplite.ivf.cuiconceptindex       | cui/concept/preferredname index
+    | metamaplite.ivf.cuisourceinfoindex    | cui/sourceinfo index 
+    | metamaplite.ivf.cuisemantictypeindex  | cui/semantictype index
+
+    | opennlp.models.directory              | the directory the models resides (sets the following properties. default: data/models)
+    | opennlp.en-pos.bin.path               | (default: data/models/en-pos-maxent.bin)
+    | opennlp.en-token.bin.path             | (default: data/models/en-token.bin)
+    | opennlp.en-sent.bin.path              | (default: data/models/en-sent.bin)
+
+### Command line metamaplite only properties
+
+    | metamaplite.document.inputtype        | document input type (default: freetext)
+    | metamaplite.outputextension           | result output file extension (default: .mmi)
+    | metamaplite.property.file             | load configuration from file (default: ./config/metamaplite.properties)
+    | metamaplite.outputformat              | result output format (default: mmi)
+
+
+
+## Using MetaMap from Java
+
+
+Creating a metamap lite instance:
+
+    MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
+
+Creating a document list with one or more documents:
+
+    BioCDocument document = FreeText.instantiateBioCDocument("diabetes");
+	document.setId("1");
+    List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+    documentList.add(document);
+
+Getting a list of entities for the document list:
+
+    List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
+
+Traversing the entity list displaying cui and matching text:
+
+    List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
+    for (Entity entity: entityList) {
+      for (Ev ev: entity.getEvSet()) {
+     	System.out.print(ev.getConceptInfo().getCUI() + "|" + entity.getMatchedText());
+	    System.out.println();
+      }
+    }
+
 
 # irutils indexes
 
@@ -102,7 +152,7 @@ corresponding indexes for tables.
 
 Usage: 
 
-     java -cp target/metamaplite-1.0-SNAPSHOT.jar \
+     java -cp target/metamaplite-2.0-SNAPSHOT.jar \
       gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
 
 The resulting indices are in <ivfdir>/indices.  The tables the indexes
@@ -112,7 +162,7 @@ To use the new indexes do one of the following:
 
 Use the --indexdir=<directory> option:
 
-    java -cp target/metamaplite-1.0-SNAPSHOT.jar \
+    java -cp target/metamaplite-2.0-SNAPSHOT.jar \
      gov.nih.nlm.nls.metamap.ner.MetaMapLite --indexdir=<ivfdir> <other-options> <otherargs>
 
 Modify the configuration file config/metamap.properties:
@@ -160,3 +210,7 @@ For example creating a formatter with the name "brat":
 Or add it to config/metamaplite.properties:
 
     metamaplite.result.formatter.brat: gov.nih.nlm.nls.metamap.lite.resultformats.Brat
+
+## Future
+
+Added mechanism to use custom user-supplied segmenters.
