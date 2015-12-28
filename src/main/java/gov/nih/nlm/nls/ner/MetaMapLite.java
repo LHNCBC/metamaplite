@@ -400,16 +400,18 @@ public class MetaMapLite {
     System.err.println("  --filelist=<file0,file1,...>");
   }
 
-  public static void expandModelsDir(Properties properties) {
-    String modelsDir = properties.getProperty("opennlp.models.directory");
+  public static void expandModelsDir(Properties properties, String modelsDir) {
     if (modelsDir != null) {
       properties.setProperty("opennlp.en-sent.bin.path", modelsDir + "/en-sent.bin");
       properties.setProperty("opennlp.en-token.bin.path", modelsDir + "/en-token.bin");
       properties.setProperty("opennlp.en-pos.bin.path", modelsDir + "/en-pos-maxent.bin");
     }
   }
-  public static void expandIndexDir(Properties properties) {
-    String indexDirName = properties.getProperty("metamaplite.index.directory");
+  public static void expandModelsDir(Properties properties) {
+    String modelsDir = properties.getProperty("opennlp.models.directory");
+    expandModelsDir(properties, modelsDir);
+  }
+  public static void expandIndexDir(Properties properties, String indexDirName) {
     if (indexDirName != null) {
       properties.setProperty("metamaplite.ivf.cuiconceptindex", indexDirName + "/indices/cuiconcept");
       properties.setProperty("metamaplite.ivf.firstwordsofonewideindex", indexDirName + "/indices/first_words_of_one_WIDE");
@@ -417,6 +419,10 @@ public class MetaMapLite {
       properties.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirName + "/indices/cuist");
       properties.setProperty("metamaplite.ivf.varsindex", indexDirName + "/indices/vars");
     }
+  }
+  public static void expandIndexDir(Properties properties) {
+    String indexDirName = properties.getProperty("metamaplite.index.directory");
+    expandIndexDir(properties, indexDirName);
   }
   
   public static void displayProperties(String label, Properties properties) {
