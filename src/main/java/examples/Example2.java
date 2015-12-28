@@ -30,7 +30,7 @@ public class Example2 {
 	   NoSuchMethodException, IllegalAccessException,
 	   InvocationTargetException
   {
-    Properties myProperties = new Properties();
+    Properties myProperties = MetaMapLite.getDefaultConfiguration();
     myProperties.setProperty("opennlp.models.directory", 
 			     "/export/home/wjrogers/Projects/metamaplite/data/models");
     MetaMapLite.expandModelsDir(myProperties);

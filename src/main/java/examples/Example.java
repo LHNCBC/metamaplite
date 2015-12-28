@@ -30,7 +30,7 @@ public class Example {
 	   NoSuchMethodException, IllegalAccessException,
 	   InvocationTargetException
   {
-    Properties myProperties = new Properties();
+    Properties myProperties = MetaMapLite.getDefaultConfiguration();
     MetaMapLite.expandModelsDir(myProperties,
 				"/export/home/wjrogers/Projects/metamaplite/data/models");
     MetaMapLite.expandIndexDir(myProperties,
