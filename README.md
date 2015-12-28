@@ -11,11 +11,25 @@
 * Java 1.7 JDK
 * Maven or Ant
 
-## Using MetaMapLite without installing
+## Command Line Usage
 
-    $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar gov.nih.nlm.nls.ner.MetaMapLite [options]
+    ./metamaplite.sh [options] [<input file>|--]
 
-Configuration Options:
+Example of use:
+
+     $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar \
+          gov.nih.nlm.nls.ner.MetaMapLite \
+          --indexdir=public_mm_lite/data/ivf/strict \
+          --modelsdir=public_mm_lite/data/models \
+          --specialtermsfile=public_mm_lite/data/specialterms.txt  <arguments>
+
+Current options are:
+
+  input options:
+
+      --              Read from standard input
+
+  Configuration Options:
 
     --configfile=<filename>        Use configuration file
 
@@ -25,24 +39,6 @@ configuration file is not present:
     --indexdir=<directory>         location of program's index directory
     --modelsdir=<directory>        location of models for sentence breaker and part-of-speech tagger
 	--specialtermsfile=<filename>  location of file of terms to be excluded
-
-Example of use:
-
-     $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar \
-          gov.nih.nlm.nls.ner.MetaMapLite \
-          --indexdir=public_mm_lite/data/ivf/strict \
-          --modelsdir=public_mm_lite/data/models \
-          --specialtermsfile=public_mm_lite/data/specialterms.txt
-
-## Command Line Usage
-
-    ./metamaplite.sh [options] [<input file>|--]
-
-Current options are:
-
-  input options:
-
-      --              Read from standard input
 
   document processing options:
 
@@ -105,6 +101,15 @@ Current options are:
 
 ## Using MetaMap from Java
 
+Creating properties for configuring MetaMapLite Instance:
+    
+    Properties myProperties = new Properties();
+    MetaMapLite.expandModelsDir(myProperties,
+                   "/home/piro/public_mm_lite/data/models");
+    MetaMapLite.expandIndexDir(myProperties,
+			       "/home/piro/Projects/public_mm_lite/data/ivf/strict");
+    myProperties.setProperty("metamaplite.excluded.termsfile",
+			       "/home/piro/Projects/public_mm_lite/data/specialterms.txt");
 
 Creating a metamap lite instance:
 
