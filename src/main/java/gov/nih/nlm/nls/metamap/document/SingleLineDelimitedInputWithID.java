@@ -14,11 +14,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  *
  */
 
 public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
+  private static final Logger logger = LogManager.getLogger(SingleLineDelimitedInputWithID.class);
 
   /**
    * Instantiate BioCDocument document instance reading single-line
@@ -38,14 +42,17 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
   public static BioCDocument instantiateBioCDocument(String docText) 
   {
     String[] docFields = docText.split("\\|");
-
     BioCDocument doc = new BioCDocument();
-    doc.setID(docFields[0]);
-    BioCPassage textPassage = new BioCPassage();
-    textPassage.setText(docFields[0]);
-    textPassage.setOffset(0);
-    textPassage.putInfon("text","text");
-    doc.addPassage(textPassage);
+    if (docFields.length > 1) {
+      doc.setID(docFields[0]);
+      BioCPassage textPassage = new BioCPassage();
+      textPassage.setText(docFields[1]);
+      textPassage.setOffset(0);
+      textPassage.putInfon("text","text");
+      doc.addPassage(textPassage);
+    } else {
+      logger.warn("Too few fields in line: " + docText + ", returning an empty document.");
+    }
     return doc;
   }
 
@@ -61,7 +68,7 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
       br = new BufferedReader(inputReader);
     }
     while ((line = br.readLine()) != null) {
-      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
+      documentList.add(instantiateBioCDocument(line));
     }
     return documentList;
   }
@@ -78,7 +85,7 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {
-      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
+      documentList.add(instantiateBioCDocument(line));
     }
     br.close();
     return documentList;

@@ -14,7 +14,12 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 import gov.nih.nlm.nls.types.Document;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ChemDNERSLDI implements BioCDocumentLoader {
+  private static final Logger logger = LogManager.getLogger(SingleLineDelimitedInputWithID.class);
+
   /**
    * Instantiate PubMedDocumentImpl document instance reading single-line
    * delimited version of CHEMDNER document.
@@ -57,22 +62,27 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
    */
   public static BioCDocument instantiateBioCSLDIDocument(String docText) 
   {
+    
     String[] docFields = docText.split("\\|");
     String docBody = docFields[1];
     String[] bodyFields = docBody.split("\t");
 
     BioCDocument doc = new BioCDocument();
-    doc.setID(docFields[0]);
-    BioCPassage title = new BioCPassage();
-    title.setText(bodyFields[0]);
-    title.setOffset(0);
-    title.putInfon("title","title");
-    doc.addPassage(title);
-    BioCPassage abstractPassage = new BioCPassage();
-    abstractPassage.setText(bodyFields[1]);
-    abstractPassage.putInfon("abstract","abstract");
-    abstractPassage.setOffset(0);
-    doc.addPassage(abstractPassage);
+    if (docFields.length > 1) {
+      doc.setID(docFields[0]);
+      BioCPassage title = new BioCPassage();
+      title.setText(bodyFields[0]);
+      title.setOffset(0);
+      title.putInfon("title","title");
+      doc.addPassage(title);
+      BioCPassage abstractPassage = new BioCPassage();
+      abstractPassage.setText(bodyFields[1]);
+      abstractPassage.putInfon("abstract","abstract");
+      abstractPassage.setOffset(0);
+      doc.addPassage(abstractPassage);
+    } else {
+      logger.warn("Too few fields in line: " + docText + ", returning an empty document.");
+    }
     return doc;
   }
 
@@ -88,7 +98,7 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     List<PubMedDocument> documentList = new ArrayList<PubMedDocument>();
     String line;
     while ((line = br.readLine()) != null) {
-      documentList.add(ChemDNERSLDI.instantiateSLDIDocument(line));
+      documentList.add(instantiateSLDIDocument(line));
     }
     br.close();
     return documentList;
@@ -111,7 +121,7 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {
-      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
+      documentList.add(instantiateBioCSLDIDocument(line));
     }
     return documentList;
   }
@@ -128,7 +138,7 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {
-      documentList.add(ChemDNERSLDI.instantiateBioCSLDIDocument(line));
+      documentList.add(instantiateBioCSLDIDocument(line));
     }
     br.close();
     return documentList;
