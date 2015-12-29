@@ -129,24 +129,24 @@ public class MetaMapLite {
     BioCDocumentLoaderRegistry.register("freetext",
 					"For freetext document that are grammatically well behaved.", 
 					new FreeText());
-    // BioCDocumentLoaderRegistry.register("chemdner",
-    // 					"ChemDNER format document sets",
-    // 					new ChemDNER());
-    // BioCDocumentLoaderRegistry.register("chemdnersldi",
-    // 					"ChemDNER single line delimited with id format document sets",
-    // 					new ChemDNERSLDI());
-    // BioCDocumentLoaderRegistry.register("ncbicorpus",
-    // 					"NCBI Disease Corpus format document sets",
-    // 					new NCBICorpusDocument());
+    BioCDocumentLoaderRegistry.register("chemdner",
+     					"ChemDNER format document sets",
+     					new ChemDNER());
+    BioCDocumentLoaderRegistry.register("chemdnersldi",
+     					"ChemDNER single line delimited with id format document sets",
+     					new ChemDNERSLDI());
+    BioCDocumentLoaderRegistry.register("ncbicorpus",
+     					"NCBI Disease Corpus format document sets",
+     					new NCBICorpusDocument());
     // BioCDocumentLoaderRegistry.register("semeval14",
     // 					"SemEval Document (Almost FreeText)",
     // 					new SemEvalDocument());
-    // BioCDocumentLoaderRegistry.register("sli",
-    // 					"Single Line Input document sets",
-    // 					new SingleLineInput());
-    // BioCDocumentLoaderRegistry.register("sldi",
-    // 					"Single Line Input document sets",
-    // 					new SingleLineDelimitedInputWithID());
+    BioCDocumentLoaderRegistry.register("sli",
+    					"Single Line Input document sets",
+     					new SingleLineInput());
+    BioCDocumentLoaderRegistry.register("sldi",
+    					"Single Line Input document sets",
+    					new SingleLineDelimitedInputWithID());
     ResultFormatterRegistry.register("brat",
 				     "BRAT Annotation format (.ann)",
 				     new Brat());
