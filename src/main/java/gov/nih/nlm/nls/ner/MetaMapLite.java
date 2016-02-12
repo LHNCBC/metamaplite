@@ -82,6 +82,29 @@ import opennlp.tools.util.Span;
 import gov.nih.nlm.nls.utils.Configuration;
 
 /**
+ * Using MetaMapLite from a Java program:
+ * <pre>
+ * Properties myProperties = MetaMapLite.getDefaultConfiguration();
+ * myProperties.setProperty("opennlp.models.directory", 
+ *                          "/Projects/metamaplite/data/models");
+ * MetaMapLite.expandModelsDir(myProperties);
+ * myProperties.setProperty("metamaplite.index.directory",
+ * 		     "/Projects/metamaplite/data/ivf/strict");
+ * myProperties.setProperty("metamaplite.excluded.termsfile",
+ *			     "/Projects/metamaplite/data/specialterms.txt");
+ * MetaMapLite.expandIndexDir(myProperties);
+ * MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
+ * BioCDocument document = FreeText.instantiateBioCDocument("FDA has strengthened the warning ...");
+ * List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+ * documentList.add(document);
+ * List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
+ * for (Entity entity: entityList) {
+ *   for (Ev ev: entity.getEvSet()) {
+ *	System.out.print(ev.getConceptInfo().getCUI() + "|" + entity.getMatchedText());
+ *	System.out.println();
+ *   }
+ * }
+ * </pre>
  * Properties precedence (from highest to lowest):
  * <ul>
  *   <li>Command line options</li>
