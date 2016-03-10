@@ -1,9 +1,82 @@
-# MetaMap Lite 
+# MetaMap Lite
+
+## Description
+
+
+
+###  NER stages
+
+
+MetaMapLite segments text using sentence or blank line markers using
+OpenNLP's sentence segmenter or MetaMapLite's blank line seqmenter.
+Tokenizes sentences using tokenizer based of Original MetaMap's
+tokenization regime.  Part-of-speech information is added to tokenized
+text using OpenNLP's part-of-speech tagger.  Mapping is done using
+dictionary lookup discarding any match subsumed by longest match found
+in the dictionary.
+
+Below is an example of sentence level named entity recognition in
+which a token list for the sentence "Papillary Thyroid Carcinoma is a
+Unique Clinical Entity." is progressed:
+
+     Given Example:
+        "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
+      
+      Check the following:
+        "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
+        "Papillary Thyroid Carcinoma is a Unique Clinical"
+        "Papillary Thyroid Carcinoma is a Unique"
+        "Papillary Thyroid Carcinoma is a"
+        "Papillary Thyroid Carcinoma is"
+        "Papillary Thyroid Carcinoma"   --> match
+                                    "is a Unique Clinical Entity"
+                                    "is a Unique Clinical"
+                                    "is a Unique"
+									"is a"
+									"is"
+	                                   "a Unique Clinical Entity"
+									   "a Unique Clinical"
+									   "a Unique"
+                                       "a"
+								         "Unique Clinical Entity"
+									     "Unique Clinical"
+									     "Unique" --> match
+									            "Clinical Entity"
+									            "Clinical" --> match
+                                                "Entity" --> match
+
+Four entities are found by MetaMapLite:
+
+       "Papillary Thyroid Carcinoma"
+       "Unique"
+	   "Clinical"
+	   "Entity"
+
+									
+
+
+
+applying Context negation and temporality detection.
+
+### Dictionary Lookup
+
+The underlying dictionary lookup uses a inverted file implemenations
+where the dictionary is divided in to several partitions where each
+partition contains only terms which have the same termlength.
+
+
+The implementation uses the Java NIO class java.nio.MappedByteBuffer
+to access the systems virtual memory facilities to improve I/O
+performance.
+
+
+
+
 
 ## Feature Requests
 
-1. add support for exclusion of some cui/term combination (see MetaMap's special terms file)
-2. support entity lookup using two separate dataset (UMLS and custom, etc.)
+1. add support for exclusion of some cui/term combination (see MetaMap's special terms file) [done?]
+2. support entity lookup using two separate dataset (UMLS and custom, etc.) 
 
 ## Known bugs
 
