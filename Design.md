@@ -1,19 +1,31 @@
 # MetaMap Lite
 
-## Description
 
+## System Description
 
+### Processing stages
 
-###  NER stages
+MetaMapLite processing stages
+
+    input text ->
+      sentence/line segmentation ->
+        tokenization ->
+          part-of-speech tagging ->
+            token window generation ->
+              term normalization ->
+                concept dictionary lookup ->
+                  negation detection ->
+				  result presentation
 
 
 MetaMapLite segments text using sentence or blank line markers using
 OpenNLP's sentence segmenter or MetaMapLite's blank line seqmenter.
 Tokenizes sentences using tokenizer based of Original MetaMap's
-tokenization regime.  Part-of-speech information is added to tokenized
-text using OpenNLP's part-of-speech tagger.  Mapping is done using
-dictionary lookup discarding any match subsumed by longest match found
-in the dictionary.
+tokenization regime.
+Part-of-speech information is added to tokenized
+text using OpenNLP's part-of-speech tagger.  
+Mapping is done using dictionary lookup discarding any match subsumed
+by longest match found in the dictionary.
 
 Below is an example of sentence level named entity recognition in
 which a token list for the sentence "Papillary Thyroid Carcinoma is a
@@ -22,7 +34,7 @@ Unique Clinical Entity." is progressed:
      Given Example:
         "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
       
-      Check the following:
+     The tokenlist windows is produces as follows: (re-word)
         "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
         "Papillary Thyroid Carcinoma is a Unique Clinical"
         "Papillary Thyroid Carcinoma is a Unique"
@@ -32,8 +44,8 @@ Unique Clinical Entity." is progressed:
                                     "is a Unique Clinical Entity"
                                     "is a Unique Clinical"
                                     "is a Unique"
-									"is a"
-									"is"
+	                                "is a"
+		                            "is"
 	                                   "a Unique Clinical Entity"
 									   "a Unique Clinical"
 									   "a Unique"
@@ -52,11 +64,9 @@ Four entities are found by MetaMapLite:
 	   "Clinical"
 	   "Entity"
 
-									
+### Term Normalization
 
-
-
-applying Context negation and temporality detection.
+MetaMapLite normalizes the terms in the current token window using 
 
 ### Dictionary Lookup
 
@@ -64,14 +74,144 @@ The underlying dictionary lookup uses a inverted file implemenations
 where the dictionary is divided in to several partitions where each
 partition contains only terms which have the same termlength.
 
-
 The implementation uses the Java NIO class java.nio.MappedByteBuffer
 to access the systems virtual memory facilities to improve I/O
 performance.
 
+### Negation Detection
+
+Wendy Chapman's ConTexT is used for negation detection 
 
 
+## Dictionary and Postings File Organization
 
+The dictionary is constructed as several partitions, each partition
+consists of three files for each set of terms of a specific length
+from a specific column of the originating table: a dictionary
+characteristics file, a term-dictionary file, and a postings extents
+file.  These files refer to a global postings file used by all of the
+partitions.  Each term-dictionary contains records of term with the
+same length with the number of postings for the term and the address
+
+Within the postings extents file
+(*indexname*-*column*-*termlength*-partition-offsets) each record
+contains address of posting with the length of the posting.
+
+Each partition has four files, the file
+*cuisourceinfo-3-30-term-dictionary-stats.txt* contains term and record
+lengths along with the number of records in the partition:
+
+    termlength|30
+    reclength|46
+    datalength|16
+    recordnum|76361
+
+The file *cuisourceinfo-3-30-term-dictionary* is a binary file of records,
+all the same length with each record containing a term, the number of
+postings for that term and address of the posting extents for that
+term:
+
+    |            term              | # of postings | address |
+    +------------------------------+---------------+---------+
+    |Dipalmitoylphosphatidylcholine|       4       | FFF4556 | 
+
+
+The file *cuisourceinfo-3-30-partition-offsets* is a binary file that
+contains the start and end offsets (the extent) of each posting:
+
+    | address | start |  len  |
+    +---------+-------+-------+
+    | FFF4556 |   58  |   57  |
+    |   ...   |  176  |   66  |
+    |   ...   |  279  |   59  |
+    |   ...   |    0  |   58  |
+
+The postings for all of the partitions reside in the file *postings*.
+
+    address | data 
+    --------+-------------------------------------------------------------------
+          0 | C0000039|S0033298|4|Dipalmitoylphosphatidylcholine|SNMI|PT
+         58 | C0000039|S0033298|7|Dipalmitoylphosphatidylcholine|LNC|CN
+        176 | C0000039|S0033298|6|Dipalmitoylphosphatidylcholine|SNOMEDCT_US|OAP
+        279 | C0000039|S0033298|5|Dipalmitoylphosphatidylcholine|NDFRT|SY
+
+
+The postings file is shared among all of the partitions.
+
+
+### Dictionaries
+
+MetaMapLite currently uses three dictionaries originally created for MetaMap:
+
+    cuiconcept
+    cuisourceinfo
+    cuist
+
+#### cuisourceinfo
+
+This is the table used for mapping strings in the input text to concepts.
+
+Each record contains the UMLS concept identifier, UMLS string
+identifier, a sequence number, the source derived string, the source
+abbreviation, and the source term type:
+
+    cui|sui|seqno|string|src|tty
+
+Sample records are below:
+
+    C0000005|S0007492|1|(131)I-Macroaggregated Albumin|MSH|PEN
+    C0000005|S0007491|2|(131)I-MAA|MSH|EN
+    C0000039|S0007564|1|1,2-Dipalmitoylphosphatidylcholine|MSH|MH
+    C0000039|S0007564|2|1,2-Dipalmitoylphosphatidylcholine|NDFRT|PT
+    C0000039|S0007564|3|1,2-Dipalmitoylphosphatidylcholine|MTH|PN
+    C0000039|S1357296|4|1,2 Dipalmitoylphosphatidylcholine|MSH|PM
+    C0000039|S0007560|5|1,2-Dihexadecyl-sn-Glycerophosphocholine|NDFRT|SY
+    C0000039|S0007560|6|1,2-Dihexadecyl-sn-Glycerophosphocholine|MSH|EN
+    C0000039|S1357276|7|1,2 Dihexadecyl sn Glycerophosphocholine|MSH|PM
+    C0000039|S0007563|8|1,2-Dipalmitoyl-Glycerophosphocholine|NDFRT|SY
+
+
+#### cuiconcept
+
+This table maps concept identifiers to concept preferred names.
+
+format:
+
+    cui|preferred name
+
+Some example records are below:
+
+    C0000005|(131)I-Macroaggregated Albumin
+    C0000039|1,2-Dipalmitoylphosphatidylcholine
+    C0000052|1,4-alpha-Glucan Branching Enzyme
+    C0000074|1-Alkyl-2-Acylphosphatidates
+    C0000084|1-Carboxyglutamic Acid
+    C0000096|1-Methyl-3-isobutylxanthine
+    C0000097|1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine
+    C0000098|1-Methyl-4-phenylpyridinium
+    C0000102|1-Naphthylamine
+    C0000103|1-Naphthylisothiocyanate
+
+#### cuist
+
+This table maps concept identifiers to semantic types.
+
+Each record contains the UMLS concept identifier and a semantic type abbreviation:
+
+    cui|semantic type abbreviation
+
+Usually, there are several records for each UMLS concept:
+
+    C0000005|aapp
+    C0000005|irda
+    C0000005|phsu
+    C0000039|orch
+    C0000039|phsu
+    C0000052|aapp
+    C0000052|enzy
+    C0000074|orch
+    C0000084|aapp
+    C0000084|bacs
 
 ## Feature Requests
 
