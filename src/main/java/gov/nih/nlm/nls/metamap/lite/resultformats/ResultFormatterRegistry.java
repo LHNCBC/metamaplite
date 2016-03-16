@@ -90,7 +90,7 @@ public class ResultFormatterRegistry {
      throws ClassNotFoundException, InstantiationException, NoSuchMethodException,IllegalAccessException
   {
     for (String propname: properties.stringPropertyNames()) {
-      if (propname.indexOf("metamaplite.result.formatter.") > 0) {
+      if (propname.indexOf("metamaplite.result.formatter.") >= 0) {
 	String name = propname.substring("metamaplite.result.formatter.".length());
 	register(name,"",properties.getProperty(propname));
       }
