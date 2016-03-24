@@ -3,8 +3,11 @@ package gov.nih.nlm.nls.metamap.lite.context;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
+import gov.nih.nlm.nls.metamap.lite.NegationDetector;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
+import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.types.Sentence;
 
 import context.implementation.ConText;
@@ -19,7 +22,7 @@ import bioc.BioCAnnotation;
  * return the result.
  */
 
-public class ContextWrapper {
+public class ContextWrapper implements NegationDetector {
   static ConText contextInstance = new ConText();
 
   /** Given annotated sentence list with entities, determine hedging
@@ -101,5 +104,15 @@ public class ContextWrapper {
     return sentence;
   }
 
+  public void detectNegations(Set<Entity> entitySet, BioCSentence sentence, List<ERToken> tokenList) {
+    try {
+    ContextWrapper.applyContextUsingEntities(entitySet, sentence.getText());
+    // for (List<String> result: ContextWrapper.applyContextUsingEntities(entitySet, sentence.getText())) {
+      // logger.debug("result: " + result);
+    // }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
  
