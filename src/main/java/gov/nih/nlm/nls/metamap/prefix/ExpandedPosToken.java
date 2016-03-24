@@ -13,5 +13,5 @@ import java.io.Serializable;
  */
 public interface ExpandedPosToken extends Token, PosToken, Serializable {
   String getOriginalText();
-  int getOriginalPosition();
+  int getOriginalOffset();
 }

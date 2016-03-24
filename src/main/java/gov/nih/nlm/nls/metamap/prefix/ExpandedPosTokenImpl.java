@@ -14,25 +14,25 @@ import java.io.Serializable;
 public class ExpandedPosTokenImpl extends PosTokenImpl implements Token, PosToken, ExpandedPosToken, Serializable {
   /** token text before expansion */
   String originalText;
-  /** position before expansion */
-  int originalPosition;
+  /** offset before expansion */
+  int originalOffset;
   /**
    * Creates a new <code>ExpandedPosToken</code> instance.
    *
    */
-  public ExpandedPosTokenImpl(String tokenText, int position, 
-			  String originalText, int originalPosition) {
-    super(tokenText, position);
+  public ExpandedPosTokenImpl(String tokenText, int offset, 
+			  String originalText, int originalOffset) {
+    super(tokenText, offset);
     this.originalText = originalText;
-    this.originalPosition = originalPosition;
+    this.originalOffset = originalOffset;
   }
   public String getOriginalText() { return this.originalText; }
-  public int getOriginalPosition() { return this.originalPosition; }
+  public int getOriginalOffset() { return this.originalOffset; }
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("\"").append(super.toString()).append("\"|").append(this.position);;
-    sb.append("|\"").append(this.originalText).append("\"|").append(this.originalPosition);
+    sb.append("\"").append(super.toString()).append("\"|").append(this.offset);;
+    sb.append("|\"").append(this.originalText).append("\"|").append(this.originalOffset);
     return sb.toString();
   }
 }
