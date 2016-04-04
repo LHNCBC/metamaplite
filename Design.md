@@ -1,9 +1,18 @@
 # MetaMap Lite
 
-
 ## System Description
 
 ### Processing stages
+
+MetaMapLite segments text using sentence or blank line markers using
+OpenNLP's sentence segmenter or MetaMapLite's blank line seqmenter.
+Tokenizes sentences using tokenizer based of Original MetaMap's
+tokenization regime.  Part-of-speech information is added to tokenized
+text using OpenNLP's part-of-speech tagger.  Mapping is done by
+dividing sentence or line based chunks into sublists and then each
+sublist is normalized and then looked up in a dictionary.  Any match
+found in the dictionary that is subsumed by a longer match is
+discarded.
 
 MetaMapLite processing stages
 
@@ -17,24 +26,16 @@ MetaMapLite processing stages
                   negation detection ->
 				  result presentation
 
-
-MetaMapLite segments text using sentence or blank line markers using
-OpenNLP's sentence segmenter or MetaMapLite's blank line seqmenter.
-Tokenizes sentences using tokenizer based of Original MetaMap's
-tokenization regime.
-Part-of-speech information is added to tokenized
-text using OpenNLP's part-of-speech tagger.  
-Mapping is done using dictionary lookup discarding any match subsumed
-by longest match found in the dictionary.
-
 Below is an example of sentence level named entity recognition in
 which a token list for the sentence "Papillary Thyroid Carcinoma is a
-Unique Clinical Entity." is progressed:
+Unique Clinical Entity." is processed.
 
-     Given Example:
+Given the example:
+
         "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
       
-     The tokenlist windows is produces as follows: (re-word)
+The token-based sublists are produced as follows:
+
         "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
         "Papillary Thyroid Carcinoma is a Unique Clinical"
         "Papillary Thyroid Carcinoma is a Unique"
@@ -66,78 +67,33 @@ Four entities are found by MetaMapLite:
 
 ### Term Normalization
 
-MetaMapLite normalizes the terms in the current token window using 
+MetaMapLite normalizes the terms in the current token window using a
+Java implementation of of MetaMap's Prolog predicate
+`mwi_utilities:normalize_meta_string/2` (used by `filter_mrconso`)
+with some slight modifications (including the removal of some
+operations.)
+
+The following operations are performed of the term before dictionary
+lookup:
+
+   * removal of (left []) parentheticals;
+   * syntactic uninversion;
+   * conversion to lowercase;
+   * stripping of possessives.
 
 ### Dictionary Lookup
 
 The underlying dictionary lookup uses a inverted file implemenations
 where the dictionary is divided in to several partitions where each
-partition contains only terms which have the same termlength.
-
-The implementation uses the Java NIO class java.nio.MappedByteBuffer
-to access the systems virtual memory facilities to improve I/O
+partition contains only terms which have the same termlength.  The
+implementation uses the Java NIO class java.nio.MappedByteBuffer to
+access the systems virtual memory facilities to improve I/O
 performance.
 
 ### Negation Detection
 
-Wendy Chapman's ConTexT is used for negation detection 
-
-
-## Dictionary and Postings File Organization
-
-The dictionary is constructed as several partitions, each partition
-consists of three files for each set of terms of a specific length
-from a specific column of the originating table: a dictionary
-characteristics file, a term-dictionary file, and a postings extents
-file.  These files refer to a global postings file used by all of the
-partitions.  Each term-dictionary contains records of term with the
-same length with the number of postings for the term and the address
-
-Within the postings extents file
-(*indexname*-*column*-*termlength*-partition-offsets) each record
-contains address of posting with the length of the posting.
-
-Each partition has four files, the file
-*cuisourceinfo-3-30-term-dictionary-stats.txt* contains term and record
-lengths along with the number of records in the partition:
-
-    termlength|30
-    reclength|46
-    datalength|16
-    recordnum|76361
-
-The file *cuisourceinfo-3-30-term-dictionary* is a binary file of records,
-all the same length with each record containing a term, the number of
-postings for that term and address of the posting extents for that
-term:
-
-    |            term              | # of postings | address |
-    +------------------------------+---------------+---------+
-    |Dipalmitoylphosphatidylcholine|       4       | FFF4556 | 
-
-
-The file *cuisourceinfo-3-30-partition-offsets* is a binary file that
-contains the start and end offsets (the extent) of each posting:
-
-    | address | start |  len  |
-    +---------+-------+-------+
-    | FFF4556 |   58  |   57  |
-    |   ...   |  176  |   66  |
-    |   ...   |  279  |   59  |
-    |   ...   |    0  |   58  |
-
-The postings for all of the partitions reside in the file *postings*.
-
-    address | data 
-    --------+-------------------------------------------------------------------
-          0 | C0000039|S0033298|4|Dipalmitoylphosphatidylcholine|SNMI|PT
-         58 | C0000039|S0033298|7|Dipalmitoylphosphatidylcholine|LNC|CN
-        176 | C0000039|S0033298|6|Dipalmitoylphosphatidylcholine|SNOMEDCT_US|OAP
-        279 | C0000039|S0033298|5|Dipalmitoylphosphatidylcholine|NDFRT|SY
-
-
-The postings file is shared among all of the partitions.
-
+Wendy Chapman's ConText is used for negation detection using the
+current sentence and the list of found entities.
 
 ### Dictionaries
 
@@ -149,7 +105,8 @@ MetaMapLite currently uses three dictionaries originally created for MetaMap:
 
 #### cuisourceinfo
 
-This is the table used for mapping strings in the input text to concepts.
+This is the table used for mapping strings in the input text to
+concepts, this is the primary dictionary used by MetaMapLite.
 
 Each record contains the UMLS concept identifier, UMLS string
 identifier, a sequence number, the source derived string, the source
@@ -212,6 +169,62 @@ Usually, there are several records for each UMLS concept:
     C0000074|orch
     C0000084|aapp
     C0000084|bacs
+
+## Dictionary and Postings File Organization
+
+The dictionary is constructed as several partitions, each partition
+consists of three files for each set of terms of a specific length
+from a specific column of the originating table: a dictionary
+characteristics file, a term-dictionary file, and a postings extents
+file.  These files refer to a global postings file used by all of the
+partitions.  Each term-dictionary contains records of term with the
+same length with the number of postings for the term and the address
+
+Within the postings extents file
+(*indexname*-*column*-*termlength*-partition-offsets) each record
+contains address of posting with the length of the posting.
+
+Each partition has four files, the file
+*cuisourceinfo-3-30-term-dictionary-stats.txt* contains term and record
+lengths along with the number of records in the partition:
+
+    termlength|30
+    reclength|46
+    datalength|16
+    recordnum|76361
+
+The file *cuisourceinfo-3-30-term-dictionary* is a binary file of records,
+all the same length with each record containing a term, the number of
+postings for that term and address of the posting extents for that
+term:
+
+    |            term              | # of postings | address |
+    +------------------------------+---------------+---------+
+    |Dipalmitoylphosphatidylcholine|       4       | FFF4556 | 
+
+
+The file *cuisourceinfo-3-30-partition-offsets* is a binary file that
+contains the start and end offsets (the extent) of each posting:
+
+    | address | start |  len  |
+    +---------+-------+-------+
+    | FFF4556 |   58  |   57  |
+    |   ...   |  176  |   66  |
+    |   ...   |  279  |   59  |
+    |   ...   |    0  |   58  |
+
+The postings for all of the partitions reside in the file *postings*.
+
+    address | data 
+    --------+-------------------------------------------------------------------
+          0 | C0000039|S0033298|4|Dipalmitoylphosphatidylcholine|SNMI|PT
+         58 | C0000039|S0033298|7|Dipalmitoylphosphatidylcholine|LNC|CN
+        176 | C0000039|S0033298|6|Dipalmitoylphosphatidylcholine|SNOMEDCT_US|OAP
+        279 | C0000039|S0033298|5|Dipalmitoylphosphatidylcholine|NDFRT|SY
+
+
+The postings file is shared among all of the partitions.
+
 
 ## Feature Requests
 
@@ -470,44 +483,44 @@ NCBI Disease Training Corpus (592 documents)
 
 First run (indlx1):
 
-real	29m12.477s
-user	39m51.089s
-sys		1m7.615s
+    real	29m12.477s
+    user	39m51.089s
+    sys		1m7.615s
 
 Second run (indlx1):
 
-real	26m10.628s
-user	39m24.213s
-sys	0m37.145s
+    real	26m10.628s
+    user	39m24.213s
+    sys		0m37.145s
 
 #### ii-server6
 
 First run (ii-server6):
 
-real	44m47.399s
-user	52m13.420s
-sys	1m23.783s
+    real	44m47.399s
+    user	52m13.420s
+    sys		1m23.783s
 
 Secord run  (ii-server6):
 
-real	39m53.229s
-user	47m53.044s
-sys	2m38.590s
+    real	39m53.229s
+    user	47m53.044s
+    sys		2m38.590s
 
 
 ### MetaMap
 
 First run (ii-server6)
 
-start time: Wed Mar 11 08:33:52 EDT 2015
-end time: Wed Mar 11 09:20:22 EDT 2015
+    start time: Wed Mar 11 08:33:52 EDT 2015
+    end time: Wed Mar 11 09:20:22 EDT 2015
 
-47 minutes
+    47 minutes
 
 Second run (ii-server6):
 
-start time: Wed Mar 11 09:23:50 EDT 2015
-end time: Wed Mar 11 10:05:18 EDT 2015
-2149.859u 230.497s 41:28.33 95.6%	0+0k 0+7760io 0pf+0w
+    start time: Wed Mar 11 09:23:50 EDT 2015
+    end time: Wed Mar 11 10:05:18 EDT 2015
+    2149.859u 230.497s 41:28.33 95.6%	0+0k 0+7760io 0pf+0w
 
 42 minutes
