@@ -42,7 +42,16 @@ public class NegEx implements NegationDetector {
   public NegEx() { }
   public NegEx(Properties properties) {
     this.tokenWindow = Integer.parseInt
-      (properties.getProperty("metamaplite.negex.semantic.type.set", "6"));
+      (properties.getProperty("metamaplite.negex.tokenwindowsize", "6"));
+    if (properties.getProperty("metamaplite.negex.semantic.type.set") != null) {
+      this.semanticTypeSet = new HashSet<String>
+	(Arrays.asList(properties.getProperty("metamaplite.negex.semantic.type.set").split(",")));
+    }
+  }
+
+  public void initProperties(Properties properties) {
+    this.tokenWindow = Integer.parseInt
+      (properties.getProperty("metamaplite.negex.tokenwindowsize", "6"));
     if (properties.getProperty("metamaplite.negex.semantic.type.set") != null) {
       this.semanticTypeSet = new HashSet<String>
 	(Arrays.asList(properties.getProperty("metamaplite.negex.semantic.type.set").split(",")));
@@ -143,9 +152,38 @@ public class NegEx implements NegationDetector {
     return tokenPosition;
   }
 
+  boolean NoConjunctionBetweenNegaAndEntity(int entityTokenPosition,
+					    List<NegPhraseInfo> conjPhraseList,
+					    int triggerPosition) {
+    boolean status = true;
+    for (NegPhraseInfo conjPhrase: conjPhraseList) {
+      for (Integer conjPosition: conjPhrase.getPositionList()) {
+	if ((conjPosition > triggerPosition) && (conjPosition < entityTokenPosition)) {
+	  status = false;
+	}
+      }
+    }
+    return status;
+  }
+
+  boolean NoConjunctionBetweenNegbAndEntity(int entityTokenPosition,
+					    List<NegPhraseInfo> conjPhraseList,
+					    int triggerPosition) {
+    boolean status = true;
+    for (NegPhraseInfo conjPhrase: conjPhraseList) {
+      for (Integer conjPosition: conjPhrase.getPositionList()) {
+	if ((conjPosition < triggerPosition) && (conjPosition > entityTokenPosition)) {
+	  status = false;
+	}
+      }
+    }
+    return status;
+  }
+
   public void markNegatedEntities(List<ERToken> filteredTokenlist,
-			   List<NegPhraseInfo> negationPhraseList,
-			   Collection<Entity> entityColl) {
+				  List<NegPhraseInfo> negationPhraseList,
+				  List<NegPhraseInfo> conjPhraseList,
+				  Collection<Entity> entityColl) {
     for (Entity entity: entityColl) {
       int entityOffset = entity.getStart();
       for (NegPhraseInfo info: negationPhraseList) {
@@ -160,7 +198,12 @@ public class NegEx implements NegationDetector {
 	      if (entityTokenPosition >= 0) {
 		int distance = Math.abs(entityTokenPosition - negPhraseTokenPosition.intValue());
 		if (distance <= tokenWindow) {
-		  entity.setNegated(true);
+		  // if no conjunction between trigger and target entity, then entity is negated.
+		  if (NoConjunctionBetweenNegaAndEntity(entityTokenPosition,
+							conjPhraseList,
+							negPhraseTokenPosition.intValue())) {
+		    entity.setNegated(true);
+		  }
 		}
 	      }
 	    }
@@ -175,11 +218,16 @@ public class NegEx implements NegationDetector {
 	      if (entityTokenPosition >= 0) {
 		int distance = Math.abs(entityTokenPosition - negPhraseTokenPosition.intValue());
 		if (distance <= tokenWindow) {
-		  entity.setNegated(true);
+		  // if no conjunction between trigger and target entity, then entity is negated.
+		  if (NoConjunctionBetweenNegbAndEntity(entityTokenPosition,
+							conjPhraseList,
+							negPhraseTokenPosition.intValue())) {
+		    entity.setNegated(true);
+		  }
 		}
 	      }
 	    }
-	  }
+	  } 
 	}
       }
     }
@@ -213,38 +261,16 @@ public class NegEx implements NegationDetector {
     return newTokenlist;
   }
 
-  public List<NegPhraseInfo> removeNegationPhrasesAfterConjs(List<NegPhraseInfo> negationPhraseList) {
+  public List<NegPhraseInfo> listConjPhrases(List<NegPhraseInfo> negationPhraseList) {
     /* to be implemented */
-    List<NegPhraseInfo> filteredNegationPhraseList;
-    List<NegPhraseInfo> filteredNegationPhraseList0 = new ArrayList<NegPhraseInfo>();
     List<NegPhraseInfo> conjPhraseList = new ArrayList<NegPhraseInfo>();
     /* collect conj and non-conj phrases in two lists. */
     for (NegPhraseInfo negPhrase: negationPhraseList) {
       if (negPhrase.getType().equals("conj")) {
 	conjPhraseList.add(negPhrase);
-      } else {
-	filteredNegationPhraseList0.add(negPhrase);
-      }
+      } 
     }
-    /* if conj list > 0 then determine which non-conj phrases are invalidated by conjunctions */
-    if (conjPhraseList.size() > 0) {
-      filteredNegationPhraseList = new ArrayList<NegPhraseInfo>();
-      for (NegPhraseInfo negPhrase: filteredNegationPhraseList0) {
-	for (NegPhraseInfo conjPhrase: conjPhraseList) {
-	  for (Integer negPhrasePosition: negPhrase.getPositionList()) {
-	    for (Integer conjPosition: conjPhrase.getPositionList()) {
-	      if (negPhrase.getType().equals("nega")) {
-		if (negPhrasePosition > 0) {
-		}
-	      }
-	    }
-	  }
-	}
-      }
-    } else {
-      filteredNegationPhraseList = filteredNegationPhraseList0;
-    }
-    return filteredNegationPhraseList;
+    return conjPhraseList;
   }
 
   /**
@@ -256,12 +282,11 @@ public class NegEx implements NegationDetector {
     List<ERToken> filteredTokenList = filterTokenList(tokenList);
     Collection<Entity> filteredEntityColl = filterEntityCollection(entityColl);
     List<String> tokenStringList = extractStringsFromTokenlist(filteredTokenList);
-    List<NegPhraseInfo> negationPhraseList =
-      removeNegationPhrasesAfterConjs
-      (keepLongestNegationPhrases
-       (getNegationPhraseList
-	(tokenStringList, NegExKeyMap.negationPhraseTypeMap)));
-    markNegatedEntities(filteredTokenList, negationPhraseList, filteredEntityColl);
+    List<NegPhraseInfo> negationPhraseList0 =
+      getNegationPhraseList(tokenStringList, NegExKeyMap.negationPhraseTypeMap);
+    List<NegPhraseInfo> conjPhraseList = listConjPhrases(negationPhraseList0);
+    List<NegPhraseInfo> negationPhraseList = keepLongestNegationPhrases(negationPhraseList0);
+    markNegatedEntities(filteredTokenList, negationPhraseList, conjPhraseList, filteredEntityColl);
   }
 
   /**

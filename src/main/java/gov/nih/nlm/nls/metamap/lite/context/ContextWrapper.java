@@ -3,6 +3,7 @@ package gov.nih.nlm.nls.metamap.lite.context;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Properties;
 import java.util.Set;
 import gov.nih.nlm.nls.metamap.lite.NegationDetector;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
@@ -25,6 +26,10 @@ import bioc.BioCAnnotation;
 public class ContextWrapper implements NegationDetector {
   static ConText contextInstance = new ConText();
 
+  public void initProperties(Properties properties) {
+    // currently empty.
+  }
+  
   /** Given annotated sentence list with entities, determine hedging
    * relations using ConText.
    * @param conceptList list of concepts
