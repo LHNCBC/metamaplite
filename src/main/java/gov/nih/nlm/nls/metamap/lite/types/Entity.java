@@ -92,10 +92,13 @@ public class Entity implements Annotation, Comparable<Entity>
   }
   public String getDocid() { return this.docid; }
   public double getScore() { return this.score; }
-  
+
+  /** get start position of  in text */
   public int getStart() { return this.start; }
   public void setScore(double value) { this.score = value; }
+  /** set start position of entity in text */
   public void setStart(int start) { this.start = start; }
+  /** set length of entity in text */
   public void setLength(int length) { this.length = length; }
 
   public List<Ev> getEvList() { return new ArrayList<Ev>(this.evSet); }
@@ -103,6 +106,10 @@ public class Entity implements Annotation, Comparable<Entity>
   public void addEv(Ev ev) { this.evSet.add(ev); }
   public void addAllEv(Collection<Ev> evCollection) { this.evSet.addAll(evCollection); }
   public void setEvList(List<Ev> newEvList) { this.evSet.addAll(newEvList); }
+  public void setEvSet(Set<Ev> newEvSet) {
+    this.evSet.clear();
+    this.evSet.addAll(newEvSet);
+  }
 
   public static class EntityScoreComparator implements Comparator<Entity> {
     public int compare(Entity o1, Entity o2) {
@@ -115,7 +122,7 @@ public class Entity implements Annotation, Comparable<Entity>
       return this.hashCode();
     }
   }
-  
+
   // this should probably compare member of matchedWordSet?
   //
   // public static class EntityScoreConceptNameComparator implements Comparator<Entity> {
@@ -140,21 +147,25 @@ public class Entity implements Annotation, Comparable<Entity>
     return "concept";
   }
 
+  /** get offset of entity in the text. */  
   @Override
     public int getOffset() {
     return this.start;
   }
 
+  /** get length of entity in text */
   @Override
   public int getLength() {
     return this.length;
   }
 
+  /** get entity text */  
   @Override
   public String getText() {
     return this.matchedText;
   }
 
+  /** get matched text of entity */  
   public String getMatchedText() {
     return this.matchedText;
   }
