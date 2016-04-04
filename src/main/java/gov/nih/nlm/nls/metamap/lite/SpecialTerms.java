@@ -2,6 +2,7 @@ package gov.nih.nlm.nls.metamap.lite;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.io.File;
 import java.io.Reader;
 import java.io.FileReader;
 import java.io.BufferedReader;
@@ -27,7 +28,12 @@ public class SpecialTerms {
   public SpecialTerms(String filename) 
     throws FileNotFoundException, IOException
   {
-    this.specialTerms = loadTerms(filename);
+    File inputFile = new File(filename);
+    if (inputFile.exists()) {
+      this.specialTerms = loadTerms(new FileReader(inputFile));
+    } else {
+      System.err.println("warning: special terms file: " + filename + " does not exist.");
+    }
   }
 
   public SpecialTerms(InputStream stream) 
@@ -44,7 +50,12 @@ public class SpecialTerms {
   public void addTerms(String filename) 
     throws FileNotFoundException, IOException
   {
-    this.specialTerms.addAll( loadTerms(filename) );
+    File inputFile = new File(filename);
+    if (inputFile.exists()) {
+      this.specialTerms.addAll( loadTerms(new FileReader(inputFile)) );
+    } else {
+      System.err.println("warning: special terms file: " + filename + " does not exist.");
+    }
   }
 
     public void addTerms(InputStream stream) 
@@ -53,13 +64,26 @@ public class SpecialTerms {
     this.specialTerms.addAll( loadTerms(stream) );
   }
 
+  public Set<String> loadTerms(Reader reader)
+    throws FileNotFoundException, IOException
+  {
+    Set<String> termSet = new HashSet<String>();
+    String line;
+    BufferedReader br = new BufferedReader(reader);
+     while ((line = br.readLine()) != null) {
+      termSet.add(line.trim());
+    }
+    br.close();
+    return termSet;
+  }  
+
   /**
    * Input file format:
    * <pre>
    * cui|term
    * </pre>
-   * @param filename 
-   * @return 
+   * @param filename input filename
+   * @return set of terms
    */
   public Set<String> loadTerms(String filename)
     throws FileNotFoundException, IOException
