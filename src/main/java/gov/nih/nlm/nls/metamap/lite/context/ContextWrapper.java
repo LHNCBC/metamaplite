@@ -104,12 +104,19 @@ public class ContextWrapper implements NegationDetector {
     return sentence;
   }
 
-  public void detectNegations(Set<Entity> entitySet, BioCSentence sentence, List<ERToken> tokenList) {
+  public void detectNegations(Set<Entity> entitySet, String sentence, List<ERToken> tokenList)
+  {
     try {
-    ContextWrapper.applyContextUsingEntities(entitySet, sentence.getText());
-    // for (List<String> result: ContextWrapper.applyContextUsingEntities(entitySet, sentence.getText())) {
-      // logger.debug("result: " + result);
-    // }
+      for (Entity entity: entitySet) {
+	List<String> result = 
+	  contextInstance.applyContext(entity.getMatchedText(), sentence);
+	if (result != null) {
+	  if (result.get(2).equals("Negated")) {
+	    entity.setNegated(true);
+	  }
+	  entity.setTemporality(result.get(3));
+	}
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

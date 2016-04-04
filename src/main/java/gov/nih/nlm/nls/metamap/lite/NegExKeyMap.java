@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite;
 
@@ -16,6 +15,7 @@ public class NegExKeyMap {
 
   public static Map<List<String>,String> negationPhraseTypeMap = new HashMap<List<String>,String>();
   static {
+    // pre negation phrases
     negationPhraseTypeMap.put(Arrays.asList("rules", "out"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("rules", "him", "out", "for"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("can", "rule", "her", "out", "against"), "nega");
@@ -98,7 +98,7 @@ public class NegExKeyMap {
     negationPhraseTypeMap.put(Arrays.asList("can", "rule", "her", "out", "for"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("rules", "her", "out"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("declined"), "nega");
-    negationPhraseTypeMap.put(Arrays.asList("ruled", "out", "for", ""), "nega");
+    negationPhraseTypeMap.put(Arrays.asList("ruled", "out", "for"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("can", "rule", "the", "patient", "out"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("not", "associated", "with"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("resolved"), "nega");
@@ -142,7 +142,8 @@ public class NegExKeyMap {
     negationPhraseTypeMap.put(Arrays.asList("adequate", "to", "rule", "him", "out", "for"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("not", "see"), "nega");
     negationPhraseTypeMap.put(Arrays.asList("sufficient", "to", "rule", "him", "out", "for"), "nega");
-    
+
+    // post negation phrases
     negationPhraseTypeMap.put(Arrays.asList("unlikely"),"negb");
     negationPhraseTypeMap.put(Arrays.asList("has", "been", "ruled", "out"), "negb");
     negationPhraseTypeMap.put(Arrays.asList("free"), "negb");
@@ -151,6 +152,7 @@ public class NegExKeyMap {
     negationPhraseTypeMap.put(Arrays.asList("are", "ruled", "out"), "negb");
     negationPhraseTypeMap.put(Arrays.asList("is", "ruled", "out"), "negb");
 
+    // possible pre negation phrases
     negationPhraseTypeMap.put(Arrays.asList("ought", "to", "be", "ruled", "out", "for"), "pnega");
     negationPhraseTypeMap.put(Arrays.asList("rule", "the", "patient", "out"), "pnega");
     negationPhraseTypeMap.put(Arrays.asList("rule", "her", "out"), "pnega");
@@ -173,6 +175,7 @@ public class NegExKeyMap {
     negationPhraseTypeMap.put(Arrays.asList("must", "be", "ruled", "out", "for"), "pnega");
     negationPhraseTypeMap.put(Arrays.asList("is", "to", "be", "ruled", "out", "for"), "pnega");
 
+    // possible post negation phrases
     negationPhraseTypeMap.put(Arrays.asList("be", "ruled", "out"), "pnegb");
     negationPhraseTypeMap.put(Arrays.asList("not", "ruled", "out"), "pnegb");
     negationPhraseTypeMap.put(Arrays.asList("being", "ruled", "out"), "pnegb");
@@ -187,5 +190,103 @@ public class NegExKeyMap {
     negationPhraseTypeMap.put(Arrays.asList("could", "be", "ruled", "out"), "pnegb");
     negationPhraseTypeMap.put(Arrays.asList("must", "be", "ruled", "out"), "pnegb");
     negationPhraseTypeMap.put(Arrays.asList("is", "to", "be", "ruled", "out"), "pnegb");
+
+    // conjunctions
+    negationPhraseTypeMap.put(Arrays.asList("although"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("apart","from"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","origin","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","origin","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","secondary","source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","a","source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","origin","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","origin","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","origin","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","origin","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","secondary","source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","an","source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","origin","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","origin","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","origin","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","origin","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","secondary","source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("as","the","source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("aside","from"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("but",""), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("cause","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("cause","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("causes","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("causes","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("etiology","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("etiology","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("except",""), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("however",""), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("nevertheless",""), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("origin","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("origin","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("origins","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("origins","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("other","possibilities","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("reason","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("reason","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("reasons","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("reasons","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("secondary","to"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("source","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("source","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("sources","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("sources","of"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("still"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("though"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("trigger","event","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("yet"), "conj");
+
+    // The following conjunction phrases were added by NLM
+    negationPhraseTypeMap.put(Arrays.asList("other","than"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("otherwise"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("then"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("to","account","for"), "conj");
+    negationPhraseTypeMap.put(Arrays.asList("to","explain"), "conj");
   }
 }

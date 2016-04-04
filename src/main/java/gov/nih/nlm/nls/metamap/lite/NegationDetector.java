@@ -7,5 +7,5 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 public interface NegationDetector {
-  void detectNegations(Set<Entity> entitySet, BioCSentence sentence, List<ERToken> tokenList);
+  void detectNegations(Set<Entity> entitySet, String sentence, List<ERToken> tokenList);
 }

@@ -71,41 +71,19 @@ public class NegEx implements NegationDetector {
     int slength = stringlist.size();
     int plength = phrase.size();
     int n = 0;
-    // System.out.println();
-    // System.out.println("stringlist: " + stringlist);
-    // System.out.println("phrase: " + phrase);
     boolean notfound = (n < slength) &&  ((n + plength) <= slength);
     while (notfound) {
-      List<String> window = stringlist.subList(n, n + plength);
-      // System.out.println("window: " + window);
+      List<String> window = new ArrayList<String>();
+      for (String token: stringlist.subList(n, n + plength)) {
+	window.add(token.toLowerCase());
+      }
       if (phrase.equals(window)) {
-	// System.out.println("found at n: " + n);
 	foundList.add(new Integer(n));
       }
-      // System.out.println("n: " + n);
       n++;
       notfound = (n < slength) &&  ((n + plength) <= slength);
     }
     return foundList;
-  }
-
-  public static class NegPhraseInfo {
-    List<String> phrase;
-    String type;
-    List<Integer> positionList;
-    public NegPhraseInfo(List<String> phrase,
-			 String type,
-			 List<Integer> posList) {
-      this.phrase = phrase;
-      this.type = type;
-      this.positionList = posList;
-    }
-    List<String> getPhrase() { return this.phrase; }
-    String getType() { return this.type; }
-    List<Integer> getPositionList() { return this.positionList; }
-    public String toString() {
-      return this.phrase + ", " + this.type + ", " + this.positionList;
-    }
   }
 
   public List<NegPhraseInfo> keepLongestNegationPhrases(List<NegPhraseInfo> negationPhraseList) {
@@ -235,6 +213,40 @@ public class NegEx implements NegationDetector {
     return newTokenlist;
   }
 
+  public List<NegPhraseInfo> removeNegationPhrasesAfterConjs(List<NegPhraseInfo> negationPhraseList) {
+    /* to be implemented */
+    List<NegPhraseInfo> filteredNegationPhraseList;
+    List<NegPhraseInfo> filteredNegationPhraseList0 = new ArrayList<NegPhraseInfo>();
+    List<NegPhraseInfo> conjPhraseList = new ArrayList<NegPhraseInfo>();
+    /* collect conj and non-conj phrases in two lists. */
+    for (NegPhraseInfo negPhrase: negationPhraseList) {
+      if (negPhrase.getType().equals("conj")) {
+	conjPhraseList.add(negPhrase);
+      } else {
+	filteredNegationPhraseList0.add(negPhrase);
+      }
+    }
+    /* if conj list > 0 then determine which non-conj phrases are invalidated by conjunctions */
+    if (conjPhraseList.size() > 0) {
+      filteredNegationPhraseList = new ArrayList<NegPhraseInfo>();
+      for (NegPhraseInfo negPhrase: filteredNegationPhraseList0) {
+	for (NegPhraseInfo conjPhrase: conjPhraseList) {
+	  for (Integer negPhrasePosition: negPhrase.getPositionList()) {
+	    for (Integer conjPosition: conjPhrase.getPositionList()) {
+	      if (negPhrase.getType().equals("nega")) {
+		if (negPhrasePosition > 0) {
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    } else {
+      filteredNegationPhraseList = filteredNegationPhraseList0;
+    }
+    return filteredNegationPhraseList;
+  }
+
   /**
    *
    * @param tokenList list of tokens for target sentence
@@ -245,15 +257,17 @@ public class NegEx implements NegationDetector {
     Collection<Entity> filteredEntityColl = filterEntityCollection(entityColl);
     List<String> tokenStringList = extractStringsFromTokenlist(filteredTokenList);
     List<NegPhraseInfo> negationPhraseList =
-      keepLongestNegationPhrases(getNegationPhraseList
-				 (tokenStringList, NegExKeyMap.negationPhraseTypeMap));
+      removeNegationPhrasesAfterConjs
+      (keepLongestNegationPhrases
+       (getNegationPhraseList
+	(tokenStringList, NegExKeyMap.negationPhraseTypeMap)));
     markNegatedEntities(filteredTokenList, negationPhraseList, filteredEntityColl);
   }
 
   /**
    * 
    */
-  public void detectNegations(Set<Entity> entitySet, BioCSentence sentence, List<ERToken> tokenList) {
+  public void detectNegations(Set<Entity> entitySet, String sentence, List<ERToken> tokenList) {
     tokenNegex(tokenList, entitySet);
   }
 
