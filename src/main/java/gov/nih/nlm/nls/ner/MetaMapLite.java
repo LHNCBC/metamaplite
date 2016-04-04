@@ -14,12 +14,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
@@ -42,12 +36,15 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.MarkAbbreviations;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
+import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup3;
+import gov.nih.nlm.nls.metamap.lite.EntityLookup4;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroupFilter;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroups;
 import gov.nih.nlm.nls.metamap.lite.EntityAnnotation;
 import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
+import gov.nih.nlm.nls.metamap.lite.resultformats.CuiList;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
@@ -95,9 +92,9 @@ import gov.nih.nlm.nls.utils.Configuration;
  * MetaMapLite.expandIndexDir(myProperties);
  * MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
  * BioCDocument document = FreeText.instantiateBioCDocument("FDA has strengthened the warning ...");
- * List<BioCDocument> documentList = new ArrayList<BioCDocument>();
+ * List&lt;BioCDocument&gt; documentList = new ArrayList&lt;BioCDocument&gt;();
  * documentList.add(document);
- * List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
+ * List&lt;Entity&gt; entityList = metaMapLiteInst.processDocumentList(documentList);
  * for (Entity entity: entityList) {
  *   for (Ev ev: entity.getEvSet()) {
  *	System.out.print(ev.getConceptInfo().getCUI() + "|" + entity.getMatchedText());
@@ -111,6 +108,61 @@ import gov.nih.nlm.nls.utils.Configuration;
  *   <li>System properties</li>
  *   <li>MetaMap property file</li>
  * </ul>
+ * <p>
+ * General Properties:
+ * <dl>
+ * <dt>metamaplite.semanticgroup</dt><dd>restrict output to concepts with specified semantic types</dd>
+ * <dt>metamaplite.sourceset</dt><dd>restrict output to concepts in specified sources</dd>
+ * <dt>metamaplite.usecontext</dt><dd>if true, then use ConText to find negated concepts.</dd>
+ * <dt>metamaplite.segment.sentences</dt><dd>if true, break document up into sentences.</dd>
+ * <dt>metamaplite.segment.blankline</dt><dd>if true, break document up into seqments delimited by blanklines.</dd>
+ * <dt>metamaplite.index.directory</dt><dd>parent location of metamap indexes, can be overriden by metamaplist.ivf.* properties</dd>
+ * <dt>opennlp.models.directory</dt><dd>parent location of opennlp models</dd>
+ * <dt>metamaplite.ivf.cuiconceptindex</dt><dd>location of cui-concept index</dd>
+ * <dt>metamaplite.ivf.cuisourceinfoindex</dt><dd>location of cui-sourceinfo index</dd>
+ * <dt>metamaplite.ivf.cuisemantictypeindex</dt><dd>location of cui-semantictype index</dd>
+ * <dt></dt><dd></dd>
+ * <dt></dt><dd></dd>
+ * <dt></dt><dd></dd>
+ * </dl>
+ * <p>
+ * Command line frontend properties 
+ * <dl>
+ * <dt>metamaplite.document.inputtype</dt><dd>set input type for document reader</dd>
+ * <dt>metamaplite.inputfilelist</dt><dd>list input files separated by commas in value of property.</dd>
+ * <dt>metamaplite.inputfilelistfile</dt><dd>use file containing list of files for input, one file per line.</dd>
+ * <dt>metamaplite.list.acronyms</dt><dd>list document acronyms</dd>
+ * <dt>metamaplite.list.sentences</dt><dd>list document sentences only.</dd>
+ * <dt>metamaplite.list.sentences.with.postags</dt><dd>list document sentences only with part-of-speech tags</dd>
+ * <dt>metamaplite.outputformat</dt><dd>output format of entity result set.</dd>
+ * <dt>metamaplite.outputextension</dt><dd>set output file extension for result file(s).</dd>
+ * </dl>
+ * <p>
+ * User supplied document loader/reader properties
+ * <p>
+ * Properties are prefixed with string: "bioc.document.loader.freetext"
+ * followed by a period with the name of the document loader.
+ * <dl>
+ * <dt>bioc.document.loader.{name}<dt><dd>classname</dd>
+ * </dl>
+ * The class must implement the gov.nih.nlm.nls.metamap.document.BioCDocumentLoader interface.
+ * <dl>
+ * <dt>bioc.document.loader.freetext</dt><dd>gov.nih.nlm.nls.metamap.document.FreeText</dd>
+ * <dt>bioc.document.loader.chemdner</dt><dd>gov.nih.nlm.nls.metamap.document.ChemDNER</dd>
+ * </dl>
+ * <p>
+ * User supplied result formatter properties
+ * <p>
+ * Properties are prefixed with string: "metamaplite.result.formatter"
+ * followed by a period with the name of the formatter.
+ * <dl>
+ * <dt>metamaplite.result.formatter.{name}<dt><dd>classname</dd>
+ * </dl>
+ * The class must implement 
+ * <dl>
+ * <dt>metamaplite.result.formatter.cuilist</dt><dd>gov.nih.nlm.nls.metamap.lite.resultformats.CuiList</dd>
+ * <dt>metamaplite.result.formatter.brat</dt><dd>gov.nih.nlm.nls.metamap.lite.resultformats.Brat</dd>
+ * </dl>
  */
 public class MetaMapLite {
   /** log4j logger instance */
@@ -123,6 +175,7 @@ public class MetaMapLite {
     outputExtensionMap.put("brat",".ann");
     outputExtensionMap.put("mmi",".mmi");
     outputExtensionMap.put("cdi",".cdi");
+    outputExtensionMap.put("cuilist",".cuis");
   }
 
   Set<String> semanticGroup = new HashSet<String>(); // initially empty
@@ -133,11 +186,12 @@ public class MetaMapLite {
   Properties properties;
 
   boolean useContext = false;
+  boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
-  EntityLookup3 entityLookup;
+  EntityLookup entityLookup;
   boolean segmentSentences = true;
   boolean segmentBlanklines = false;
-  
+
   public MetaMapLite(Properties properties)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException,
@@ -148,7 +202,7 @@ public class MetaMapLite {
       SentenceExtractor.setModel(properties.getProperty("opennlp.en-sent.bin.path"));
     }
     this.sentenceAnnotator = new SentenceAnnotator(properties);
-    this.entityLookup = new EntityLookup3(properties);
+    this.entityLookup = new EntityLookup4(properties);
     BioCDocumentLoaderRegistry.register("freetext",
 					"For freetext document that are grammatically well behaved.", 
 					new FreeText());
@@ -176,6 +230,9 @@ public class MetaMapLite {
     ResultFormatterRegistry.register("mmi",
 				     "Fielded MetaMap Indexing-like Output",
 				     new MMI());
+    ResultFormatterRegistry.register("cuilist",
+				     "UMLS CUI List Output",
+				     new CuiList());
 
     /** augment or override any built-in formats with ones specified by property file. */
     BioCDocumentLoaderRegistry.register(properties);
@@ -221,8 +278,9 @@ public class MetaMapLite {
 	(this.semanticGroup, result0);
     }
     // look for negation and other relations using Context.
-    if (this.useContext) {
-      ContextWrapper.applyContext(result);
+    if (this.detectNegationsFlag) {
+      
+      // ContextWrapper.applyContext(result);
     }
 
     // System.out.println("filtered entity list: ");
@@ -492,6 +550,18 @@ public class MetaMapLite {
 				     "gov.nih.nlm.nls.metamap.document.FreeText");
     defaultConfiguration.setProperty("bioc.document.loader.ncbicorpus",
 				     "gov.nih.nlm.nls.metamap.document.NCBICorpusDocument");
+    defaultConfiguration.setProperty("bioc.document.loader.sldi",
+				     "gov.nih.nlm.nls.metamap.document.SingleLineInput");
+    defaultConfiguration.setProperty("bioc.document.loader.sldiwi",
+				     "gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID");
+
+
+    defaultConfiguration.setProperty("metamaplite.result.formatter.cuilist",
+				     "gov.nih.nlm.nls.metamap.lite.resultformats.CuiList");
+    defaultConfiguration.setProperty("metamaplite.result.formatter.brat",
+				     "gov.nih.nlm.nls.metamap.lite.resultformats.Brat");
+    defaultConfiguration.setProperty("metamaplite.result.formatter.mmi",
+				     "gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI");
     return defaultConfiguration;
   }
 
@@ -555,6 +625,7 @@ public class MetaMapLite {
 		 acronym.longForm + "|" + acronym.longFormIndex );
     }
     pw.flush();
+    pw.close();
   }
 
   void listSentencesWithPosTags(List<BioCDocument> documentList)
@@ -578,6 +649,9 @@ public class MetaMapLite {
   {
     // process documents
     List<Entity> entityList = this.processDocumentList(documentList);
+
+    logger.info("outputing results to standard output." );
+
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
     // format output
@@ -588,6 +662,7 @@ public class MetaMapLite {
       System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
     }
     pw.flush();
+    pw.close();
   }
 
   void listSentences(String filename, 
@@ -668,6 +743,7 @@ public class MetaMapLite {
     // format output
     ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
     if (formatter != null) {
+      formatter.useProperties(this.properties);
       formatter.entityListFormatter(pw, entityList);
     } else {
       System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
@@ -718,12 +794,12 @@ public class MetaMapLite {
 	   InvocationTargetException,
 	   Exception
   {
+    Properties defaultConfiguration = getDefaultConfiguration();
     if (args.length > 0) {
       boolean verbose = false;
       boolean inputFromStdin = false;
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
-      Properties defaultConfiguration = getDefaultConfiguration();
       Properties optionsConfiguration = new Properties();
       int i = 0;
       while (i < args.length) {
@@ -755,16 +831,23 @@ public class MetaMapLite {
 	  } else if (fields[0].equals("--outputformat")) {
 	    optionsConfiguration.setProperty("metamaplite.outputformat",fields[1]);
 	    optionsConfiguration.setProperty("metamaplite.outputextension",
-					     outputExtensionMap.get(fields[1]));
+					     (outputExtensionMap.containsKey(fields[1]) ?
+					      outputExtensionMap.get(fields[1]) :
+					      "out"));
 	  } else if (fields[0].equals("--brat") || 
 		     fields[0].equals("--BRAT")) {
 	    optionsConfiguration.setProperty("metamaplite.outputformat","brat");
 	    optionsConfiguration.setProperty("metamaplite.outputextension",
-					     outputExtensionMap.get("brat"));
+					     (outputExtensionMap.containsKey("brat") ?
+					      outputExtensionMap.get("brat") :
+					      "brat"));
 	  } else if (fields[0].equals("--mmi") || 
 		     fields[0].equals("--mmilike")) {
 	    optionsConfiguration.setProperty("metamaplite.outputformat","mmi");
-	    optionsConfiguration.setProperty("metamaplite.outputextension", outputExtensionMap.get("mmi"));
+	    optionsConfiguration.setProperty("metamaplite.outputextension",
+					     (outputExtensionMap.containsKey("mmi") ?
+					      outputExtensionMap.get("mmi") :
+					      "mmi"));
 	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
 		     fields[0].equals("--restrict-to-sts") ||
 		     fields[0].equals("--restrict_to_semantic_types") ||
@@ -802,6 +885,8 @@ public class MetaMapLite {
 	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
 	  } else if (fields[0].equals("--list_sentences_postags")) {
 	    optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
+	  } else if (fields[0].equals("--output_extension")) {
+	    optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);	    
 	  } else if (args[i].equals("--verbose")) {
 	    verbose = true;
 	  } else if (args[i].equals("--help")) {
@@ -929,7 +1014,9 @@ public class MetaMapLite {
 	} /*for filename */
       }
     } else {
-      // BioCDocumentLoaderRegistry.register(defaultConfiguration);
+      // register default document loaders and result formatter for help display.
+      BioCDocumentLoaderRegistry.register(defaultConfiguration);
+      ResultFormatterRegistry.register(defaultConfiguration);
       displayHelp();
       System.exit(1);
     }   
