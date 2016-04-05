@@ -181,7 +181,7 @@ public class SimplePipeline {
     throws FileNotFoundException, IOException, ParseException
   {
     String docid = "XXXXXX";
-    Set<Entity> entitySet = EntityLookup.generateEntitySet(Scanner.analyzeText(sentence));
+    Set<Entity> entitySet = EntityLookup1.generateEntitySet(Scanner.analyzeText(sentence));
     return entitySet;
   }
 
