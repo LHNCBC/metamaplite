@@ -34,7 +34,6 @@ import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 
@@ -686,7 +685,24 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 				       new HashSet<String>(),
 				       new HashSet<String>()));
       for (Entity entity: entitySet) {
-	bioCEntityList.add((BioCAnnotation)new BioCEntity(entity));
+	for (Ev ev: entity.getEvList()) {
+	  BioCAnnotation entityAnnotation = new BioCAnnotation();
+	  // entity attributes
+	  entityAnnotation.setText(entity.getMatchedText());
+	  entityAnnotation.addLocation(new BioCLocation(entity.getOffset(), entity.getLength()));
+	  entityAnnotation.putInfon("score",Double.toString(entity.getScore()));
+	  entityAnnotation.putInfon("negated",Boolean.toString(entity.isNegated()));
+	  // ev (evaluation) attributes
+	  entityAnnotation.putInfon("partofspeech", ev.getPartOfSpeech());
+	  // concept info attributes
+	  entityAnnotation.putInfon("cui", ev.getConceptInfo().getCUI());
+	  entityAnnotation.putInfon("preferredname", ev.getConceptInfo().getPreferredName());
+	  entityAnnotation.putInfon("semantictypes",
+				    Arrays.toString(ev.getConceptInfo().getSemanticTypeSet().toArray()));
+	  entityAnnotation.putInfon("sources",
+				    Arrays.toString(ev.getConceptInfo().getSourceSet().toArray()));
+	  bioCEntityList.add(entityAnnotation);
+	}
       }
       return bioCEntityList;
     } catch (FileNotFoundException fnfe) {
