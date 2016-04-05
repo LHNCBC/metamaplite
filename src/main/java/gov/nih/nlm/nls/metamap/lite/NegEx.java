@@ -27,7 +27,7 @@ import gov.nih.nlm.nls.metamap.lite.NegExKeyMap;
  * <li> remove non-useful tokens: pn and ws tokens 
  * <li> get string from tokens
  * <li> get negation phrase list 
- * <li> generate matchin negation phrase for sentence if present.
+ * <li> determine matching negation phrase for sentence if present.
  * </ul>
  */
 
@@ -39,14 +39,11 @@ public class NegEx implements NegationDetector {
   Set<String> semanticTypeSet = new HashSet<String>
     (Arrays.asList("acab","anab","biof","cgab","comd","dsyn","emod","fndg",
 		   "inpo","lbtr","menp","mobd","neop","patf","phsf","sosy"));
-  public NegEx() { }
+  public NegEx() {
+    initProperties(System.getProperties());
+  }
   public NegEx(Properties properties) {
-    this.tokenWindow = Integer.parseInt
-      (properties.getProperty("metamaplite.negex.tokenwindowsize", "6"));
-    if (properties.getProperty("metamaplite.negex.semantic.type.set") != null) {
-      this.semanticTypeSet = new HashSet<String>
-	(Arrays.asList(properties.getProperty("metamaplite.negex.semantic.type.set").split(",")));
-    }
+    initProperties(properties);
   }
 
   public void initProperties(Properties properties) {
@@ -115,6 +112,7 @@ public class NegEx implements NegationDetector {
 
   /**
    * @param stringList list of tokenstrings
+   * @param negationPhraseTypeMap dictionary of phrases mapped to negation types
    * @return list of negation phrases
    */
   public List<NegPhraseInfo> getNegationPhraseList(List<String> stringList,
