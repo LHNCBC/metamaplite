@@ -57,7 +57,7 @@ import opennlp.tools.dictionary.serializer.Entry;
 /**
  *
  */
-public class EntityLookup3 {
+public class EntityLookup3 implements EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup3.class);
 
   public MetaMapIvfIndexes mmIndexes;
@@ -326,15 +326,11 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *    ...
    * @param docid document id
    * @param tokenList tokenlist of document
-   * @param semanticTypeRestrictSet semantic type to restrict to
-   * @param sourceRestrictSet sources to restrict to
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
    */
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
-						      List<ERToken> tokenList,
-						      Set<String> semanticTypeRestrictSet,
-						      Set<String> sourceRestrictSet)
+						      List<ERToken> tokenList)
     throws FileNotFoundException, IOException
   {
     logger.debug("findLongestMatch");
@@ -356,7 +352,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       if ((! firstToken.getText().toLowerCase().equals("other")) &&
 	  this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech())) {
 	int termLength = (tokenSubList.size() > 1) ?
-	  (lastToken.getPosition() + lastToken.getText().length()) - firstToken.getPosition() : 
+	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
 	  firstToken.getText().length();
 	String originalTerm = StringUtils.join(tokenTextSubList, "");
 	// logger.debug("originalTerm: " + originalTerm);
@@ -366,25 +362,22 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 	  String query = term;
 	  // String normTerm = MWIUtilities.normalizeAstString(term);
 	  normTerm = NormalizedStringCache.normalizeString(term);
-	  int offset = ((PosToken)tokenSubList.get(0)).getPosition();
+	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
 	  if (CharUtils.isAlpha(term.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
 	    if (termConceptCache.containsKey(normTerm)) {
 	      for (ConceptInfo concept: termConceptCache.get(normTerm)) {
 		String cui = concept.getCUI();
-		if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
-		    isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-		  Ev ev = new Ev(concept,
-				 originalTerm,
-				 ((PosToken)tokenSubList.get(0)).getPosition(),
-				 termLength,
-				 0.0,
-				 ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
-		  if (! evSet.contains(ev)) {
-		    logger.debug("add ev: " + ev);
-		    evSet.add(ev);
-		  }
+		Ev ev = new Ev(concept,
+			       originalTerm,
+			       ((PosToken)tokenSubList.get(0)).getOffset(),
+			       termLength,
+			       0.0,
+			       ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+		if (! evSet.contains(ev)) {
+		  logger.debug("add ev: " + ev);
+		  evSet.add(ev);
 		}
 	      }
 	    } else {
@@ -409,18 +402,15 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 							this.getSemanticTypeSet(cui));
 		  this.cacheConcept(docStr, concept);
 		  cui = concept.getCUI();
-		  if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet) && 
-		      isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-		    Ev ev = new Ev(concept,
-				   originalTerm,
-				   offset,
-				   termLength,
-				   0.0,
-				   ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
-		    if (! evSet.contains(ev)) {
-		      logger.debug("add ev: " + ev);
-		      evSet.add(ev);
-		    }
+		  Ev ev = new Ev(concept,
+				 originalTerm,
+				 offset,
+				 termLength,
+				 0.0,
+				 ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+		  if (! evSet.contains(ev)) {
+		    logger.debug("add ev: " + ev);
+		    evSet.add(ev);
 		  }
 		} /*if token instance of PosToken*/
 	      } /*if term equals doc string */
@@ -439,6 +429,31 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       } /* first token has allowed partOfSpeech */
     } /* for token-sublist in list-of-token-sublists */
     return new SpanEntityMapAndTokenLength(spanMap, longestMatchedTokenLength);
+  }
+
+  public void filterEntityEvListBySemanticType(Entity entity, Set<String> semanticTypeRestrictSet)
+  {
+    Set<Ev> newEvSet = new HashSet<Ev>();
+    for (Ev ev: entity.getEvList()) {
+      String cui = ev.getConceptInfo().getCUI();
+      if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
+	newEvSet.add(ev);
+      }
+    }
+    entity.setEvSet(newEvSet);
+  }
+
+
+  public void filterEntityEvListBySource(Entity entity, Set<String> sourceRestrictSet)
+  {
+    Set<Ev> newEvSet = new HashSet<Ev>();
+    for (Ev ev: entity.getEvList()) {
+      String cui = ev.getConceptInfo().getCUI();
+      if (isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
+	newEvSet.add(ev);
+      }
+    }
+    entity.setEvSet(newEvSet);
   }
 
   /**
@@ -487,8 +502,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       SpanEntityMapAndTokenLength spanEntityMapAndTokenLength = 
 	this.findLongestMatch
 	(docid,
-	 sentenceTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,sentenceTokenList.size())),
-	 semTypeRestrictSet, sourceRestrictSet);
+	 sentenceTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,sentenceTokenList.size())));
       for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
 	if (entity.getEvList().size() > 0) {
 	  entitySet.add(entity);
@@ -563,35 +577,50 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 
   /** Process passage */
   public List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
-					    Set<String> semTypeRestrictSet,
-					    Set<String> sourceRestrictSet) 
-    throws IOException, FileNotFoundException, Exception {
-    // logger.debug("enter processPassage");
-    Set<Entity> entitySet0 = new HashSet<Entity>();
-    int i = 0;
-    for (BioCSentence sentence: passage.getSentences()) {
-      List<ERToken> tokenList = Scanner.analyzeText(sentence);
-      sentenceAnnotator.addPartOfSpeech(tokenList);
-      Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
-								    semTypeRestrictSet,
-								    sourceRestrictSet);
-      for (Entity entity: sentenceEntitySet) {
-	entity.setLocationPosition(i);
+				     Set<String> semTypeRestrictSet,
+				     Set<String> sourceRestrictSet) 
+  {
+    try {
+      // logger.debug("enter processPassage");
+      Set<Entity> entitySet0 = new HashSet<Entity>();
+      int i = 0;
+      for (BioCSentence sentence: passage.getSentences()) {
+	List<ERToken> tokenList = Scanner.analyzeText(sentence);
+	sentenceAnnotator.addPartOfSpeech(tokenList);
+	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
+								      semTypeRestrictSet,
+								      sourceRestrictSet);
+	for (Entity entity: sentenceEntitySet) {
+	  entity.setLocationPosition(i);
+	}
+	entitySet0.addAll(sentenceEntitySet);
+	// look for negation and other relations using Context.
+	if (useContext) {
+	  applyContext(sentenceEntitySet, sentence);
+	}
+	i++;
       }
-      entitySet0.addAll(sentenceEntitySet);
-    // look for negation and other relations using Context.
-      if (useContext) {
-	applyContext(sentenceEntitySet, sentence);
+      // logger.debug("exit processPassage");
+      Set<Entity> entitySet1 = removeSubsumingEntities(entitySet0);
+      Set<Entity> entitySet = new HashSet<Entity>();
+      for (Entity entity: entitySet1) {
+	filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
+	filterEntityEvListBySource(entity, sourceRestrictSet);
+	if (entity.getEvList().size() > 0) {
+	  entitySet.add(entity);
+	}
       }
-      i++;
+      List<Entity> resultList = new ArrayList<Entity>(entitySet);
+      Collections.sort(resultList, entityComparator);
+      return resultList;
+    } catch (FileNotFoundException fnfe) {
+      throw new RuntimeException(fnfe);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    // logger.debug("exit processPassage");
-    Set<Entity> entitySet = removeSubsumingEntities(entitySet0);
-    List<Entity> resultList = new ArrayList<Entity>(entitySet);
-    Collections.sort(resultList, entityComparator);
-    return resultList;
   }
-
 
   public List<Entity> processSentences(String docid, List<Sentence> sentenceList,
 					      boolean useContext,
@@ -627,19 +656,24 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 
   public Set<BioCAnnotation> generateBioCEntitySet(String docid,
 						   List<ERToken> sentenceTokenList)
-    throws IOException, FileNotFoundException
   {
-    // logger.debug("generateEntitySet: ");
-    Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
-    Set<Entity> entitySet = 
-      removeSubsumingEntities
-      (this.processSentenceTokenList(docid, sentenceTokenList,
-				     new HashSet<String>(),
-				     new HashSet<String>()));
-    for (Entity entity: entitySet) {
-      bioCEntityList.add((BioCAnnotation)new BioCEntity(entity));
+    try {
+      // logger.debug("generateEntitySet: ");
+      Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
+      Set<Entity> entitySet = 
+	removeSubsumingEntities
+	(this.processSentenceTokenList(docid, sentenceTokenList,
+				       new HashSet<String>(),
+				       new HashSet<String>()));
+      for (Entity entity: entitySet) {
+	bioCEntityList.add((BioCAnnotation)new BioCEntity(entity));
+      }
+      return bioCEntityList;
+    } catch (FileNotFoundException fnfe) {
+      throw new RuntimeException(fnfe);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
     }
-    return bioCEntityList;
   }
 
 
