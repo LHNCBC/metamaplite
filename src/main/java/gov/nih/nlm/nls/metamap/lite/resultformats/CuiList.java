@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Properties;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
@@ -45,6 +46,9 @@ public class CuiList implements ResultFormatter {
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
     displayEntityList(writer, entityList);
+  }
+
+  public void initProperties(Properties properties) {
   }
 
 }

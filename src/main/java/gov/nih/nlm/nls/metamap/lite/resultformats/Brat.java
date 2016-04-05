@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Properties;
 
 import opennlp.tools.dictionary.serializer.Entry;
 
@@ -35,9 +36,10 @@ import opennlp.tools.dictionary.serializer.Entry;
 
 public class Brat implements ResultFormatter {
 
-  public final String defaultTextLabel = System.getProperty("metamaplite.default.label", "MMLite");
-  String textLabel = defaultTextLabel;
-
+  public static String bratEntityTypeName =
+    System.getProperty("metamaplite.brat.typename", "MMLite");
+  String textLabel = bratEntityTypeName;
+  
   static class TextBoundAnnotation {
     String id;
     String type;
@@ -232,7 +234,7 @@ public class Brat implements ResultFormatter {
 
   public static void listEntities(BioCSentence sentence) {
     PrintStream writer = System.out;
-    String recognizerName = "debug";
+    String recognizerName = bratEntityTypeName;
     Map<BioCLocation,List<BioCAnnotation>> locationMap = new HashMap<BioCLocation,List<BioCAnnotation>>();
     for (BioCAnnotation annotation: sentence.getAnnotations()) {
       for (BioCLocation location: annotation.getLocations()) {
@@ -314,13 +316,18 @@ public class Brat implements ResultFormatter {
 
   public void entityListFormatter(PrintWriter writer,
 			   List<Entity> entityList) {
-    String typeName = System.getProperty("metamaplite.result.formatter.property.brat.typename", this.textLabel);
-    writeAnnotationList(typeName, writer, entityList);
+    writeAnnotationList(this.textLabel, writer, entityList);
   }
 
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList,
 				  String annotationTypeName) {
     writeAnnotationList(annotationTypeName, writer, entityList);
+  }
+
+  public void initProperties(Properties properties) {
+       if (properties.containsKey("metamaplite.brat.typename")) {
+      bratEntityTypeName = properties.getProperty("metamaplite.brat.typename");
+    }
   }
 }

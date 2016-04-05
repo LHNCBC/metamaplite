@@ -743,7 +743,7 @@ public class MetaMapLite {
     // format output
     ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
     if (formatter != null) {
-      formatter.useProperties(this.properties);
+      formatter.initProperties(this.properties);
       formatter.entityListFormatter(pw, entityList);
     } else {
       System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
