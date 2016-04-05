@@ -17,8 +17,7 @@ import java.util.Properties;
 import gov.nih.nlm.nls.types.Annotation;
 import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
-import gov.nih.nlm.nls.metamap.lite.types.TokenListAnnotation;
-import gov.nih.nlm.nls.metamap.lite.EntityLookup3;
+import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.prefix.Scanner;
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
@@ -272,8 +271,9 @@ public class SentenceAnnotator {
       BioCAnnotation bioCToken = new BioCAnnotation();
       bioCToken.setID(Integer.toString(i));
       bioCToken.setText(token.getText());
-      BioCLocation location = new BioCLocation(passage.getOffset() + token.getPosition(), 
-					       (token.getPosition() + token.getText().length()) - token.getPosition());
+      BioCLocation location =
+	new BioCLocation(passage.getOffset() + token.getOffset(), 
+			 (token.getOffset() + token.getText().length()) - token.getOffset());
       bioCToken.addLocation(location);
       bioCToken.putInfon("type", "token");
       sentence.addAnnotation(bioCToken);
@@ -284,19 +284,32 @@ public class SentenceAnnotator {
 
   /** apply analyze text to tokenize sentence and then add tokenlist annotation to sentence.
    * @param sentence sentence to be tokenized.
-   * @deprecated
+   * @return sentence 
    */
-  @Deprecated
   public static BioCSentence tokenizeSentence(BioCSentence sentence) {
-    sentence.addAnnotation
-      (new TokenListAnnotation("",
-			       sentence.getText(),
-			       Scanner.analyzeText(sentence)));
+    int i = 0;
+    for (ERToken token: Scanner.analyzeText(sentence)) {
+      BioCAnnotation bioCToken = new BioCAnnotation();
+      bioCToken.setID(Integer.toString(i));
+      bioCToken.setText(token.getText());
+      BioCLocation location = 
+	new BioCLocation(sentence.getOffset() + token.getOffset(), 
+			 (token.getOffset() + token.getText().length()) - token.getOffset());
+      bioCToken.addLocation(location);
+      bioCToken.putInfon("type", "token");
+      sentence.addAnnotation(bioCToken);
+      i++;
+    }
     return sentence;
   }
 
-  /** precondition: sentence must contain a TokenListAnnotation. */
-  public BioCSentence addEntities(EntityLookup3 entityLookup, BioCSentence sentence)
+  /** 
+   * precondition: sentence must contain a TokenListAnnotation.
+   * @param entityLookup entityLookup class instance 
+   * @param sentence target sentence
+   * @return sentence annotated with entities
+   */
+  public BioCSentence addEntities(EntityLookup entityLookup, BioCSentence sentence)
     throws IOException
   {
     List<BioCAnnotation> originalAnnotations = sentence.getAnnotations();
@@ -333,9 +346,9 @@ public class SentenceAnnotator {
   }
 
   /** precondition: sentence must contain a TokenListAnnotation. */
-  public BioCSentence addEntities(EntityLookup3 entityLookup,
-					 BioCSentence sentence,
-  					 BioCPassage passage)
+  public BioCSentence addEntities(EntityLookup entityLookup,
+				  BioCSentence sentence,
+				  BioCPassage passage)
     throws IOException
   {
     List<BioCAnnotation> originalAnnotations = sentence.getAnnotations();
