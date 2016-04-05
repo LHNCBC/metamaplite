@@ -17,7 +17,7 @@
 
 Example of use:
 
-     $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar \
+    $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar \
           gov.nih.nlm.nls.ner.MetaMapLite \
           --indexdir=public_mm_lite/data/ivf/strict \
           --modelsdir=public_mm_lite/data/models \
@@ -27,7 +27,8 @@ Current options are:
 
   input options:
 
-      --              Read from standard input
+    --                             Read from standard input
+    --pipe                         Read from standard input
 
   Configuration Options:
 
@@ -42,30 +43,30 @@ configuration file is not present:
 
   document processing options:
 
-      --freetext      Text with no markup.
-      --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
-      --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
-      --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
-	  --inputformat=<loadername>
+    --freetext      Text with no markup.
+    --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
+    --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
+    --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
+	--inputformat=<loadername>
 
   output options:
 
-      --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
-      --mmilike|mmi               similar to MetaMap Fielded MMI output
-      --brat                      BRAT annotation format
+    --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
+    --mmilike|mmi               similar to MetaMap Fielded MMI output
+    --brat                      BRAT annotation format
 
   processing options:
 
-      --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
-      --restrict_to_sources=<source>[,<source>...]
-	  --segment_sentences=[<true>|<false>]
-      --segment_blanklines=[<true>|<false>]
-	  --usecontext                Use ConText Negation Detector
+    --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
+    --restrict_to_sources=<source>[,<source>...]
+	--segment_sentences=[<true>|<false>]
+    --segment_blanklines=[<true>|<false>]
+	--usecontext                Use ConText Negation Detector
 
   alternate output options:
 
-      --list_sentences
-      --list_acronyms
+    --list_sentences
+    --list_acronyms
 
 ## Properties
 
