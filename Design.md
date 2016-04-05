@@ -95,6 +95,33 @@ performance.
 Wendy Chapman's ConText is used for negation detection using the
 current sentence and the list of found entities.
 
+
+### An Alternative Implementation of Negation Detection
+
+#### Dealing with Conjunctions
+
+Given sentence:
+
+    "Tylenol was effective in patients without fever but effective in patients with headache."
+
+Separate utterances delimited by conjunction "but", "cause for", etc.
+
+    "Tylenol was effective in patients without fever"  (negate "fever", trigger: "without")
+    "but"
+    "effective in patients with headache"              (do not negate "headache")
+
+Given sentence:
+
+    "The patient denies chest pain but has no shortness of breath."
+
+Similarly, the independent clause delimited by the coordinating
+conjunction may each contain a negation phrase.
+
+     "The patient denies chest pain"  (negate "chest pain", trigger: "denies")
+     "but"
+     "has no shortness of breath."    (negate "shortness of breath", trigger: "no")
+
+
 ### Dictionaries
 
 MetaMapLite currently uses three dictionaries originally created for MetaMap:
