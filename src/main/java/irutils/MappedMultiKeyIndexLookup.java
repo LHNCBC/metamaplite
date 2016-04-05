@@ -22,7 +22,25 @@ import irutils.MultiKeyIndex.Record;
 
 
 /**
- * 
+ * Usage:
+ * <pre>
+ * MappedMultiKeyIndexLookup cuiSourceInfoIndex =
+ *   new MappedMultiKeyIndexLookup
+ *      (new MappedMultiKeyIndex
+ *       (properties.getProperty("metamaplite.ivf.cuisourceinfoindex", 
+ *           root + "/cuisourceinfo")));
+ * List&lt;String&gt; result = cuiSourceInfoIndex.lookup("dipalmitoylphosphatidylcholine",3);
+ * for (String record: result) {
+ *    System.out.println(record);
+ * }
+ * </pre>
+ * output:
+ * <pre>
+ *  C0000039|S0033298|7|Dipalmitoylphosphatidylcholine|LNC|CN
+ *  C0000039|S0033298|6|Dipalmitoylphosphatidylcholine|SNOMEDCT_US|OAP
+ *  C0000039|S0033298|5|Dipalmitoylphosphatidylcholine|NDFRT|SY
+ *  C0000039|S0033298|4|Dipalmitoylphosphatidylcholine|SNMI|PT
+ * </pre>
  */
 
 public class MappedMultiKeyIndexLookup {

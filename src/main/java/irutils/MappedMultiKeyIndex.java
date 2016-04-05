@@ -22,7 +22,42 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * 
+ * Dictionary and Postings (example records)
+ * <p>
+ * cuisourceinfo-3-30-term-dictionary-stats.txt:
+ * <pre>
+ *  termlength|30
+ *  reclength|46
+ *  datalength|16
+ *  recordnum|76361
+ * </pre>
+ * <p>
+ * cuisourceinfo-3-30-partition:
+ * <pre>
+ *  |            term              | # of postings | address |
+ *  +------------------------------+---------------+---------+
+ *  |dipalmitoylphosphatidylcholine|       4       | FFF4556 | 
+ * </pre>
+  * <p>
+ * cuisourceinfo-3-30-partition-offsets
+ * <pre>
+ *  | address | start |  len  |
+ *  +---------+-------+-------+
+ *  | FFF4556 |   58  |   57  |
+ *  |   ...   |  176  |   66  |
+ *  |   ...   |  279  |   59  |
+ *  |   ...   |    0  |   58  |
+ * </pre> 
+ * <p>
+ * postings
+ * <pre>
+ *  address | data 
+ *  --------+-------------------------------------------------------------------
+ *        0 | C0000039|S0033298|4|Dipalmitoylphosphatidylcholine|SNMI|PT
+ *       58 | C0000039|S0033298|7|Dipalmitoylphosphatidylcholine|LNC|CN
+ *      176 | C0000039|S0033298|6|Dipalmitoylphosphatidylcholine|SNOMEDCT_US|OAP
+ *      279 | C0000039|S0033298|5|Dipalmitoylphosphatidylcholine|NDFRT|SY
+ * </pre>
  */
 
 public class MappedMultiKeyIndex {
@@ -39,6 +74,10 @@ public class MappedMultiKeyIndex {
   /** map of stats maps for each partition, partitionName -&gt; StatsMap */
   Map<String,Map<String,String>> mapOfStatMaps = new HashMap<String,Map<String,String>>();
 
+  /**
+   * Open index using basename as name of index.
+   * @param indexDirectoryName name of directory containing index.
+   */
   public MappedMultiKeyIndex(String indexDirectoryName)
     throws FileNotFoundException, IOException
   {
@@ -54,6 +93,11 @@ public class MappedMultiKeyIndex {
     postingsInputStream.close();
   }
 
+  /**
+   * Open index using basename and use supplied name as name of index.
+   * @param workingDirectoryName name of directory containing index.
+   * @param indexname name of index.
+   */
   public MappedMultiKeyIndex(String workingDirectoryName, String indexname)
     throws FileNotFoundException, IOException
   {
@@ -69,6 +113,12 @@ public class MappedMultiKeyIndex {
     postingsInputStream.close();
   }
 
+  /**
+   * Map file to MemoryMappedByteBuffer.
+   *
+   * @param filename of file to be mapped
+   * @return memory mapped buffer of file.
+   */
   public MappedByteBuffer openMappedByteBuffer(String filename) 
     throws FileNotFoundException, IOException
   {
@@ -97,11 +147,20 @@ public class MappedMultiKeyIndex {
    * @return path of partition file.
    */
   public static String partitionPath(String workingDir, String indexname, 
-			      String columnString, String termLengthString, String suffix) {
+				     String columnString, String termLengthString, String suffix) {
     return workingDir + "/indices/" + indexname + "/" + indexname + "-" + 
       columnString + "-" + termLengthString + suffix;
   }
 
+  /**
+   * Generate path for partition
+   *
+   * @param indexDirectoryName  name of index
+   * @param columnString key column of table
+   * @param termLengthString length of indexed term
+   * @param suffix filename suffix
+   * @return path of partition file.
+   */
   public static String partitionPath(String indexDirectoryName, 
 				     String columnString, String termLengthString, String suffix) {
     String[] fields = indexDirectoryName.split("/");
@@ -168,6 +227,11 @@ public class MappedMultiKeyIndex {
 			  columnString, termLengthString, "-term-dictionary-stats.txt"));
   }
 
+  /**
+   * @param columnString table column index to use
+   * @param termLengthString length of search term
+   * @return Map of statistics keyed by type of statistic.
+   */
   public Map<String,String> getStatsMap(String columnString, String termLengthString)
     throws FileNotFoundException, IOException
   {
@@ -181,7 +245,14 @@ public class MappedMultiKeyIndex {
     }
     return statsMap;
   }
- 
+
+
+  /**
+   * Lookup term in index for specified table column.
+   * @param column  table column index to use
+   * @param term search term
+   * @return list of results matching term.
+   */
   public List<String> lookup(int column, String term)
     throws IOException, FileNotFoundException
   {
@@ -204,12 +275,15 @@ public class MappedMultiKeyIndex {
     return resultList;
   }
 
+  /**
+   * Generate SHA1 digest of input string.
+   * @param input input string
+   * @return SHA1 digest generated from input string.
+   */
   public static String sha1(String input) throws NoSuchAlgorithmException {
     MessageDigest mDigest = MessageDigest.getInstance("SHA1");
     byte[] result = mDigest.digest(input.getBytes());
     StringBuilder sb = new StringBuilder();
-    
-    
     for (int i = 0; i < result.length; i++) {
       sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
     }

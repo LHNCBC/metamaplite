@@ -46,7 +46,11 @@ public class MarkAbbreviations {
     return newEntityList;
   }
 
-  /** add any entity that are abbreviations.
+  /**
+   * add any entity that are abbreviations.
+   * @param passage text of target passage
+   * @param entityList initial list of entities 
+   * @return initial entity list with abbreviation added.
    */
   public static List<Entity> markAbbreviations(BioCPassage passage, List<Entity> entityList) {
     // add abbreviations to entity set if present
