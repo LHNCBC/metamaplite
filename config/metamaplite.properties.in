@@ -18,7 +18,6 @@ metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
 #   semantic type abbreviations separated by commas.
 # For example:
 # semantic.type.list: acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy
-semantic.type.list: acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy
 
 # OpenNLP model files 
 opennlp.en-sent.bin.path: @@basedir@@/data/models/en-sent.bin
@@ -63,3 +62,5 @@ bioc.document.loader.ncbicorpus: gov.nih.nlm.nls.metamap.document.NCBICorpusDocu
 # Excluded (special) terms
 metamaplite.excluded.termsfile: @@basedir@@/data/specialterms.txt
 
+# Negation detector
+metamaplite.negation.detector: gov.nih.nlm.nls.metamap.lite.NegEx
