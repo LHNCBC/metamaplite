@@ -1,0 +1,26 @@
+
+//
+package gov.nih.nlm.nls.metamap.lite;
+
+/**
+ *
+ */
+
+public class EntityLookupTest {
+
+  public EntityLookupTest() 
+    throws FileNotFoundException, IOException, ParseException
+  { 
+    
+  }
+
+  public void TestFindLongestMatch() 
+    throws FileNotFoundException, IOException, ParseException
+  {
+    EntityListAndTokenLength entityListAndTokenLength = 
+	    this.findLongestMatch
+	    (docid,
+	     hitList,
+	     sentenceTokenList.subList(i,Math.min(i+30,sentenceTokenList.size())));
+  }
+}
