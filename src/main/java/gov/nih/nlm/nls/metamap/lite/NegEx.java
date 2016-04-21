@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.MatchResult;
 import bioc.BioCSentence;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
+import gov.nih.nlm.nls.metamap.prefix.ERTokenImpl;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
@@ -64,8 +65,7 @@ public class NegEx implements NegationDetector {
   public List<String> extractStringsFromTokenlist(List<ERToken> tokenList) {
     List<String> stringList = new ArrayList<String>();
     for (ERToken token: tokenList) {
-      if ((! token.getTokenClass().equals("pn")) ||
-	  (! token.getTokenClass().equals("ws"))) {
+      if (! token.getTokenClass().equals("ws")) {
 	stringList.add(token.getText());
       }
     }
@@ -150,7 +150,16 @@ public class NegEx implements NegationDetector {
     return tokenPosition;
   }
 
-  boolean NoConjunctionBetweenNegaAndEntity(int entityTokenPosition,
+  /**
+   * Determine if there is not a conjunction in conjPhraseList between
+   * negationPhrase and target entity.
+   * @param entityTokenPosition text offset of target entity
+   * @param conjPhraseList list of conjunctions 
+   * @param triggerPosition text offset of negation trigger phrase
+   * @return true if there is no conjunction in conjPhraseList between
+   * negationPhrase and target entity.
+   */
+  boolean noConjunctionBetweenNegaAndEntity(int entityTokenPosition,
 					    List<NegPhraseInfo> conjPhraseList,
 					    int triggerPosition) {
     boolean status = true;
@@ -164,7 +173,16 @@ public class NegEx implements NegationDetector {
     return status;
   }
 
-  boolean NoConjunctionBetweenNegbAndEntity(int entityTokenPosition,
+  /**
+   * Determine if there is not a conjunction in conjPhraseList between
+   * negationPhrase and target entity.
+   * @param entityTokenPosition text offset of target entity
+   * @param conjPhraseList list of conjunctions 
+   * @param triggerPosition text offset of negation trigger phrase
+   * @return true if there is no conjunction in conjPhraseList between
+   * negationPhrase and target entity.
+   */
+  boolean noConjunctionBetweenNegbAndEntity(int entityTokenPosition,
 					    List<NegPhraseInfo> conjPhraseList,
 					    int triggerPosition) {
     boolean status = true;
@@ -185,7 +203,7 @@ public class NegEx implements NegationDetector {
     for (Entity entity: entityColl) {
       int entityOffset = entity.getStart();
       for (NegPhraseInfo info: negationPhraseList) {
-	System.out.println("negation info: " + info);
+	// System.out.println("negation info: " + info);
 	if (info.getType().equals("nega") || info.getType().equals("pnega")) {
 	  for (Integer negPhraseTokenPosition: info.getPositionList()) {
 	    int phraseOffset = filteredTokenlist.get(negPhraseTokenPosition.intValue()).getOffset();
@@ -197,7 +215,7 @@ public class NegEx implements NegationDetector {
 		int distance = Math.abs(entityTokenPosition - negPhraseTokenPosition.intValue());
 		if (distance <= tokenWindow) {
 		  // if no conjunction between trigger and target entity, then entity is negated.
-		  if (NoConjunctionBetweenNegaAndEntity(entityTokenPosition,
+		  if (noConjunctionBetweenNegaAndEntity(entityTokenPosition,
 							conjPhraseList,
 							negPhraseTokenPosition.intValue())) {
 		    entity.setNegated(true);
@@ -217,7 +235,7 @@ public class NegEx implements NegationDetector {
 		int distance = Math.abs(entityTokenPosition - negPhraseTokenPosition.intValue());
 		if (distance <= tokenWindow) {
 		  // if no conjunction between trigger and target entity, then entity is negated.
-		  if (NoConjunctionBetweenNegbAndEntity(entityTokenPosition,
+		  if (noConjunctionBetweenNegbAndEntity(entityTokenPosition,
 							conjPhraseList,
 							negPhraseTokenPosition.intValue())) {
 		    entity.setNegated(true);
@@ -248,12 +266,67 @@ public class NegEx implements NegationDetector {
     }
     return newEntityColl;
   }
+
   public List<ERToken> filterTokenList(List<ERToken> tokenList) {
     List<ERToken> newTokenlist = new ArrayList<ERToken>();
     for (ERToken token: tokenList) {
       if ((! token.getTokenClass().equals("ws")) &&
 	  (! token.getTokenClass().equals("pd"))) {
 	newTokenlist.add(token);
+      }
+    }
+    return newTokenlist;
+  }
+
+  public int getRangeOfMetaToken(List<ERToken> subtokenlist) {
+    int range = 0;
+    while ((range < (subtokenlist.size() - 1)) &&
+	   (subtokenlist.get(range+1).getTokenClass() != "ws") &&
+	   (subtokenlist.get(range+1).getTokenClass() != "pd")) {
+      range++;
+    }
+    return range;
+  }
+
+  /**
+   * combine tokens of the form: alpha-token dash-token alpha-token in one token.
+   */
+  public List<ERToken> addMetaTokens(List<ERToken> tokenList) {
+    List<ERToken> newTokenlist = new ArrayList<ERToken>();
+    int i = 0;
+    while ((i + 3) < tokenList.size()) {
+      if (((i + 3) < tokenList.size()) &&
+	  (tokenList.get(i).getTokenClass() != "ws") &&
+	  (tokenList.get(i+1).getTokenClass() != "ws") &&
+	  (tokenList.get(i+2).getTokenClass() != "ws") &&
+	  (tokenList.get(i+2).getTokenClass() != "pd")) {
+	int range = getRangeOfMetaToken(tokenList.subList(i+2, tokenList.size())) + 3;
+	int offset = tokenList.get(i).getOffset();
+	String tc = tokenList.get(i).getTokenClass();
+	if (range > 0) {
+	  int rend = range + i;
+	  StringBuilder sb = new StringBuilder();
+	  while ((i < rend) && (i < tokenList.size())) {
+	    sb.append(tokenList.get(i).getText());
+	    i++;
+	  }
+	  newTokenlist.add(new ERTokenImpl(sb.toString(), offset, tc));
+	} else {
+	  newTokenlist.add(tokenList.get(i));
+	  i++;
+	}
+      } else {
+	newTokenlist.add(tokenList.get(i));
+	i++;
+      }
+    }
+    if (i < tokenList.size()) {
+      newTokenlist.add(tokenList.get(i));
+      if ((i+1) < tokenList.size()) {
+	newTokenlist.add(tokenList.get(i+1));
+	if ((i+2) < tokenList.size()) {
+	  newTokenlist.add(tokenList.get(i+2));
+	}
       }
     }
     return newTokenlist;
@@ -277,7 +350,8 @@ public class NegEx implements NegationDetector {
    * @param entityColl list of entities for target sentence
    */
   public void tokenNegex(List<ERToken> tokenList, Collection<Entity> entityColl) {
-    List<ERToken> filteredTokenList = filterTokenList(tokenList);
+    List<ERToken> modTokenList = addMetaTokens(tokenList);
+    List<ERToken> filteredTokenList = filterTokenList(modTokenList);
     Collection<Entity> filteredEntityColl = filterEntityCollection(entityColl);
     List<String> tokenStringList = extractStringsFromTokenlist(filteredTokenList);
     List<NegPhraseInfo> negationPhraseList0 =
