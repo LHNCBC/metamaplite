@@ -146,7 +146,7 @@ public class NegExKeyMap {
     // post negation phrases
     negationPhraseTypeMap.put(Arrays.asList("unlikely"),"negb");
     negationPhraseTypeMap.put(Arrays.asList("has", "been", "ruled", "out"), "negb");
-    negationPhraseTypeMap.put(Arrays.asList("free"), "negb");
+    // negationPhraseTypeMap.put(Arrays.asList("free"), "negb");
     negationPhraseTypeMap.put(Arrays.asList("was", "ruled", "out"), "negb");
     negationPhraseTypeMap.put(Arrays.asList("have", "been", "ruled", "out"), "negb");
     negationPhraseTypeMap.put(Arrays.asList("are", "ruled", "out"), "negb");
