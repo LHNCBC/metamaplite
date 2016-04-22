@@ -23,18 +23,17 @@ JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$
 OPENNLP_MODELS=$PROJECTDIR/data/models
 CONFIGDIR=$PROJECTDIR/config
 
-JVMOPTS="-Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
-    -Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
+JVMOPTS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dopennlp.en-token.bin.path=$OPENNLP_MODELS/en-token.bin \
     -Dopennlp.en-pos.bin.path=$OPENNLP_MODELS/en-pos-perceptron.bin \
-    -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2-debug.xml \
-    -Dmetamaplite.property.file=$CONFIGDIR/metamaplite.properties \
+    -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
     -Dmetamaplite.entitylookup.resultlength=1500 \
     -Dmetamaplite.ivf.cuiconceptindex=$PROJECTDIR/data/ivf/strict/indices/cuiconcept \
     -Dmetamaplite.ivf.firstwordsofonewideindex=$PROJECTDIR/data/ivf/strict/indices/first_words_of_one_WIDE \
     -Dmetamaplite.ivf.cuisourceinfoindex=$PROJECTDIR/data/ivf/strict/indices/cuisourceinfo \
     -Dmetamaplite.ivf.cuisemantictypeindex=$PROJECTDIR/data/ivf/strict/indices/cuist \
-    -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars"
+    -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars \
+    -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
 
     # -Dmetamaplite.cuiconceptindex=$PROJECTDIR/data/lucenedb/strict/cuiconcept \
     # -Dmetamaplite.firstwordsofonewideindex=$PROJECTDIR/data/lucenedb/strict/first_words_of_one_WIDE \
