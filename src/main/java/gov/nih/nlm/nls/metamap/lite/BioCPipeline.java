@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,13 +22,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Set;
 import java.util.HashSet;
 
 import java.lang.reflect.InvocationTargetException;
-import org.apache.lucene.queryparser.classic.ParseException;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.Plugin;
@@ -40,7 +37,7 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.MarkAbbreviations;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
-import gov.nih.nlm.nls.metamap.lite.EntityLookup3;
+import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroupFilter;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroups;
 import gov.nih.nlm.nls.metamap.lite.EntityAnnotation;
@@ -58,11 +55,6 @@ import gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoader;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry;
 import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
-
-import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
-import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatterRegistry;
-import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
-
 import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
 import gov.nih.nlm.nls.types.Sentence;
 
@@ -97,13 +89,6 @@ import gov.nih.nlm.nls.utils.Configuration;
  * BioCDocument document = FreeText.instantiateBioCDocument("FDA has strengthened the warning ...");
  * List&lt;BioCDocument&gt; documentList = new ArrayList&lt;BioCDocument&gt;();
  * documentList.add(document);
- * List&lt;Entity&gt; entityList = pipelineInst.processDocumentList(documentList);
- * for (Entity entity: entityList) {
- *   for (Ev ev: entity.getEvSet()) {
- *	System.out.print(ev.getConceptInfo().getCUI() + "|" + entity.getMatchedText());
- *	System.out.println();
- *   }
- * }
  * </pre>
 
  */
@@ -127,11 +112,13 @@ public class BioCPipeline {
 
   AbbrConverter abbrConverter = new AbbrConverter();
   static ExtractAbbrev extractAbbr = new ExtractAbbrev();
+  static String entityLookupResultLengthString = "";
   Properties properties;
 
   boolean useContext = false;
+  boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
-  EntityLookup3 entityLookup;
+  EntityLookup entityLookup;
   boolean segmentSentences = true;
   boolean segmentBlanklines = false;
 
@@ -145,7 +132,7 @@ public BioCPipeline(Properties properties)
       SentenceExtractor.setModel(properties.getProperty("opennlp.en-sent.bin.path"));
     }
     this.sentenceAnnotator = new SentenceAnnotator(properties);
-    this.entityLookup = new EntityLookup3(properties);
+    this.entityLookup = new EntityLookup4(properties);
     BioCDocumentLoaderRegistry.register("freetext",
 					"For freetext document that are grammatically well behaved.", 
 					new FreeText());
@@ -167,19 +154,8 @@ public BioCPipeline(Properties properties)
     BioCDocumentLoaderRegistry.register("sldi",
     					"Single Line Input document sets",
     					new SingleLineDelimitedInputWithID());
-    ResultFormatterRegistry.register("brat",
-				     "BRAT Annotation format (.ann)",
-				     new Brat());
-    ResultFormatterRegistry.register("mmi",
-				     "Fielded MetaMap Indexing-like Output",
-				     new MMI());
-    ResultFormatterRegistry.register("cuilist",
-				     "UMLS CUI List Output",
-				     new CuiList());
-
     /** augment or override any built-in formats with ones specified by property file. */
     BioCDocumentLoaderRegistry.register(properties);
-    ResultFormatterRegistry.register(properties);
   }
 
   void setSemanticGroup(String[] semanticTypeList) {
@@ -267,7 +243,7 @@ public BioCPipeline(Properties properties)
   }
   
   public List<BioCDocument> processDocumentList(List<BioCDocument> documentList)
-    throws IllegalAccessException, InvocationTargetException, IOException, ParseException
+    throws IllegalAccessException, InvocationTargetException, IOException
   {
     List<BioCDocument> newDocumentList = new ArrayList<BioCDocument>();
     for (BioCDocument document: documentList) {
@@ -308,13 +284,67 @@ public BioCPipeline(Properties properties)
     return pipeline;
   }
 
+  public static void expandModelsDir(Properties properties, String modelsDir) {
+    if (modelsDir != null) {
+      properties.setProperty("opennlp.en-sent.bin.path", modelsDir + "/en-sent.bin");
+      properties.setProperty("opennlp.en-token.bin.path", modelsDir + "/en-token.bin");
+      properties.setProperty("opennlp.en-pos.bin.path", modelsDir + "/en-pos-maxent.bin");
+    }
+  }
+  public static void expandModelsDir(Properties properties) {
+    String modelsDir = properties.getProperty("opennlp.models.directory");
+    expandModelsDir(properties, modelsDir);
+  }
+  public static void expandIndexDir(Properties properties, String indexDirName) {
+    if (indexDirName != null) {
+      properties.setProperty("metamaplite.ivf.cuiconceptindex", indexDirName + "/indices/cuiconcept");
+      properties.setProperty("metamaplite.ivf.firstwordsofonewideindex", indexDirName + "/indices/first_words_of_one_WIDE");
+      properties.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirName + "/indices/cuisourceinfo");
+      properties.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirName + "/indices/cuist");
+      properties.setProperty("metamaplite.ivf.varsindex", indexDirName + "/indices/vars");
+    }
+  }
+  public static void expandIndexDir(Properties properties) {
+    String indexDirName = properties.getProperty("metamaplite.index.directory");
+    expandIndexDir(properties, indexDirName);
+  }
+  
+
+
   static void displayHelp() {
     System.err.println("usage: [options] filename");
-    System.err.println("options:");
+
+    System.err.println("input options:");
+    System.err.println("  --              Read from standard input, write to standard output");
+    System.err.println("  --pipe          Read from standard input, write to standard output");
+    System.err.println("document processing options:");
     System.err.println("  --freetext (default)");
-    System.err.println("  --ncbicorpus");
-    System.err.println("  --chemdner");
-    System.err.println("  --chemdnersldi");
+    System.err.println("  --inputformat=<document type>");
+    System.err.println("    Available document types:");
+    for (String name: BioCDocumentLoaderRegistry.listNameSet()) {
+      System.err.println("      " + name);
+    }
+
+    System.err.println("processing options:");
+    System.err.println("  --restrict_to_sts=<semtype>[,<semtype>...]");
+    System.err.println("  --restrict_to_sources=<source>[,<source>...]");
+    System.err.println("  --segment_sentences=<true|false>    set to false to disable sentence segmentation");
+    System.err.println("  --segment_blanklines=<true|false>   set to true to enable blank line segmentation");
+    System.err.println("                                      (--segment_sentences must be false.)");
+    System.err.println("  --usecontext                        Use ConText negation algorithm.");
+    // System.err.println("performance/effectiveness options:");
+    // System.err.println("  --luceneresultlen=<length>");
+    System.err.println("alternate output options:");
+    System.err.println("  --list_sentences");
+    System.err.println("  --list_acronyms");
+    System.err.println("configuration options:");
+    System.err.println("  --configfile=<filename>");
+    System.err.println("  --indexdir=<directory>");
+    System.err.println("  --modelsdir=<directory>");
+    System.err.println("  --specialtermsfile=<filename>");
+    System.err.println("  --filelistfn=<filename>");
+    System.err.println("  --filelist=<file0,file1,...>");
+
   }
 
   public static Properties getDefaultConfiguration() {
@@ -357,6 +387,45 @@ public BioCPipeline(Properties properties)
     return defaultConfiguration;
   }
 
+  static Properties setConfiguration(String propertiesFilename,
+				     Properties defaultConfiguration,
+				     Properties systemConfiguration,
+				     Properties optionsConfiguration,
+				     boolean verbose)
+    throws IOException, FileNotFoundException
+  {
+    Properties localConfiguration = new Properties();
+    File localConfigurationFile = new File(propertiesFilename);
+    if (localConfigurationFile.exists()) {
+      if (verbose) {
+	System.out.println("loading local configuration from " + localConfigurationFile);
+      }
+      localConfiguration.load(new FileReader(localConfigurationFile));
+      if (verbose) {
+	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
+      }
+    }
+    expandModelsDir(defaultConfiguration);
+    expandModelsDir(localConfiguration);
+    expandModelsDir(systemConfiguration);
+    expandModelsDir(optionsConfiguration);
+
+    expandIndexDir(defaultConfiguration);
+    expandIndexDir(localConfiguration);
+    expandIndexDir(systemConfiguration);
+    expandIndexDir(optionsConfiguration);
+
+    // displayProperties("defaultConfiguration:", defaultConfiguration);
+    // displayProperties("localConfiguration:", localConfiguration);
+    // displayProperties("optionsConfiguration:", optionsConfiguration);
+
+    Properties properties =
+      Configuration.mergeConfiguration(defaultConfiguration,
+				       localConfiguration,
+				       systemConfiguration,
+				       optionsConfiguration);
+    return properties;
+  }
   
 
   /**
@@ -406,50 +475,115 @@ public BioCPipeline(Properties properties)
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException,
-	   ParseException , InvocationTargetException {
-
+	   InvocationTargetException {
+    Properties defaultConfiguration = getDefaultConfiguration();
     if (args.length > 0) {
-      BioCPipeline pipeline = initPipeline();
+      boolean verbose = false;
+      boolean inputFromStdin = false;
       List<String> filenameList = new ArrayList<String>();
-      String processingOption = "--freetext";
-      String displayOption = "--mmi";
-      String outputFile = null;
-      String entityLookupResultLengthString = "";
+      String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
+      Properties optionsConfiguration = new Properties();
       int i = 0;
       while (i < args.length) {
-	if (args[i].equals("--chemdnersldi")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--chemdner")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--ncbicorpus")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--freetext")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--sli")) {
-	  processingOption = args[i];
-	} else if (args[i].equals("--bc-evaluate") ||
-		   args[i].equals("--bioc") ||
-		   args[i].equals("--bc") ||
-		   args[i].equals("--cdi")) {
-	  displayOption = args[i];
-	} else if (args[i].equals("--mmi") || 
-		   args[i].equals("--mmilike")) {
-	  displayOption = args[i];
-	} else if (args[i].equals("--brat") || 
-		   args[i].equals("--BRAT")) {
-	  displayOption = args[i];
-	} else if (args[i].equals("--luceneresultlen")) {
-	  i++;
-	  entityLookupResultLengthString = args[i];
-	} else if (args[i].equals("--help")) {
-	  displayHelp();
-	  System.exit(1);
+	if (args[i].substring(0,2).equals("--")) {
+	  String[] fields = args[i].split("=");
+	  if (fields[0].equals("--") ||
+	      fields[0].equals("--pipe")) {
+	    inputFromStdin = true;
+	  } else if (fields[0].equals("--configfile") ||
+	      fields[0].equals("--propertiesfile")) {
+	    propertiesFilename = fields[1];
+	  } else if (fields[0].equals("--log4jconfig")) {
+	    optionsConfiguration.setProperty ("metamaplite.log4jconfig",fields[1]);
+	  } else if (fields[0].equals("--indexdir")) {
+	    optionsConfiguration.setProperty ("metamaplite.index.directory",fields[1]);
+	  } else if (fields[0].equals("--modelsdir")) {
+	    optionsConfiguration.setProperty ("opennlp.models.directory",fields[1]);
+	  } else if (fields[0].equals("--specialtermsfile")) {
+	    optionsConfiguration.setProperty ("metamaplite.excluded.termsfile",fields[1]);
+	  } else if (fields[0].equals("--inputdocformat") ||
+		     fields[0].equals("--inputformat")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype",fields[1]);
+	  } else if (fields[0].equals("--segment_sentences")) {
+	    optionsConfiguration.setProperty ("metamaplite.segment.sentences",fields[1]);
+	  } else if (fields[0].equals("--segment_blanklines")) {
+	    optionsConfiguration.setProperty ("metamaplite.segment.blanklines",fields[1]);
+	  } else if (fields[0].equals("--freetext")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
+	  } else if (fields[0].equals("--chemdnersldi")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","chemdnersldi");
+	  } else if (fields[0].equals("--chemdner")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","chemdner");
+	  } else if (fields[0].equals("--ncbicorpus")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","ncbicorpus");
+	  } else if (fields[0].equals("--sli")) {
+	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","sli");
+	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
+		     fields[0].equals("--restrict-to-sts") ||
+		     fields[0].equals("--restrict_to_semantic_types") ||
+		     fields[0].equals("--restrict_to_sts")) {
+	    optionsConfiguration.setProperty("metamaplite.semanticgroup", fields[1]);
+	  } else if (fields[0].equals("--restrict-to-sources") ||
+		     fields[0].equals("--restrict-to-src") ||
+		     fields[0].equals("--restrict_to_sources") ||
+		     fields[0].equals("--restrict_to_src")) {
+	    optionsConfiguration.setProperty("metamaplite.sourceset", fields[1]);
+	  } else if (fields[0].equals("--usecontext")) {
+	    if (fields.length > 1) {
+	      optionsConfiguration.setProperty("metamaplite.usecontext", fields[1]);
+	    } else {
+	      optionsConfiguration.setProperty("metamaplite.usecontext", "true");
+	    }
+	  } else if (fields[0].equals("--filelist")) {
+	    if (fields.length < 2) {
+	      System.err.println("missing argument in \"" + fields[0] + "\" option");
+	    } else {
+	      optionsConfiguration.setProperty("metamaplite.inputfilelist", fields[1]);
+	    }
+	  } else if (fields[0].equals("--filelistfn") ||
+		     fields[0].equals("--filelistfilename")) {
+	    if (fields.length < 2) {
+	      System.err.println("missing argument in \"" + args[i] + "\" option");
+	    } else {
+	      optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
+	    }
+	  } else if (fields[0].equals("--list_sentences")) {
+	    optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
+	  } else if (fields[0].equals("--list_acronyms")) {
+	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
+	  } else if (fields[0].equals("--list_sentences_postags")) {
+	    optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
+	  } else if (fields[0].equals("--output_extension")) {
+	    optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);	    
+	  } else if (args[i].equals("--verbose")) {
+	    verbose = true;
+	  } else if (args[i].equals("--help")) {
+	    Properties properties = setConfiguration(propertiesFilename,
+						     defaultConfiguration,
+						     System.getProperties(),
+						     optionsConfiguration,
+						     verbose);
+	    BioCDocumentLoaderRegistry.register(properties);
+	    displayHelp();
+	    System.exit(1);
+	  } else {
+	    System.err.println("unknown option: " + args[i]);
+	    System.exit(1);
+	  }
 	} else {
-	  filenameList.add(args[i]);
+	  if (inputFromStdin) {
+	    System.err.println("unexpected filename in command line argument list: " + args[i]);
+	  } else {
+	    filenameList.add(args[i]);
+	  }
 	}
 	i++;
       }
 
+
+      BioCPipeline pipeline = initPipeline();
+
+      
       if (entityLookupResultLengthString.length() > 0) {
 	System.setProperty("metamaplite.entitylookup.resultlength", 
 			   entityLookupResultLengthString);
@@ -457,19 +591,19 @@ public BioCPipeline(Properties properties)
 
       logger.info("Loading and processing documents");
       List<BioCDocument> newDocumentList = new ArrayList<BioCDocument>();;
-      if (processingOption.equals("--chemdnersldi")) {
+      if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("chemdnersldi")) {
 	List<BioCDocument> documentList = ChemDNERSLDI.bioCLoadSLDIFile(filenameList.get(0));
 	/*CHEMDNER SLDI style documents*/
 	newDocumentList = pipeline.processDocumentList(documentList);
-      } else if (processingOption.equals("--chemdner")) {
+      } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("chemdner")) {
 	List<BioCDocument> documentList = ChemDNER.bioCLoadFile(filenameList.get(0));
 	/*CHEMDNER SLDI style documents*/
 	newDocumentList = pipeline.processDocumentList(documentList);
-      } else if (processingOption.equals("--ncbicorpus")) {
+      } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("ncbicorpus")) {
 	List<BioCDocument> documentList = NCBICorpusDocument.bioCLoadFile(filenameList.get(0));
 	/*CHEMDNER SLDI style documents*/
 	newDocumentList = pipeline.processDocumentList(documentList);
-      } else if (processingOption.equals("--freetext")) {
+      } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("freetext")) {
 
 	// String inputtext = FreeText.loadFile(filenameList.get(0));
 	// BioCDocument document = new BioCDocument();
@@ -485,13 +619,10 @@ public BioCPipeline(Properties properties)
 	
 	List<BioCDocument> documentList = FreeText.loadFreeTextFile(filenameList.get(0));
 	newDocumentList = pipeline.processDocumentList(documentList);
-      } else if (processingOption.equals("--sli")) {
+      } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("sli")) {
 	List<BioCDocument> documentList = SingleLineInput.bioCLoadFile(filenameList.get(0));
 	/*Single line documents*/
 	newDocumentList = pipeline.processDocumentList(documentList);
-      } else if (processingOption.equals("--help")) {
-	displayHelp();
-	System.exit(1);
       } 
       logger.debug("document list length: " + newDocumentList.size());
       for (BioCDocument doc: newDocumentList) {
@@ -500,15 +631,15 @@ public BioCPipeline(Properties properties)
 
       logger.info("outputing results ");
 
-      if (displayOption.equals("--bc-evaluate") ||
-	  displayOption.equals("--bc") ||
-	  displayOption.equals("--bioc") ||
-	  displayOption.equals("--cdi")) {
+      if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("bc-evaluate") ||
+	  optionsConfiguration.getProperty("metamaplite.outputformat").equals("bc") ||
+	  optionsConfiguration.getProperty("metamaplite.outputformat").equals("bioc") ||
+	  optionsConfiguration.getProperty("metamaplite.outputformat").equals("cdi")) {
 	logger.info("writing BC evaluate format file...");
 	for (BioCDocument document: newDocumentList) {
 	  EntityLookup1.writeBcEvaluateAnnotations(System.out, document);
 	}
-      } else if (displayOption.equals("--brat")) {
+      } else if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("brat")) {
 	logger.debug("writing mmi format output");
 	for (BioCDocument document: newDocumentList) {
 	  Brat.writeBratAnnotations("BioCPipeline",
@@ -517,7 +648,7 @@ public BioCPipeline(Properties properties)
 					     (new OutputStreamWriter(System.out))), 
 					    document);
 	}
-      } else if (displayOption.equals("--mmi")) {
+      } else if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("mmi")) {
 	logger.debug("writing mmi format output");
 	for (BioCDocument document: newDocumentList) {
 	  EntityLookup1.writeEntities(System.out, document);
