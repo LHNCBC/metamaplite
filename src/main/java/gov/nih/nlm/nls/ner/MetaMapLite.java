@@ -60,7 +60,7 @@ import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatterRegistry;
 
-import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
+// import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
 import gov.nih.nlm.nls.types.Sentence;
 
 import bioc.BioCDocument;
@@ -109,20 +109,20 @@ import gov.nih.nlm.nls.utils.Configuration;
  *   <li>MetaMap property file</li>
  * </ul>
  * <p>
- * General Properties:
+ * Configuration Properties:
  * <dl>
  * <dt>metamaplite.semanticgroup</dt><dd>restrict output to concepts with specified semantic types</dd>
  * <dt>metamaplite.sourceset</dt><dd>restrict output to concepts in specified sources</dd>
- * <dt>metamaplite.usecontext</dt><dd>if true, then use ConText to find negated concepts.</dd>
- * <dt>metamaplite.segment.sentences</dt><dd>if true, break document up into sentences.</dd>
- * <dt>metamaplite.segment.blankline</dt><dd>if true, break document up into seqments delimited by blanklines.</dd>
- * <dt>metamaplite.index.directory</dt><dd>parent location of metamap indexes, can be overriden by metamaplist.ivf.* properties</dd>
+ * <dt>metamaplite.segmentation.method</dt><dd>Set method for text segmentation (values: SENTENCES, BLANKLINES, LINES; default: SENTENCES)</dd>
+ * <dt>metamaplite.negation.detector</dt><dd>negation detector class: default: gov.nih.nlm.nls.metamap.lite.NegEx</dd>
  * <dt>opennlp.models.directory</dt><dd>parent location of opennlp models</dd>
+ * <dt>opennlp.en-pos.bin.path</dt><dd> path for part-of-speech model (default: data/models/en-pos-maxent.bin)</dd>
+ * <dt>metamaplite.index.directory</dt><dd>parent location of metamap indexes, (sets the following properties)</dd>
  * <dt>metamaplite.ivf.cuiconceptindex</dt><dd>location of cui-concept index</dd>
  * <dt>metamaplite.ivf.cuisourceinfoindex</dt><dd>location of cui-sourceinfo index</dd>
  * <dt>metamaplite.ivf.cuisemantictypeindex</dt><dd>location of cui-semantictype index</dd>
- * <dt></dt><dd></dd>
- * <dt></dt><dd></dd>
+ * <dt>metamaplite.document.inputtype</dt><dd>document input type (default: freetext)</dd>
+ * <dt>metamaplite.property.file</dt><dd>load configuration from file (default: ./config/metamaplite.properties)</dd>
  * <dt></dt><dd></dd>
  * </dl>
  * <p>
@@ -185,12 +185,16 @@ public class MetaMapLite {
   static ExtractAbbrev extractAbbr = new ExtractAbbrev();
   Properties properties;
 
-  boolean useContext = false;
   boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
   EntityLookup entityLookup;
-  boolean segmentSentences = true;
-  boolean segmentBlanklines = false;
+  enum SegmentatonType {
+    SENTENCES,
+    BLANKLINES,
+    LINES
+  };
+
+  SegmentatonType segmentationMethod = SegmentatonType.SENTENCES;
 
   public MetaMapLite(Properties properties)
     throws ClassNotFoundException, InstantiationException, 
@@ -247,12 +251,14 @@ public class MetaMapLite {
     this.sourceSet = new HashSet<String>(Arrays.asList(sourceList));
   }
 
-  void setSegmentSentences(boolean status) {
-    this.segmentSentences = status;
-  }
-  
-  void setSegmentBlanklines(boolean status) {
-    this.segmentBlanklines = status;
+  void setSegmentationMethod(String typeName) {
+    if (typeName.equals("SENTENCES")) {
+      this.segmentationMethod = SegmentatonType.SENTENCES;
+    } else if (typeName.equals("BLANKLINES")) {
+      this.segmentationMethod = SegmentatonType.BLANKLINES;
+    } else if (typeName.equals("LINES")) {
+      this.segmentationMethod = SegmentatonType.LINES;
+    }
   }
 
   /**
@@ -277,11 +283,10 @@ public class MetaMapLite {
       result = SemanticGroupFilter.keepEntitiesInSemanticGroup
 	(this.semanticGroup, result0);
     }
-    // look for negation and other relations using Context.
-    if (this.detectNegationsFlag) {
-      
-      // ContextWrapper.applyContext(result);
-    }
+    // // look for negation and other relations using Context.
+    // if (this.detectNegationsFlag) {
+    //    ContextWrapper.applyContext(result);
+    // }
 
     // System.out.println("filtered entity list: ");
     // Brat.listEntities(result);
@@ -317,14 +322,21 @@ public class MetaMapLite {
     logger.debug("enter processPassage");
     logger.debug(passage.getText());
     BioCPassage passage0;
-    if (segmentSentences) {
+    List<BioCSentence> sentenceList;
+    int offset;
+    int passageOffset;
+    String text;
+    String[] segmentList;
+    switch (segmentationMethod) {
+    case SENTENCES:
       passage0 = SentenceExtractor.createSentences(passage);
-    } else if (segmentBlanklines) {
-      List<BioCSentence> sentenceList = new ArrayList<BioCSentence>();
-      int offset = passage.getOffset();
-      int passageOffset = passage.getOffset();
-      String text = passage.getText();
-      String[] segmentList = text.split("\n\n");
+      break;
+    case BLANKLINES:
+      sentenceList = new ArrayList<BioCSentence>();
+      offset = passage.getOffset();
+      passageOffset = passage.getOffset();
+      text = passage.getText();
+      segmentList = text.split("\n\n");
       for (String segment: segmentList) {
 	BioCSentence sentence = new BioCSentence();
 	offset = text.indexOf(segment, offset);
@@ -336,10 +348,31 @@ public class MetaMapLite {
 	offset = segment.length(); 
       }
       passage0 = passage;
-    } else {
+      break;
+    case LINES:
+      sentenceList = new ArrayList<BioCSentence>();
+      offset = passage.getOffset();
+      passageOffset = passage.getOffset();
+      text = passage.getText();
+      segmentList = text.split("\n");
+      for (String segment: segmentList) {
+	offset = text.indexOf(segment, offset);
+	if (segment.trim().length() > 0) {
+	  BioCSentence sentence = new BioCSentence();
+	  sentence.setOffset(offset);
+	  sentence.setText(segment);
+	  sentence.setInfons(passage.getInfons());
+	  sentenceList.add(sentence);
+	  passage.addSentence(sentence);
+	}
+	offset = segment.length(); // preserve offsets even for blank lines.
+      }
+      passage0 = passage;
+      break;
+    default:
       // copy entire text of passage into one sentence
-      List<BioCSentence> sentenceList = new ArrayList<BioCSentence>();
-      int offset = passage.getOffset();
+      sentenceList = new ArrayList<BioCSentence>();
+      offset = passage.getOffset();
       BioCSentence sentence = new BioCSentence();
       sentence.setText(passage.getText());
       sentence.setOffset(offset);
@@ -347,6 +380,7 @@ public class MetaMapLite {
       sentenceList.add(sentence);
       passage.addSentence(sentence);
       passage0 = passage;
+      break;
     }
     //BioCPassage passageWithSentsAndAbbrevs = abbrConverter.getPassage(passage0);
     BioCPassage passageWithSentsAndAbbrevs = new BioCPassage();
@@ -376,7 +410,7 @@ public class MetaMapLite {
       (passageWithSentsAndAbbrevs,
        this.entityLookup.processPassage
        ((passage.getInfon("section") != null) ? passage.getInfon("section") : "text",
-	passageWithSentsAndAbbrevs, this.useContext, this.semanticGroup, this.sourceSet));
+	passageWithSentsAndAbbrevs, this.detectNegationsFlag, this.semanticGroup, this.sourceSet));
     logger.debug("exit processPassage");
     return entityList;
   }
@@ -463,10 +497,11 @@ public class MetaMapLite {
     System.err.println("processing options:");
     System.err.println("  --restrict_to_sts=<semtype>[,<semtype>...]");
     System.err.println("  --restrict_to_sources=<source>[,<source>...]");
-    System.err.println("  --segment_sentences=<true|false>    set to false to disable sentence segmentation");
-    System.err.println("  --segment_blanklines=<true|false>   set to true to enable blank line segmentation");
-    System.err.println("                                      (--segment_sentences must be false.)");
-    System.err.println("  --usecontext                        Use ConText negation algorithm.");
+    System.err.println("  --segmentation_method=SENTENCES|BLANKLINES|LINES    set method for text segmentation");
+    System.err.println("  --segment_sentences    Set method for text segmentation to sentences");
+    System.err.println("  --segment_blanklines   Set method for text segmentation to each blanklines");
+    System.err.println("  --segment_lines        Set method for text segmentation to each line");
+    System.err.println("  --usecontext           Use ConText negation algorithm.");
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
@@ -527,8 +562,7 @@ public class MetaMapLite {
     defaultConfiguration.setProperty("metamaplite.outputextension",  ".mmi");
     defaultConfiguration.setProperty("metamaplite.semanticgroup", "all");
     defaultConfiguration.setProperty("metamaplite.sourceset", "all");
-    defaultConfiguration.setProperty("metamaplite.usecontext", "true");
-    defaultConfiguration.setProperty("metamaplite.segment.sentences", "true");
+    defaultConfiguration.setProperty("metamaplite.segmentation.method", "SENTENCES");
 
     defaultConfiguration.setProperty("opennlp.en-sent.bin.path", 
 				     modelsDirectory + "/en-sent.bin");
@@ -562,6 +596,8 @@ public class MetaMapLite {
 				     "gov.nih.nlm.nls.metamap.lite.resultformats.Brat");
     defaultConfiguration.setProperty("metamaplite.result.formatter.mmi",
 				     "gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI");
+    defaultConfiguration.setProperty("metamaplite.negation.detector",
+				     "gov.nih.nlm.nls.metamap.lite.NegEx");
     return defaultConfiguration;
   }
 
@@ -822,10 +858,14 @@ public class MetaMapLite {
 	  } else if (fields[0].equals("--inputdocformat") ||
 		     fields[0].equals("--inputformat")) {
 	    optionsConfiguration.setProperty ("metamaplite.document.inputtype",fields[1]);
+	  } else if (fields[0].equals("--segmentation_method")) {
+	    optionsConfiguration.setProperty ("metamaplite.segmentation.method",fields[1]);
 	  } else if (fields[0].equals("--segment_sentences")) {
-	    optionsConfiguration.setProperty ("metamaplite.segment.sentences",fields[1]);
+	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","SENTENCES");
 	  } else if (fields[0].equals("--segment_blanklines")) {
-	    optionsConfiguration.setProperty ("metamaplite.segment.blanklines",fields[1]);
+	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","BLANKLINES");
+	  } else if (fields[0].equals("--segment_lines")) {
+	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","LINES");
 	  } else if (fields[0].equals("--freetext")) {
 	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
 	  } else if (fields[0].equals("--outputformat")) {
@@ -858,12 +898,11 @@ public class MetaMapLite {
 		     fields[0].equals("--restrict_to_sources") ||
 		     fields[0].equals("--restrict_to_src")) {
 	    optionsConfiguration.setProperty("metamaplite.sourceset", fields[1]);
+	  } else if (fields[0].equals("--negationDetectorClass")) {
+	    optionsConfiguration.setProperty("metamaplite.negation.detector", fields[1]);
 	  } else if (fields[0].equals("--usecontext")) {
-	    if (fields.length > 1) {
-	      optionsConfiguration.setProperty("metamaplite.usecontext", fields[1]);
-	    } else {
-	      optionsConfiguration.setProperty("metamaplite.usecontext", "true");
-	    }
+	    optionsConfiguration.setProperty("metamaplite.negation.detector",
+					     "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper");
 	  } else if (fields[0].equals("--brat_type_name")) {
 	    optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
 	  } else if (args[i].equals("--filelist")) {
@@ -931,8 +970,8 @@ public class MetaMapLite {
       metaMapLiteInst.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
       System.setProperty("metamaplite.result.formatter.property.brat.typename",
 			 properties.getProperty("metamaplite.result.formatter.property.brat.typename", "metamaplite"));
-      metaMapLiteInst.useContext = 
-	Boolean.parseBoolean(properties.getProperty("metamaplite.usecontext", "false"));
+      metaMapLiteInst.detectNegationsFlag = 
+	Boolean.parseBoolean(properties.getProperty("metamaplite.detect.negations", "true"));
       boolean listSentences =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
       boolean listAcronyms =
@@ -940,10 +979,8 @@ public class MetaMapLite {
       boolean listSentencesWithPosTags =
 	Boolean.parseBoolean(properties.getProperty
 			     ("metamaplite.list.sentences.with.postags", "false"));
-      metaMapLiteInst.setSegmentSentences
-	(Boolean.parseBoolean(properties.getProperty("metamaplite.segment.sentences","true")));
-      metaMapLiteInst.setSegmentBlanklines
-	(Boolean.parseBoolean(properties.getProperty("metamaplite.segment.blanklines","false")));
+      metaMapLiteInst.setSegmentationMethod
+	(properties.getProperty("metamaplite.segmentation.method","SENTENCE"));
 
       String inputfileListPropValue = properties.getProperty("metamaplite.inputfilelist");
       if (inputfileListPropValue != null) {

@@ -46,8 +46,9 @@ configuration file is not present:
     --freetext      Text with no markup.
     --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
     --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
-    --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id | title \t abstract
+    --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id |t title \t abstract
 	--inputformat=<loadername>
+	                Use input format specified by loader name.
 
   output options:
 
@@ -59,24 +60,31 @@ configuration file is not present:
 
     --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
     --restrict_to_sources=<source>[,<source>...]
-	--segment_sentences=[<true>|<false>]
-    --segment_blanklines=[<true>|<false>]
-	--usecontext                Use ConText Negation Detector
+    --segmentation_method=SENTENCES|BLANKLINES|LINES
+                           Set method for text segmentation
+	--segment_sentences    Segment text by sentence
+    --segment_blanklines   Segment text by blankline
+    --segment_lines        Segment text by line
+	--usecontext           Use ConText Negation Detector instead of NLM's implementation of NegEx
+	--negationDetectorClass=className
+	                       Use a user-defined class for negation detector, class must implement to
+	                       gov.nih.nlm.nls.metamap.lite.NegationDetector interface.
 
   alternate output options:
 
-    --list_sentences
-    --list_acronyms
+    --list_sentences          list sentences in input
+    --list_acronyms           list acronyms in input if present.
+    --list_sentences_postags  list sentences in input with part-of-speech tags
+
 
 ## Properties
 
 ### Processing properties
 
-    | metamaplite.segment.sentences         | use sentence segmenter (default: true)
-    | metamaplite.segment.blanklines        | segment using blankline as separator. (default: false)
+    | metamaplite.segmentation.method       | Set method for text segmentation (values: SENTENCES, BLANKLINES, LINES; default: SENTENCES)
     | metamaplite.sourceset                 | use only concepts from listed sources (default: all)
     | metamaplite.semanticgroup             | use only concepts belonging to listed semantic types (default: all)
-    | metamaplite.usecontext                | Use ConText for negation detection (default: true)
+	| metamaplite.negation.detector         | negation detector class: default: gov.nih.nlm.nls.metamap.lite.NegEx
 
 ### Configuration properties
 
@@ -97,8 +105,6 @@ configuration file is not present:
     | metamaplite.outputextension           | result output file extension (default: .mmi)
     | metamaplite.property.file             | load configuration from file (default: ./config/metamaplite.properties)
     | metamaplite.outputformat              | result output format (default: mmi)
-
-
 
 ## Using MetaMap from Java
 
