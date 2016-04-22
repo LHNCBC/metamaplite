@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# PROJECTDIR=/net/indlx1/export/home/wjrogers/Projects/metamaplite
 PROJECTDIR=$(dirname $0)
 
 BIOC=$PROJECTDIR/lib/bioc-1.0.1.jar
@@ -19,7 +18,6 @@ IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
 
 JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS
 
-# OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
 OPENNLP_MODELS=$PROJECTDIR/data/models
 CONFIGDIR=$PROJECTDIR/config
 
@@ -34,12 +32,6 @@ JVMOPTS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dmetamaplite.ivf.cuisemantictypeindex=$PROJECTDIR/data/ivf/strict/indices/cuist \
     -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars \
     -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
-
-    # -Dmetamaplite.cuiconceptindex=$PROJECTDIR/data/lucenedb/strict/cuiconcept \
-    # -Dmetamaplite.firstwordsofonewideindex=$PROJECTDIR/data/lucenedb/strict/first_words_of_one_WIDE \
-    # -Dmetamaplite.cuisourceinfoindex$PROJECTDIR/data/lucenedb/strict/cui_sourceinfo \
-    # -Dmetamaplite.cuisemantictypeindex=$PROJECTDIR/data/lucenedb/strict/cui_st \
-    # -Dmetamaplite.varsindex=$PROJECTDIR/data/lucenedb/strict/vars"
 
 java -Xmx12g -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
 

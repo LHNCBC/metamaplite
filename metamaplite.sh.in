@@ -29,7 +29,7 @@ JVMOPTS="-Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dlog4j.configurationFile=file://$PROJECTDIR/config/log4j2.xml \
     -Dmetamaplite.property.file=$CONFIGDIR/metamaplite.properties \
     -Dmetamaplite.entitylookup.resultlength=1500 \
-    -Dmetamaplite.varsindex=$PROJECTDIR/data/lucenedb/strict/vars"
+    -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
 
 java -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
 
