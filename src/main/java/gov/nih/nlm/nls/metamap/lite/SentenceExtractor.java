@@ -128,24 +128,37 @@ public class SentenceExtractor
     return sentenceList;
   }
 
+  public static int addBioCSentence(BioCPassage passage,
+				    String sentenceText, int offset, Map<String,String> infoNS) {
+    BioCSentence sentence = new BioCSentence();
+    sentence.setText(sentenceText);
+    sentence.setOffset(offset);
+    sentence.setInfons(infoNS);
+    passage.addSentence(sentence);
+    offset = offset + sentenceText.length() + 1;
+    return offset;
+  }
+
   public static BioCPassage createSentences(BioCPassage passage) {
     logger.debug("createSentenceList");
     int sentenceCount = 0;
     int offset = passage.getOffset();
     String[] sentenceArray = sentenceDetector.sentDetect(passage.getText());
-    List<BioCSentence> sentenceList = new ArrayList<BioCSentence>();
     for (String sentenceText: sentenceArray) {
-      BioCSentence sentence = new BioCSentence();
-      sentence.setText(sentenceText);
-      sentence.setOffset(offset);
-      sentence.setInfons(passage.getInfons());
-      sentenceList.add(sentence);
-      offset = offset + sentenceText.length() + 1;
-      sentenceCount++;
-    }
-    // passage.setSentences(sentenceList);
-    for (BioCSentence sentence: sentenceList) {
-      passage.addSentence(sentence);
+      // If sentence contains a semi-colon then split the sentence
+      // into two utterances and add each to the passage, preserving
+      // whitespace.
+      int semicolonIndex = sentenceText.indexOf(";");
+      if (semicolonIndex > 3) {
+	String[] utteranceArray = sentenceText.split(";");
+	for (String utteranceText: utteranceArray) {
+	  offset = addBioCSentence(passage, utteranceText, offset, passage.getInfons());
+	  sentenceCount++;
+	}
+      } else {
+	offset = addBioCSentence(passage, sentenceText, offset, passage.getInfons());
+	sentenceCount++;
+      }
     }
     return passage;
   }
