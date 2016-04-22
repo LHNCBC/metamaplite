@@ -60,6 +60,6 @@ public class ERTokenImpl extends PosTokenImpl implements Token, PosToken, Classi
   }
   
   public String toString() {
-    return this.tokenText + "|" + this.offset + "|" + this.partOfSpeech;
+    return this.tokenText + "|" + this.tokenClass + "|" + this.offset + "|" + this.partOfSpeech;
   }
 }
