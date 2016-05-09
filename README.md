@@ -1,5 +1,10 @@
 # MetaMap Lite: A lighter named-entity recognizer
 
+The primary goal of MetaMapLite to provide a near real-time
+named-entity recognizer which is not a rigorous as MetaMap but much
+faster while allowing users to customize and augment its behavior for
+specific purposes.
+
 ## Prerequisites
 
 ### For running
