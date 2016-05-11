@@ -67,10 +67,13 @@ public class EntityLookup4 implements EntityLookup {
   /** cui column for semantic type and cuisourceinfo index */
   int cuiColumn = 0;		
   SpecialTerms excludedTerms = new SpecialTerms();
-  static final int MAX_TOKEN_SIZE = Integer.parseInt(System.getProperty("metamaplite.entitylookup3.maxtokensize","15"));
+  int MAX_TOKEN_SIZE =
+    Integer.parseInt(System.getProperty("metamaplite.entitylookup3.maxtokensize","15"));
 
   SentenceAnnotator sentenceAnnotator;
   NegationDetector negationDetector;
+  boolean addPartOfSpeechTagsFlag =
+    Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
   
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
@@ -81,6 +84,7 @@ public class EntityLookup4 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("JJ");
     this.allowedPartOfSpeechSet.add("JJR");
     this.allowedPartOfSpeechSet.add("JJS");
+    this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
 
   public EntityLookup4() 
@@ -96,7 +100,13 @@ public class EntityLookup4 implements EntityLookup {
     throws IOException, FileNotFoundException
   {
     this.mmIndexes = new MetaMapIvfIndexes(properties);
-    this.sentenceAnnotator = new SentenceAnnotator(properties);
+
+    addPartOfSpeechTagsFlag =
+      Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
+						  Boolean.toString(addPartOfSpeechTagsFlag)));
+    if (addPartOfSpeechTagsFlag) {
+      this.sentenceAnnotator = new SentenceAnnotator(properties);
+    }
 
     // Instantiate user-specified negation detector if present,
     // otherwise use ConText.
@@ -123,6 +133,9 @@ public class EntityLookup4 implements EntityLookup {
     } else if (System.getProperty("metamaplite.excluded.termsfile") != null) {
       this.excludedTerms.addTerms(System.getProperty("metamaplite.excluded.termsfile"));
     }
+    MAX_TOKEN_SIZE =
+      Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
+					      Integer.toString(MAX_TOKEN_SIZE)));
   }
 
   /** cache of string -&gt; concept and attributes */
@@ -595,7 +608,8 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
   }
 
   /** Process passage */
-  public List<Entity> processPassage(String docid, BioCPassage passage, boolean detectNegationsFlag,
+  public List<Entity> processPassage(String docid, BioCPassage passage,
+				     boolean detectNegationsFlag,
 				     Set<String> semTypeRestrictSet,
 				     Set<String> sourceRestrictSet) 
   {
@@ -605,7 +619,9 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       int i = 0;
       for (BioCSentence sentence: passage.getSentences()) {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
-	sentenceAnnotator.addPartOfSpeech(tokenList);
+	if (this.addPartOfSpeechTagsFlag) {
+	  sentenceAnnotator.addPartOfSpeech(tokenList);
+	}
 	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
@@ -651,7 +667,9 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     int i = 0;
     for (Sentence sentence: sentenceList) {
       List<ERToken> tokenList = Scanner.analyzeText(sentence);
-      sentenceAnnotator.addPartOfSpeech(tokenList);
+      if (this.addPartOfSpeechTagsFlag) {
+	sentenceAnnotator.addPartOfSpeech(tokenList);
+      }
       Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
 								    semTypeRestrictSet,
 								    sourceRestrictSet);

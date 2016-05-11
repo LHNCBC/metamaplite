@@ -502,6 +502,7 @@ public class MetaMapLite {
     System.err.println("  --segment_blanklines   Set method for text segmentation to each blanklines");
     System.err.println("  --segment_lines        Set method for text segmentation to each line");
     System.err.println("  --usecontext           Use ConText negation algorithm.");
+    System.err.println("  --enable_postagging=[true|false]  Use part-of-speech tagging (default: true).");
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
@@ -903,6 +904,8 @@ public class MetaMapLite {
 	  } else if (fields[0].equals("--usecontext")) {
 	    optionsConfiguration.setProperty("metamaplite.negation.detector",
 					     "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper");
+	  } else if (fields[0].equals("--enable_postagging")) {
+	    optionsConfiguration.setProperty("metamaplite.enable.postagging",fields[1]);
 	  } else if (fields[0].equals("--brat_type_name")) {
 	    optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
 	  } else if (args[i].equals("--filelist")) {
