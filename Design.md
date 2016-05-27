@@ -551,3 +551,37 @@ Second run (ii-server6):
     2149.859u 230.497s 41:28.33 95.6%	0+0k 0+7760io 0pf+0w
 
 42 minutes
+
+
+Segmentation
+
+myProperties.setProperty("metamaplite.segmentation.method", methodname);
+
+
+Times for songs collection using various segmentation methods
+
+ program        | method     | time1           | time2
+---------------------------------------------------------------
+test.MMLtest    | SENTENCES  | real	0m50.637s  | real	0m49.971
+                |            | user	1m12.791s  | user	1m13.957s
+                |            | sys	0m2.068s   | sys	0m2.163s
+                |            |				   |
+                | BLANKLINES | real	0m52.322s  | real	0m49.817s
+                |            | user	1m15.008s  | user	1m16.559s
+                |            | sys	0m2.859s   | sys	0m4.176s
+                |            |				   |
+                | LINES      | real	0m51.343s  | real	0m48.730s
+                |            | user	1m19.078s  | user	1m8.178s
+                |            | sys	0m2.200s   | sys	0m2.313s
+                |            |				   |
+test.MMLtestAlt | SENTENCES  | real	0m58.387s  | real	0m55.934s
+                |            | user	1m22.942s  | user	1m18.993s
+                |            | sys	0m2.314s   | sys	0m3.644s
+                |            |				   |
+                | BLANKLINES | real	0m59.280s  | real	0m56.476s
+                |            | user	1m27.496s  | user	1m20.455s
+                |            | sys	0m4.482s   | sys	0m2.460s
+                |            |				   |
+                | LINES      | real	0m58.441s  | real	0m56.544s
+                |            | user	1m23.249s  | user	1m17.672s
+                |            | sys	0m3.539s   | sys	0m3.341s

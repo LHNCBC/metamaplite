@@ -90,6 +90,7 @@ configuration file is not present:
     | metamaplite.sourceset                 | use only concepts from listed sources (default: all)
     | metamaplite.semanticgroup             | use only concepts belonging to listed semantic types (default: all)
 	| metamaplite.negation.detector         | negation detector class: default: gov.nih.nlm.nls.metamap.lite.NegEx
+	                                                                   Alternate: 
 
 ### Configuration properties
 
