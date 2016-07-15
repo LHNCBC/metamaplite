@@ -6,7 +6,8 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- *
+ * A default mapping of Semantic Types Names in the UMLS to NLM's
+ * semantic type abbreviations originally suggested by Tom Rindflesch.
  */
 
 public class DefaultSemanticTypesRaw {

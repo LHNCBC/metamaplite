@@ -22,6 +22,19 @@ import irutils.MultiKeyIndex.Record;
 import irutils.MultiKeyIndex.Extent;
 
 /**
+ * A program which generates three tables: cuiconcept.txt,
+ * cuisourceinfo.txt, and cuist.txt and their associated inverted file
+ * indexes.
+ * <p>
+ * Each file and its contents:
+ * <dl>
+ * <dt>cuiconcept.txt</dt>
+ * <dd> contains a cui to preferred name mapping. </dd>
+ * <dt>cuisourceinfo.txt</dt>
+ * <dd> contains a cui to UMLS source mapping. </dd>
+ * <dt>cuist.txt</dt>
+ * <dd> contains a cui to semantic type mapping. </dd>
+ * </dl>
  *
  */
 

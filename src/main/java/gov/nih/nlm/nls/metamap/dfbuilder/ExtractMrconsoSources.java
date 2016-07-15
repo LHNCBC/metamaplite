@@ -12,6 +12,31 @@ import java.text.*;
  * $Id: ExtractMrconsoSources.java,v 1.4 2005/04/22 14:41:00 wrogers Exp $
  */
 
+/**
+ * Generate table consisting records each with a pair containing a
+ * concept unique identifier, string unique identifier
+ *
+ * <table>
+ *  <caption>MRCONSO fields used:</caption>
+ *  <tr><th>CUI <td>concept unique identifier <td>field 0</tr>
+ *  <tr><th>LAT <td>language of term          <td>field 1</tr>
+ *  <tr><th>SUI <td>string unique identifier  <td>field 5</tr>
+ *  <tr><th>STR <td>string                    <td>field 14</tr>
+ *  <tr><th>SAB <td>source abbreviation       <td>field 11</tr>
+ *  <tr><th>TTY <td>source term type          <td>field 12</tr>
+ * </table>
+ *
+ * <table>
+ *  <caption>Format of cui -> sui, str, sab, tty output file.</caption>
+ *  <tr><th>CUI <td>concept unique identifier <td>field 0</tr>
+ *  <tr><th>SUI <td>string unique identifier  <td>field 1</tr>
+ *  <tr><th>STR <td>string                    <td>field 2</tr>
+ *  <tr><th>SAB <td>source abbreviation       <td>field 3</tr>
+ *  <tr><th>TTY <td>source term type          <td>field 4</tr>
+ * </table>
+ */
+
+
 public class ExtractMrconsoSources
 {
   /** program usage message */
