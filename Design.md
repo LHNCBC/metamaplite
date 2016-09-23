@@ -444,8 +444,10 @@ Should use OSGi or JPF (Java Plugin Framework)
 
 ## normalization
 
-## filtering for other 
+## Filtering for Other
 
+The term "Other" is ignored in MetaMapLite if it's the first token in
+candidate token list.  (It is a stop_phrase in MetaMap)
 
 # outputs
 
