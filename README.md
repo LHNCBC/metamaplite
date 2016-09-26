@@ -5,6 +5,36 @@ named-entity recognizer which is not a rigorous as MetaMap but much
 faster while allowing users to customize and augment its behavior for
 specific purposes.
 
+It uses some of the tables used by MetaMap but all lexical variants
+used in the table are pre-processed.  Named Entities are found using
+longest match.  Restriction by UMLS source and Semantic type is
+optional.  Part-of-speech tagging which improves precision by a small
+amount (at the cost of speed) is also optional.  Negation detection is
+available using either Wendy Chapman's context or a native negation
+detection algorithm based on Wendy Chapman's NegEx which is somewhat
+less effective, but faster.
+
+
+It has:
+
++ longest match based entity detection
++ Negation Detection (either ConTexT or negation function based on Wendy Chapman's NegEx)
++ Restriction by UMLS source and semantic type
++ Part of Speech tagging (optional)
++ Abbreviation detection using Lynette Hirschman's algorithm.
+
+What is missing:
+
++ No detection of disjoint entities
++ No Scoring
++ No derivational variants
++ No word sense disambiguation (to be added later)
++ No overmatching
++ No term processing
++ No dynamic variant generation
+
+
+
 ## Prerequisites
 
 ### For running
@@ -112,7 +142,7 @@ configuration file is not present:
     | metamaplite.property.file             | load configuration from file (default: ./config/metamaplite.properties)
     | metamaplite.outputformat              | result output format (default: mmi)
 
-## Using MetaMap from Java
+## Using MetaMapLite from Java
 
 Creating properties for configuring MetaMapLite Instance:
     
@@ -131,7 +161,7 @@ Creating a metamap lite instance:
 Creating a document list with one or more documents:
 
     BioCDocument document = FreeText.instantiateBioCDocument("diabetes");
-	document.setId("1");
+	document.setID("1");
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     documentList.add(document);
 
@@ -150,9 +180,22 @@ Traversing the entity list displaying cui and matching text:
     }
 
 
+
+# processing single terms (without periods)
+
+Disable the Part of Speech Tagger using the following property:
+"metamaplite.enable.postagging=false".  Add the following line right
+before instantiating the MetaMapLite instance.
+
+    myProperties.setProperty("metamaplite.enable.postagging", "false");
+    MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
+
+Add each term as a single document:
+
+    BioCDocument document = FreeText.instantiateBioCDocument(term);
+
+
 # irutils indexes
-
-
 
 ## Tables and Indexes
 
@@ -162,7 +205,7 @@ Currently, three tables are used:
 * cuisemantictype (cuist)
 * cuiconcept
 
-### Generating the indexes from the tables
+### Generating indexes from UMLS tables
 
 The CreateIndexes class generates tables cuiconcept, cuisourceinfo,
 and cuist from MRCONSO.RRF and MRSTY.RRF and then produces
@@ -180,14 +223,14 @@ To use the new indexes do one of the following:
 
 Use the --indexdir=<directory> option:
 
-    java -cp target/metamaplite-2.0-SNAPSHOT.jar \
-     gov.nih.nlm.nls.metamap.ner.MetaMapLite --indexdir=<ivfdir> <other-options> <otherargs>
+    java -cp target/metamaplite-2.0-SNAPSHOT-standalone.jar \
+     gov.nih.nlm.nls.ner.MetaMapLite --indexdir=<ivfdir> <other-options> <other-args>
 
-Modify the configuration file config/metamap.properties:
+Or modify the configuration file config/metamap.properties:
 
-    metamaplite.ivf.cuiconceptindex: data/multi-key-index-test/indices/cuiconcept
-    mmetamaplite.ivf.cuisourceinfoindex: data/multi-key-index-test/indices/cuisourceinfo
-    metamaplite.ivf.cuisemantictypeindex: data/multi-key-index-test/indices/cuist
+    metamaplite.ivf.cuiconceptindex: <ivfdir>/indices/cuiconcept
+    mmetamaplite.ivf.cuisourceinfoindex: <ivfdir>/indices/cuisourceinfo
+    metamaplite.ivf.cuisemantictypeindex: <ivfdir>/indices/cuist
 
 
 ## Adding custom input document formats
