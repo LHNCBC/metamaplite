@@ -134,6 +134,7 @@ configuration file is not present:
     | opennlp.en-pos.bin.path               | (default: data/models/en-pos-maxent.bin)
     | opennlp.en-token.bin.path             | (default: data/models/en-token.bin)
     | opennlp.en-sent.bin.path              | (default: data/models/en-sent.bin)
+	| metamaplite.enable.postagging         | Enable part of speech tagging (default: "true" [on])
 
 ### Command line metamaplite only properties
 
