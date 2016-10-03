@@ -19,7 +19,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Example {
  /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(MetaMapLite.class);
+  private static final Logger logger = LogManager.getLogger(Example.class);
 
   /**
    * Main program
@@ -30,6 +30,7 @@ public class Example {
 	   NoSuchMethodException, IllegalAccessException,
 	   InvocationTargetException
   {
+    // Initialization Section
     Properties myProperties = MetaMapLite.getDefaultConfiguration();
     MetaMapLite.expandModelsDir(myProperties,
 				"/export/home/wjrogers/Projects/metamaplite/data/models");
@@ -39,6 +40,9 @@ public class Example {
 			     "/export/home/wjrogers/Projects/metamaplite/data/specialterms.txt");
     MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
   
+    // Processing Section
+
+    // Each document must be instantiated as a BioC document before processing
     BioCDocument document = FreeText.instantiateBioCDocument("diabetes");
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     documentList.add(document);
