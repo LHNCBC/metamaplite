@@ -1,42 +1,52 @@
-<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>gov.nih.nlm.nls</groupId>
   <artifactId>metamaplite</artifactId>
   <packaging>jar</packaging>
   <version>3.0-SNAPSHOT</version>
   <name>metamaplite</name>
-  <description>Clojure code for exploring MetaMapLite in lieu of a debugger.</description>
-  <url>http://usa.gov/</url>
-  <scm>
-    <connection>scm:git:git://github.com//.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>d6afbb7bcb94bc18de03810f46c6c0af48031655
-</tag>
-    <url>https://github.com//</url>
-  </scm>
+  <url>http://maven.apache.org</url>
   <build>
-    <sourceDirectory>src/main/clojure</sourceDirectory>
-    <testSourceDirectory>src/test/java</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>src/main/resource</directory>
-      </resource>
-    </resources>
-    <testResources>
-      <testResource>
-        <directory>dev-resources</directory>
-      </testResource>
-      <testResource>
-        <directory>src/main/resource</directory>
-      </testResource>
-    </testResources>
-    <directory>target</directory>
-    <outputDirectory>target/classes</outputDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.1</version>
+        <configuration>
+          <show>private</show>
+          <nohelp>true</nohelp>
+        </configuration>
+      </plugin>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>2.5.1</version>
+	<configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <debug>true</debug>
+          <debuglevel>lines,vars,source</debuglevel> 
+	</configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.4.0</version>
+        <configuration>
+          <executable>java</executable>
+          <arguments>
+	    <argument>-Xmx10g</argument>
+	    <argument>-classpath</argument>
+	    <classpath/>
+	    <argument>${classnameArg}</argument>
+            <argument>${arg0}</argument>
+            <argument>${arg1}</argument>
+	    <argument>${arg2}</argument>
+	    <argument>${arg3}</argument>
+	    <argument>${arg4}</argument>
+	  </arguments>
+        </configuration>
         <executions>
           <execution>
             <goals>
@@ -44,25 +54,14 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <executable>java</executable>
-          <arguments>
-            <argument>-Xmx10g</argument>
-            <argument>-classpath</argument>
-            <classpath/>
-            <argument>${classnameArg}</argument>
-            <argument>${arg0}</argument>
-            <argument>${arg1}</argument>
-            <argument>${arg2}</argument>
-            <argument>${arg3}</argument>
-            <argument>${arg4}</argument>
-          </arguments>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.4.1</version>
+        <configuration>
+          <!-- put your configurations here -->
+        </configuration>
         <executions>
           <execution>
             <phase>package</phase>
@@ -71,87 +70,35 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <shadedArtifactAttached>true</shadedArtifactAttached>
-          <shadedClassifierName>standalone</shadedClassifierName>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>add-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/main/java</source>
-                <source>src/test/java</source>
-              </sources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/test/clojure</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
   <repositories>
     <repository>
-      <id>central</id>
-      <url>https://repo1.maven.org/maven2/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </repository>
-    <repository>
-      <id>clojars</id>
-      <url>https://clojars.org/repo/</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
+      <id>bionlp-sourceforge</id>
+      <url>http://svn.code.sf.net/p/bionlp/code/repo</url>
     </repository>
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.8.0</version>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>4.10.0</version>
     </dependency>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>data.xml</artifactId>
-      <version>0.0.8</version>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>4.10.0</version>
     </dependency>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>data.zip</artifactId>
-      <version>0.1.1</version>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queryparser</artifactId>
+      <version>4.10.0</version>
     </dependency>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>data.json</artifactId>
-      <version>0.2.6</version>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queries</artifactId>
+      <version>4.10.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.opennlp</groupId>
@@ -163,11 +110,19 @@
       <artifactId>opennlp-maxent</artifactId>
       <version>3.0.3</version>
     </dependency>
+
     <dependency>
-      <groupId>clojure-opennlp</groupId>
-      <artifactId>clojure-opennlp</artifactId>
-      <version>0.3.2</version>
+      <groupId>edu.stanford.nlp</groupId>
+      <artifactId>stanford-corenlp</artifactId>
+      <version>3.3.1</version>
     </dependency>
+    <dependency>
+      <groupId>edu.stanford.nlp</groupId>
+      <artifactId>stanford-corenlp</artifactId>
+      <version>3.3.1</version>
+      <classifier>models</classifier>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
@@ -178,70 +133,82 @@
       <artifactId>log4j-core</artifactId>
       <version>2.1</version>
     </dependency>
+
     <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-analyzers-common</artifactId>
-      <version>4.10.0</version>
+      <groupId>context</groupId>
+      <artifactId>context</artifactId>
+      <version>2012</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-queryparser</artifactId>
-      <version>4.10.0</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.opencsv</groupId>
-      <artifactId>opencsv</artifactId>
-      <version>2.3</version>
-    </dependency>
-    <dependency>
-      <groupId>gov.nih.nlm.nls</groupId>
-      <artifactId>nlp</artifactId>
-      <version>2.4.C</version>
-    </dependency>
+
     <dependency>
       <groupId>bioc</groupId>
       <artifactId>bioc</artifactId>
       <version>1.0.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>gov.nih.nlm.nls</groupId>
+      <artifactId>nlp</artifactId>
+      <version>2.4.C</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sf.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>2.3</version>
+    </dependency>
+
+    <!-- dependency>
+      <groupId>edu.ucdenver.ccp</groupId>
+      <artifactId>biolemmatizer-core</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <version>3.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.stax-utils</groupId>
+      <artifactId>stax-utils</artifactId>
+      <version>20070216</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>woodstox-core-asl</artifactId>
+      <version>4.1.4</version>
+    </dependency -->
+    <dependency>
+      <groupId>xmlunit</groupId>
+      <artifactId>xmlunit</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <!-- Functional Java requires Java 8 -->
+    <!-- dependency>
+      <groupId>org.functionaljava</groupId>
+      <artifactId>functionaljava</artifactId>
+      <version>4.2-beta-1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.functionaljava</groupId>
+      <artifactId>functionaljava-java8</artifactId>
+      <version>4.2-beta-1</version>
+    </dependency -->
+    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.nrepl</artifactId>
-      <version>0.2.6</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>clojure-complete</groupId>
-      <artifactId>clojure-complete</artifactId>
-      <version>0.2.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>java.classpath</artifactId>
-      <version>0.2.2</version>
-      <scope>test</scope>
-    </dependency>
+
   </dependencies>
 </project>
 
-<!-- This file was autogenerated by Leiningen.
-  Please do not edit it directly; instead edit project.clj and regenerate it.
-  It should not be considered canonical data. For more information see
-  https://github.com/technomancy/leiningen -->
+
