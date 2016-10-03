@@ -172,6 +172,7 @@ public class MetaMapLite {
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");
   static Map<String,String> outputExtensionMap = new HashMap<String,String>();
   static {
+    outputExtensionMap.put("bioc",".bioc");
     outputExtensionMap.put("brat",".ann");
     outputExtensionMap.put("mmi",".mmi");
     outputExtensionMap.put("cdi",".cdi");
@@ -207,8 +208,11 @@ public class MetaMapLite {
     }
     this.sentenceAnnotator = new SentenceAnnotator(properties);
     this.entityLookup = new EntityLookup4(properties);
+    BioCDocumentLoaderRegistry.register("bioc",
+					"For BioC XML documents.", 
+					new FreeText());
     BioCDocumentLoaderRegistry.register("freetext",
-					"For freetext document that are grammatically well behaved.", 
+					"For freetext documents that are grammatically well behaved.", 
 					new FreeText());
     BioCDocumentLoaderRegistry.register("chemdner",
      					"ChemDNER format document sets",
@@ -241,6 +245,16 @@ public class MetaMapLite {
     /** augment or override any built-in formats with ones specified by property file. */
     BioCDocumentLoaderRegistry.register(properties);
     ResultFormatterRegistry.register(properties);
+
+    this.setSemanticGroup(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
+    this.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
+    System.setProperty("metamaplite.result.formatter.property.brat.typename",
+		       properties.getProperty("metamaplite.result.formatter.property.brat.typename",
+					      "metamaplite"));
+    this.detectNegationsFlag = 
+      Boolean.parseBoolean(properties.getProperty("metamaplite.detect.negations", "true"));
+    this.setSegmentationMethod
+      (properties.getProperty("metamaplite.segmentation.method","SENTENCE"));
   }
 
   void setSemanticGroup(String[] semanticTypeList) {
@@ -969,12 +983,7 @@ public class MetaMapLite {
       String documentInputOption = properties.getProperty("metamaplite.document.inputtype", "freetext");
       String outputFormatOption = properties.getProperty("metamaplite.outputformat","mmi");
       String outputExtension =	properties.getProperty("metamaplite.outputextension", ".mmi");
-      metaMapLiteInst.setSemanticGroup(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
-      metaMapLiteInst.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
-      System.setProperty("metamaplite.result.formatter.property.brat.typename",
-			 properties.getProperty("metamaplite.result.formatter.property.brat.typename", "metamaplite"));
-      metaMapLiteInst.detectNegationsFlag = 
-	Boolean.parseBoolean(properties.getProperty("metamaplite.detect.negations", "true"));
+      
       boolean listSentences =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
       boolean listAcronyms =
@@ -982,9 +991,7 @@ public class MetaMapLite {
       boolean listSentencesWithPosTags =
 	Boolean.parseBoolean(properties.getProperty
 			     ("metamaplite.list.sentences.with.postags", "false"));
-      metaMapLiteInst.setSegmentationMethod
-	(properties.getProperty("metamaplite.segmentation.method","SENTENCE"));
-
+      
       String inputfileListPropValue = properties.getProperty("metamaplite.inputfilelist");
       if (inputfileListPropValue != null) {
 	if (filenameList.size() > 0) {
