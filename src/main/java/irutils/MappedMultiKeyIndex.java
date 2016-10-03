@@ -125,13 +125,20 @@ public class MappedMultiKeyIndex {
     if (byteBufCache.containsKey(filename)) {
       return byteBufCache.get(filename);
     } else {
-      FileChannel fileChannel = 
-	(new FileInputStream(new File (filename))).getChannel();
-      int sz = (int)fileChannel.size();
-      MappedByteBuffer byteBuffer = 
-	fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
-      byteBufCache.put(filename, byteBuffer);
-      fileChannel.close();
+      MappedByteBuffer byteBuffer = null;
+      File file = new File (filename);
+      if (file.exists()) {
+	FileChannel fileChannel = 
+	  (new FileInputStream(file)).getChannel();
+	int sz = (int)fileChannel.size();
+	byteBuffer = 
+	  fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+	byteBufCache.put(filename, byteBuffer);
+	fileChannel.close();
+      } else {
+	/* file doesn't exist put null bytebuffer pointer in cache anyway. */
+	byteBufCache.put(filename, byteBuffer);
+      }
       return byteBuffer;
     }
   }
@@ -245,7 +252,6 @@ public class MappedMultiKeyIndex {
     }
     return statsMap;
   }
-
 
   /**
    * Lookup term in index for specified table column.

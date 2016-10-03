@@ -65,19 +65,20 @@ public class MappedMultiKeyIndexLookup {
     String columnString = Integer.toString(column);
 
     MappedByteBuffer termDictionaryRaf = this.index.getTermDictionaryFile(columnString, termLengthString);
-    MappedByteBuffer extentsRaf = this.index.getExtentsFile(columnString, termLengthString);
-    MappedByteBuffer postingsRaf = this.index.getPostingsFile();
-    Map<String,String> statsMap = this.index.getStatsMap(columnString, termLengthString);
-
-    int datalength = Integer.parseInt(statsMap.get("datalength"));
-    int recordnum = Integer.parseInt(statsMap.get("recordnum"));
+    if (termDictionaryRaf != null) {
+      MappedByteBuffer extentsRaf = this.index.getExtentsFile(columnString, termLengthString);
+      MappedByteBuffer postingsRaf = this.index.getPostingsFile();
+      Map<String,String> statsMap = this.index.getStatsMap(columnString, termLengthString);
+      int datalength = Integer.parseInt(statsMap.get("datalength"));
+      int recordnum = Integer.parseInt(statsMap.get("recordnum"));
     
-    DictionaryEntry entry = 
-      MappedMultiKeyIndex.dictionaryBinarySearch(termDictionaryRaf, term.toLowerCase(), 
-					   term.length(), datalength, recordnum );
-    if (entry != null) {
-      MappedMultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry);
-    } 
+      DictionaryEntry entry = 
+	MappedMultiKeyIndex.dictionaryBinarySearch(termDictionaryRaf, term.toLowerCase(), 
+						   term.length(), datalength, recordnum );
+      if (entry != null) {
+	MappedMultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry);
+      }
+    }
     return resultList;
   }
 
