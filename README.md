@@ -1,4 +1,4 @@
-# MetaMap Lite: A lighter named-entity recognizer
+# MetaMapLite: A lighter named-entity recognizer
 
 The primary goal of MetaMapLite to provide a near real-time
 named-entity recognizer which is not a rigorous as MetaMap but much
@@ -181,7 +181,6 @@ Traversing the entity list displaying cui and matching text:
     }
 
 
-
 # processing single terms (without periods)
 
 Disable the Part of Speech Tagger using the following property:
@@ -195,6 +194,32 @@ Add each term as a single document:
 
     BioCDocument document = FreeText.instantiateBioCDocument(term);
 
+
+# Adding MetaMapLite to a webapp (servlet).
+
+## Using Maven
+
+### Install metamaplite into local Maven repository
+
+From public_mm_lite directory install metamaplite into your local
+Maven repository:
+
+    $ mvn install:install-file \
+         -Dfile=target/metamaplite-2.0-SNAPSHOT.jar \
+         -DgroupId=gov.nih.nlm.nls \
+	     -DartifactId=metamaplite \
+	     -Dversion=2.0 \
+         -Dpackaging=jar
+
+### Add metamaplite dependency to POM file
+
+Add the following dependency to your webapps pom.xml:
+
+    <dependency>
+      <groupId>gov.nih.nlm.nls</groupId>
+      <artifactId>metamaplite</artifactId>
+      <version>3.0-SNAPSHOT</version>
+      </dependency>
 
 # irutils indexes
 
