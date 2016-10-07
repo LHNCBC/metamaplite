@@ -114,6 +114,20 @@ configuration file is not present:
 
 ## Properties
 
+### Command line and System properties for metamaplite
+
+These properties can be set using a System property
+(-D{propertyname}={value}).
+
+    | metamaplite.property.file             | load configuration from file (default: ./config/metamaplite.properties)
+
+These properties can be set using a System property
+(-D{propertyname}={value}) or in configuration file.
+
+    | metamaplite.document.inputtype        | document input type (default: freetext)
+    | metamaplite.outputextension           | result output file extension (default: .mmi)
+    | metamaplite.outputformat              | result output format (default: mmi)
+
 ### Processing properties
 
     | metamaplite.segmentation.method       | Set method for text segmentation (values: SENTENCES, BLANKLINES, LINES; default: SENTENCES)
@@ -135,13 +149,6 @@ configuration file is not present:
     | opennlp.en-token.bin.path             | (default: data/models/en-token.bin)
     | opennlp.en-sent.bin.path              | (default: data/models/en-sent.bin)
 	| metamaplite.enable.postagging         | Enable part of speech tagging (default: "true" [on])
-
-### Command line metamaplite only properties
-
-    | metamaplite.document.inputtype        | document input type (default: freetext)
-    | metamaplite.outputextension           | result output file extension (default: .mmi)
-    | metamaplite.property.file             | load configuration from file (default: ./config/metamaplite.properties)
-    | metamaplite.outputformat              | result output format (default: mmi)
 
 ## Using MetaMapLite from Java
 
@@ -181,7 +188,7 @@ Traversing the entity list displaying cui and matching text:
     }
 
 
-# processing single terms (without periods)
+## Processing Single Terms (without periods)
 
 Disable the Part of Speech Tagger using the following property:
 "metamaplite.enable.postagging=false".  Add the following line right
@@ -195,11 +202,43 @@ Add each term as a single document:
     BioCDocument document = FreeText.instantiateBioCDocument(term);
 
 
-# Adding MetaMapLite to a webapp (servlet).
+## Adding MetaMapLite to a webapp (servlet).
 
-## Using Maven
+### Where to place indices and models files in Tomcat
 
-### Install metamaplite into local Maven repository
+Place the "metamaplite.properties" file in the tomcat "conf/"
+directory and specify that in servlet:
+
+    public class SampleWebApp extends HttpServlet {
+      /** location of metamaplite.properties configuration file */
+      static String configPropertyFilename =
+        System.getProperty("metamaplite.property.file", "conf/metamaplite.properties");
+      Properties properties;
+      MetaMapLite metaMapLiteInst;
+    
+      public SampleWebApp() {
+        try {
+          this.properties = new Properties();
+          // default properties that can be overriden 
+          this.properties.setProperty("metamaplite.ivf.cuiconceptindex","data/ivf/strict/indices/cuiconcept");
+          ...
+          // load user properties
+          this.properties.load(new FileReader(configPropertyFilename));
+          this.metaMapLiteInst = new MetaMapLite(this.properties);
+		  ...
+      	} catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+      ...
+    }
+    
+The absolute locations of indexes and model files can be specified in
+"metamaplite.properties".
+
+### Using Maven
+
+#### Install metamaplite and dependencies into local Maven repository
 
 From public_mm_lite directory install metamaplite into your local
 Maven repository:
@@ -211,7 +250,31 @@ Maven repository:
 	     -Dversion=2.0 \
          -Dpackaging=jar
 
-### Add metamaplite dependency to POM file
+Install Context, BioC, and NLS NLP libraries
+
+    $ mvn install:install-file \
+         -Dfile=lib/context-2012.jar \
+         -DgroupId=context \
+	     -DartifactId=context \
+	     -Dversion=2012 \
+         -Dpackaging=jar
+
+    $ mvn install:install-file \
+         -Dfile=lib/bioc-1.0.1.jar \
+         -DgroupId=bioc \
+	     -DartifactId=bioc \
+	     -Dversion=1.0.1 \
+         -Dpackaging=jar
+
+    $ mvn install:install-file \
+         -Dfile=lib/nlp-2.4.C.jar \
+         -DgroupId=gov.nih.nlm.nls \
+	     -DartifactId=nlp \
+	     -Dversion=2.4.C \
+         -Dpackaging=jar
+
+
+#### Add metamaplite dependency to POM file
 
 Add the following dependency to your webapps pom.xml:
 
@@ -219,7 +282,7 @@ Add the following dependency to your webapps pom.xml:
       <groupId>gov.nih.nlm.nls</groupId>
       <artifactId>metamaplite</artifactId>
       <version>3.0-SNAPSHOT</version>
-      </dependency>
+    </dependency>
 
 # irutils indexes
 
