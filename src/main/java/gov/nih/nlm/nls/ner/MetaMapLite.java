@@ -623,13 +623,32 @@ public class MetaMapLite {
 				     boolean verbose)
     throws IOException, FileNotFoundException
   {
+    // Attempt to get local configuration from properties file on
+    // classpath and then from file system.  file system has
+    // precedence of classpath and gets loaded last (if it exists).
+
     Properties localConfiguration = new Properties();
+    // check classpath for "metamaplite.properties" resource
+    // get class loader
+    ClassLoader loader = MetaMapLite.class.getClassLoader();
+    if(loader==null)
+      loader = ClassLoader.getSystemClassLoader(); // use system class loader if class loader is null
+    java.net.URL url = loader.getResource(propertiesFilename);
+    try {
+      localConfiguration.load(url.openStream());
+    } catch(Exception e) {
+      logger.info("Could not load configuration file from classpath: " + propertiesFilename);
+    }
+
+    // check filesystem 
     File localConfigurationFile = new File(propertiesFilename);
     if (localConfigurationFile.exists()) {
+      logger.info("loading local configuration from " + localConfigurationFile);
       if (verbose) {
 	System.out.println("loading local configuration from " + localConfigurationFile);
       }
       localConfiguration.load(new FileReader(localConfigurationFile));
+      logger.info("loaded " + localConfiguration.size() + " records from local configuration");
       if (verbose) {
 	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
       }
