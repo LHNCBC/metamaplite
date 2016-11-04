@@ -1,6 +1,6 @@
 
 //
-package gov.nih.nlm.nls.metamap.lite.lucene;
+package gov.nih.nlm.nls.metamap.lite.types;
 
 /**
  *
