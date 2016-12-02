@@ -28,6 +28,11 @@ public class PluginRegistry {
 
   /**
    * Register plugin.
+   * @param name               plugin name
+   * @param description        plugin description
+   * @param className          fully qualified classname of plugin
+   * @param methodName         target method name 
+   * @param inputParameterType type of input parameter 
    */
   public static void register(String name, String description, 
 			      String className, String methodName,
