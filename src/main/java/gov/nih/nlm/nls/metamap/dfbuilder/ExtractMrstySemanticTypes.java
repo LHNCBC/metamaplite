@@ -36,7 +36,7 @@ import java.util.Map;
  * </dl>
  *
  * <table>
- *  <caption>Format of cui -> semantic type output file.</caption>
+ *  <caption>Format of cui -&gt; semantic type output file.</caption>
  *  <tr><th>CUI <td>Concept Unique Identifier <td>field 0</tr>
  *  <tr><th>ST  <td>Semantic Type             <td>field 1</tr>
  * </table>

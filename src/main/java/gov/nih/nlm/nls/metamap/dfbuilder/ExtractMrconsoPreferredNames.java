@@ -20,7 +20,7 @@ import java.text.*;
  * </table>
  *
  * <table>
- *  <caption>Format of cui -> preferred name output file</caption>
+ *  <caption>Format of cui -&gt; preferred name output file</caption>
  *  <tr><th>CUI <td>concept unique identifier <td>field 0</tr>
  *  <tr><th>STR <td>preferred namd            <td>field 1</tr>
  * </table>

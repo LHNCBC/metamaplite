@@ -27,7 +27,7 @@ import java.text.*;
  * </table>
  *
  * <table>
- *  <caption>Format of cui -> sui, str, sab, tty output file.</caption>
+ *  <caption>Format of cui -&gt; sui, str, sab, tty output file.</caption>
  *  <tr><th>CUI <td>concept unique identifier <td>field 0</tr>
  *  <tr><th>SUI <td>string unique identifier  <td>field 1</tr>
  *  <tr><th>STR <td>string                    <td>field 2</tr>
