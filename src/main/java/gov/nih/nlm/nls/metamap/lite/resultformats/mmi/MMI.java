@@ -1,18 +1,29 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite.resultformats.mmi;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Properties;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import gov.nih.nlm.nls.utils.StringUtils;
+import gov.nih.nlm.nls.metamap.lite.types.Span;
+import gov.nih.nlm.nls.metamap.lite.types.SpanImpl;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
+import gov.nih.nlm.nls.metamap.lite.types.TriggerInfo;
+import gov.nih.nlm.nls.metamap.lite.types.MatchInfo;
 
 /**
  * Fielded MetaMap Indexing (MMI) Output
@@ -45,9 +56,9 @@ public class MMI implements ResultFormatter {
   }
 
   public static String triggerInfoToString(Entity entity, String cui) {
-    Set<String> triggerStringSet = new HashSet<String>();
+    Set<String> triggerStringSet = new LinkedHashSet<String>();
     for (Ev ev: entity.getEvList()) {
-      if (ev.getConceptInfo().getCUI() == cui) {
+      if (ev.getConceptInfo().getCUI().equals(cui)) {
 	triggerStringSet.add(evToTriggerString(ev, entity));
       }
     }
@@ -69,7 +80,7 @@ public class MMI implements ResultFormatter {
   }
 
   public static String positionalInfo(Entity entity, String cui) {
-    Set<String> positionStringSet = new HashSet<String>();
+    Set<String> positionStringSet = new LinkedHashSet<String>();
     for (Ev ev: entity.getEvSet()) {
       if (ev.getConceptInfo().getCUI() == cui) {
 	positionStringSet.add(renderPosition(ev));
@@ -103,8 +114,66 @@ public class MMI implements ResultFormatter {
     return sb.toString();
   }
 
+
+  public static Map<String,MatchInfo> genCuiMatchInfoMap(List<Entity> entityList) {
+    Map<String,MatchInfo> cuiMatchInfoMap = new HashMap<String,MatchInfo>();
+    for (Entity entity: entityList) {
+      for (Ev ev: entity.getEvSet()) {
+	String cui = ev.getConceptInfo().getCUI();
+	String preferredName = ev.getConceptInfo().getPreferredName();
+	if (cuiMatchInfoMap.containsKey(cui)) {
+	  MatchInfo newEntity = cuiMatchInfoMap.get(cui);
+	  newEntity.addTriggerInfo(ev.getMatchedText(),
+				   preferredName,
+				   "txt",
+				   ev.getPartOfSpeech(),
+				   0,
+				   entity.isNegated(),
+				   new SpanImpl(ev.getStart(), ev.getStart() + ev.getLength()));	  
+	} else {
+	  Set<String> semanticTypeSet = ev.getConceptInfo().getSemanticTypeSet();
+	  MatchInfo newEntity = new MatchInfo(preferredName, semanticTypeSet);
+	  newEntity.addTriggerInfo(ev.getMatchedText(),
+				   preferredName,
+				   "txt",
+				   ev.getPartOfSpeech(),
+				   0,
+				   entity.isNegated(),
+				   new SpanImpl(ev.getStart(), ev.getStart() + ev.getLength()));
+	  cuiMatchInfoMap.put(cui, newEntity);
+	}
+      }
+    }
+    return cuiMatchInfoMap;
+  }
+
+
+  /**  
+   * Create map cui to entitylist 
+   * @param entityList list of entities
+   * @return Map of entities keyed by cuis.
+   */
+  public static Map<String,List<Entity>> genCuiEntityListMap(List<Entity> entityList) {
+    Map<String,List<Entity>> cuiEntityListMap = new TreeMap<String,List<Entity>>();
+    for (Entity entity: entityList) {
+      for (Ev ev: entity.getEvSet()) {
+	String cui = ev.getConceptInfo().getCUI();
+	List<Entity> cuiEntityList;
+	if (cuiEntityListMap.containsKey(cui)) {
+	  cuiEntityList = cuiEntityListMap.get(cui);
+	} else {
+	  cuiEntityList = new ArrayList<Entity>();
+	  cuiEntityListMap.put(cui, cuiEntityList);
+	}
+	cuiEntityList.add(entity);
+      }
+    }
+    return cuiEntityListMap;
+  }
+
+
   public static String entityListToString(List<Entity> entityList) {
-    Set<String> stringSet = new HashSet<String>();
+    Set<String> stringSet = new LinkedHashSet<String>();
     for (Entity entity: entityList) {
       if (entity.getEvSet().size() > 0) {
 	stringSet.add(entityToString(entity));
@@ -116,34 +185,70 @@ public class MMI implements ResultFormatter {
     }
     return sb.toString();
   }
+  
+  public static String entityToString(Entity entity,
+				      Collection<String> triggerInfoColl,
+				      Collection<String> positionColl) {
+    StringBuilder sb = new StringBuilder();
+    for (Ev ev: entity.getEvSet()) {
+      sb.append(entity.getDocid()).append("|")
+	.append(entity.getScore()).append("|")
+	.append(ev.getConceptInfo().getPreferredName()).append("|")
+	.append(ev.getConceptInfo().getCUI())
+	.append("|[")
+	.append(Arrays.toString(ev.getConceptInfo().getSemanticTypeSet().toArray()).replaceAll("(^\\[)|(\\]$)",""))
+	.append("]|");
+      Iterator<String> iter = triggerInfoColl.iterator();
+      while ( iter.hasNext() ) {
+	sb.append( iter.next());
+	if (iter.hasNext()) sb.append(',');
+      }
+      sb.append("|").append("tx").append("|");
+      iter = positionColl.iterator();
+      while ( iter.hasNext()) {
+	sb.append( iter.next() );
+	if (iter.hasNext()) sb.append("|");
+      }
+      sb.append("|").append('\n');
+    }
+    return sb.toString();
+  }
 
   public static void displayEntityList(List<Entity> entityList) 
   {
-    Collections.reverse(entityList);
-    Set<String> stringSet = new HashSet<String>();
-    for (Entity entity: entityList) {
-      if (entity.getEvList().size() > 0) {
-	stringSet.add(entityToString(entity));
-      }
-    }
-    StringBuilder sb = new StringBuilder();
-    for (String resultString: stringSet) {
-      System.out.print(resultString);
+    int seqno = 0;
+    Map<String,MatchInfo> cuiEntityMap = genCuiMatchInfoMap(entityList);
+    for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
+      String cui = cuiEntity.getKey();
+      MatchInfo val = cuiEntity.getValue();
+      System.out.print("text|0.0|" + cui + "|" + seqno + "|" + val);
+      seqno++;
     }
   }
 
   public static void displayEntityList(PrintWriter pw, List<Entity> entityList) 
   {
-    Collections.reverse(entityList);
-    Set<String> stringSet = new HashSet<String>();
-    for (Entity entity: entityList) {
-      if (entity.getEvSet().size() > 0) {
-	stringSet.add(entityToString(entity));
+    int seqno = 0;
+    Map<String,MatchInfo> cuiEntityMap = genCuiMatchInfoMap(entityList);
+    for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
+      String cui = cuiEntity.getKey();
+      MatchInfo val = cuiEntity.getValue();
+      pw.print("text|0.0|" + val.getPreferredName() + "|" + cui + "|" + seqno + "|" +
+	       StringUtils.join(val.getSemanticTypeSet(), ",") + "|");
+
+      Set<String> spanSet = new LinkedHashSet<String>();
+      Set<String> triggerInfoStringList = new LinkedHashSet<String>();
+      for (Map.Entry<String,Set<TriggerInfo>> entry: val.getMatchedTextTriggerInfoListMap().entrySet()) {
+	String matchedText = entry.getKey();
+	for (TriggerInfo triggerInfo: entry.getValue()) {
+	  triggerInfoStringList.add(triggerInfo.toString());
+	  spanSet.add(triggerInfo.getSpan().toString());
+	}
       }
-    }
-    StringBuilder sb = new StringBuilder();
-    for (String resultString: stringSet) {
-      pw.print(resultString);
+      pw.print(StringUtils.join(triggerInfoStringList, ","));
+      pw.print("|" + StringUtils.join(spanSet, ","));
+      pw.print("\n");
+      seqno++;
     }
   }
 
