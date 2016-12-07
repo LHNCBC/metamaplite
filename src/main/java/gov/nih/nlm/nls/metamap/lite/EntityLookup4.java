@@ -358,8 +358,6 @@ public class EntityLookup4 implements EntityLookup {
    *    ...
    * @param docid document id
    * @param tokenList tokenlist of document
-   * @param semanticTypeRestrictSet semantic type to restrict to
-   * @param sourceRestrictSet sources to restrict to
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
    */
@@ -400,6 +398,7 @@ public class EntityLookup4 implements EntityLookup {
 		String cui = concept.getCUI();
 		Ev ev = new Ev(concept,
 			       originalTerm,
+			       normTerm,
 			       ((PosToken)tokenSubList.get(0)).getOffset(),
 			       termLength,
 			       0.0,
@@ -426,10 +425,11 @@ public class EntityLookup4 implements EntityLookup {
 							  this.findPreferredName(cui),
 							  this.getSourceSet(cui),
 							  this.getSemanticTypeSet(cui));
-		    this.cacheConcept(docStr, concept);
+		    this.cacheConcept(normTerm, concept);
 		    cui = concept.getCUI();
 		    Ev ev = new Ev(concept,
 				   originalTerm,
+				   docStr,
 				   offset,
 				   termLength,
 				   0.0,

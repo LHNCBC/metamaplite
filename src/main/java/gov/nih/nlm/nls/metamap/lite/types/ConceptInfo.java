@@ -19,14 +19,15 @@ import gov.nih.nlm.nls.types.Annotation;
 public class ConceptInfo {
   String cui;
   String preferredName;
+
   Set<String> sourceSet = null; 
   Set<String> semanticTypeSet = null;
 
   public ConceptInfo(String cui, String prefname, 
-		Set<String> newSourceSet,
-		Set<String> newSemanticTypeSet) {
+		     Set<String> newSourceSet,
+		     Set<String> newSemanticTypeSet) {
     this.cui = cui.intern();
-    this.preferredName = prefname.intern(); 
+    this.preferredName = prefname.intern();
     this.sourceSet = newSourceSet;
     this.semanticTypeSet = newSemanticTypeSet;
   }
@@ -39,7 +40,7 @@ public class ConceptInfo {
   }
 
   public String getCUI() { return this.cui; }
-  public void setCUI(String cui) { this.cui = cui; }
+  public void setCUI(String cui) { this.cui = cui.intern(); }
   public String getPreferredName() { return this.preferredName; }
   public void setPreferredName(String name) { this.preferredName = name.intern(); }
   public void addSourceSet(Collection<String> newSourceList) {

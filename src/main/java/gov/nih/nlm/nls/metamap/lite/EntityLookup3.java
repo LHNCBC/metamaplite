@@ -371,6 +371,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 		String cui = concept.getCUI();
 		Ev ev = new Ev(concept,
 			       originalTerm,
+			       normTerm,
 			       ((PosToken)tokenSubList.get(0)).getOffset(),
 			       termLength,
 			       0.0,
@@ -404,6 +405,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 		  cui = concept.getCUI();
 		  Ev ev = new Ev(concept,
 				 originalTerm,
+				 docStr,
 				 offset,
 				 termLength,
 				 0.0,
@@ -574,6 +576,23 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     }
   }
 
+
+  public List<Entity> lookupTerm(String term,
+				 Set<String> semTypeRestrictSet,
+				 Set<String> sourceRestrictSet) {
+    List<Entity> entityList = new ArrayList<Entity>();
+    try {
+      String docid = "text";
+      List<ERToken> tokenList = Scanner.analyzeText(term);
+      Set<Entity> entitySet = this.processSentenceTokenList(docid, tokenList,
+							    semTypeRestrictSet,
+							    sourceRestrictSet);
+      entityList.addAll(entitySet);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+    return entityList;
+  }
 
   /** Process passage */
   public List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,

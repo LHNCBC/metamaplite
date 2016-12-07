@@ -22,16 +22,20 @@ public class Ev implements Annotation {
   String id = "ev0";
   // Set<String> matchedWordList = null;
   String matchedText;
+  /** matching UMLS string either synonym or preferred name */
+  String conceptString;
   double score;
   int start;
   int length;
   String partOfSpeech;
 
   public Ev(ConceptInfo conceptInfo,  String matchedText,
+	    String conceptString,
 	    int start, int length, double scoreValue,
 	    String partOfSpeech) {
     this.conceptInfo = conceptInfo;
     this.matchedText = matchedText.intern();
+    this.conceptString = conceptString.intern();
     this.start = start;
     this.length = length;
     this.score = scoreValue;
@@ -39,9 +43,11 @@ public class Ev implements Annotation {
   }
 
   public Ev(ConceptInfo conceptInfo,  String matchedText,
+	    String conceptString,
 	    int start, int length, double scoreValue) {
     this.conceptInfo = conceptInfo;
     this.matchedText = matchedText.intern();
+    this.conceptString = conceptString.intern();
     this.start = start;
     this.length = length;
     this.score = scoreValue;
@@ -50,6 +56,7 @@ public class Ev implements Annotation {
   public Ev(Ev ev) {
     this.conceptInfo = ev.getConceptInfo();
     this.matchedText = ev.getMatchedText().intern();
+    this.conceptString = ev.getConceptString();
     this.start = ev.getStart();
     this.length = ev.getLength();
     this.score = ev.getScore();
@@ -58,6 +65,7 @@ public class Ev implements Annotation {
   public void setConceptInfo(ConceptInfo conceptInfo) { this.conceptInfo = conceptInfo; }
   public ConceptInfo getConceptInfo() { return this.conceptInfo; }
   public void setMatchedText(String text) { this.matchedText = text.intern();  }
+  public String getConceptString() { return this.conceptString; }
   public void setText(String text) { this.matchedText = text.intern(); }
   public double getScore() { return this.score; }
   public void setScore(double value) { this.score = value; }
