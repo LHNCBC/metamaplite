@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Properties;
 
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -36,12 +37,6 @@ import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 import gov.nih.nlm.nls.metamap.prefix.Scanner;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-
-import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
-
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
@@ -49,7 +44,7 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreComparator;
 // import gov.nih.nlm.nls.metamap.lite.types.Entity.EntityScoreConceptNameComparator;
 import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapEvaluation;
-import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIndexes;
+import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
@@ -71,13 +66,17 @@ public class SimplePipeline {
   public POSModel posModel;
   public POSTaggerME tagger;
   public MetaMapEvaluation metaMapEvalInst;
-  public MetaMapIndexes mmIndexes;
+  public MetaMapIvfIndexes mmIndexes;
 
+
+  EntityLookup4 entityLookup;
 
   public void initSentenceDetector()
     throws IOException, FileNotFoundException
   {
-    InputStream modelIn = new FileInputStream(System.getProperty("en-sent.bin.path", "en-sent.bin"));
+    InputStream modelIn =
+      new FileInputStream(System.getProperty("en-sent.bin.path",
+					     "data/models/en-sent.bin"));
     try {
       this.sentenceModel = new SentenceModel(modelIn);
       this.sentenceDetector = new SentenceDetectorME(sentenceModel);
@@ -100,7 +99,9 @@ public class SimplePipeline {
   public void initTokenizer()
     throws IOException, FileNotFoundException
   {
-    InputStream modelIn = new FileInputStream(System.getProperty("en-token.bin.path", "en-token.bin"));
+    InputStream modelIn =
+      new FileInputStream(System.getProperty("en-token.bin.path",
+					     "data/models/en-token.bin"));
 
     try {
       this.model = new TokenizerModel(modelIn);
@@ -123,7 +124,9 @@ public class SimplePipeline {
   public void initPOSTagger()
     throws IOException, FileNotFoundException
   {
-    InputStream modelIn = new FileInputStream(System.getProperty("opennlp.en-pos.bin.path", "en-pos-maxent.bin"));
+    InputStream modelIn = 
+      new FileInputStream(System.getProperty("opennlp.en-pos.bin.path",
+					     "data/models/en-pos-maxent.bin"));
 
     try {
       this.posModel = new POSModel(modelIn);
@@ -144,13 +147,16 @@ public class SimplePipeline {
   }
 
   public void init()
-    throws IOException, FileNotFoundException, ParseException
+    throws IOException, FileNotFoundException
   {
+    Properties properties = new Properties();
+    // properties.load(?);
+    this.entityLookup = new EntityLookup4(properties);
     initSentenceDetector();
     initTokenizer();
     initPOSTagger();
 
-    this.mmIndexes = new MetaMapIndexes();
+    this.mmIndexes = new MetaMapIvfIndexes();
     this.metaMapEvalInst = new MetaMapEvaluation(this.mmIndexes);
   }
 
@@ -175,24 +181,26 @@ public class SimplePipeline {
    * @return set of entities found in the sentence.
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
-   * @throws ParseException except while parsing
    */
-  public Set<Entity> processSentence(String sentence)
-    throws FileNotFoundException, IOException, ParseException
+  public Set<Entity> processSentence(String docid, String sentence)
+    throws FileNotFoundException, IOException
   {
-    String docid = "XXXXXX";
-    Set<Entity> entitySet = EntityLookup1.generateEntitySet(Scanner.analyzeText(sentence));
+    // Set<Entity> entitySet = EntityLookup1.generateEntitySet(Scanner.analyzeText(sentence));
+    Set<Entity> entitySet = this.entityLookup.processSentenceTokenList(docid,
+    								       Scanner.analyzeText(sentence),
+    								       new HashSet<String>(),
+    								       new HashSet<String>());
     return entitySet;
   }
 
 
-  public List<List<Entity>> processText(String text)
-    throws FileNotFoundException, IOException, ParseException
+  public List<List<Entity>> processText(String docid, String text)
+    throws FileNotFoundException, IOException
   {
     List<List<Entity>> listOfEntityList = new ArrayList<List<Entity>>();
     String[] sentenceList = this.sentenceDetector.sentDetect(text);
     for (String sentence: sentenceList) {
-      Set<Entity> entitySet = processSentence(sentence);
+      Set<Entity> entitySet = this.processSentence(docid, sentence);
       List<Entity> entityList = new ArrayList<Entity>();
       entityList.addAll(entitySet);
       // Collections.sort(entityList, new EntityScoreConceptNameComparator()); 
@@ -202,7 +210,7 @@ public class SimplePipeline {
   }
 
   public static void main(String[] args)
-    throws FileNotFoundException, IOException, ParseException
+    throws FileNotFoundException, IOException
   {
     if (args.length > 0) {
       SimplePipeline inst = new SimplePipeline();
@@ -215,11 +223,9 @@ public class SimplePipeline {
 	  String[] docFields = doc.split("\\|");
 
 	  String docId = docFields[0];
-	  System.out.println("docid: " + docId);
-	  System.out.flush();
 	  String docBody = docFields[1];
 
-	  List<List<Entity>> titleListOfEntityList = inst.processText(docBody);
+	  List<List<Entity>> titleListOfEntityList = inst.processText(docId, docBody);
 	  for (List<Entity> entityList: titleListOfEntityList) {
 	    MMI.displayEntityList(entityList);
 	  }
@@ -227,6 +233,9 @@ public class SimplePipeline {
       }
     } else {
       System.err.println("usage: filename");
+      System.err.println("Note: records in filename should be of the form:\n");
+      System.err.println("   docid|document\n");
+      System.err.println("Where entire document is one line.");      
     }   
   }
 }
