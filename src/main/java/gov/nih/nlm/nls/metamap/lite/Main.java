@@ -10,10 +10,6 @@ import java.io.FileReader;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
 import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
@@ -42,7 +38,7 @@ public class Main {
   }
 
   public static void main(String[] args)
-    throws FileNotFoundException, IOException, ParseException
+    throws FileNotFoundException, IOException
   {
     if (args.length > 0) {
       SimplePipeline inst = new SimplePipeline();
@@ -54,12 +50,12 @@ public class Main {
 
 	PubMedDocument cDoc = ChemDNERSLDI.instantiateSLDIDocument(docText);
 
-	List<List<Entity>> titleListOfEntityList = inst.processText(cDoc.getTitle());
+	List<List<Entity>> titleListOfEntityList = inst.processText(cDoc.getId(), cDoc.getTitle());
 	for (List<Entity> entityList: titleListOfEntityList) {
 	  MMI.displayEntityList(entityList);
 	}
 
-	List<List<Entity>> listOfEntityList = inst.processText(cDoc.getAbstract());
+	List<List<Entity>> listOfEntityList = inst.processText(cDoc.getId(), cDoc.getAbstract());
 	for (List<Entity> entityList: listOfEntityList) {
 	  MMI.displayEntityList(entityList);
 	}
