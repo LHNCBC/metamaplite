@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite.metamap;
 
@@ -15,8 +14,8 @@ import java.util.List;
 // import org.apache.lucene.document.Document;
 // import org.apache.lucene.queryparser.classic.ParseException;
 // import org.apache.lucene.queryparser.classic.QueryParser;
-
 // import gov.nih.nlm.nls.metamap.lite.lucene.SearchIndex;
+
 import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 
@@ -31,11 +30,7 @@ public class MetaMapEvaluation {
   public MetaMapEvaluation(MetaMapIvfIndexes indexes) {
     this.mmIndexes = indexes;
   }
-
-  public MetaMapEvaluation(MetaMapIndexes indexes) {
-
-  }
-
+ 
 
   /** only possible to calculate if you have parsed the sentence into phrases. 
    * @return value of centrality measure
@@ -101,6 +96,13 @@ public class MetaMapEvaluation {
    *   score = 1000 * ((centrality + variation + 2*coverage + 2*cohesiveness)/6)
    * in this case centrality and cohesiveness are 1.0:
    *   score = 1000 * ((1.0 + variation + 2*coverage + 2.0)/6)
+   * @param textstring text string
+   * @param preferredName concept preferred name.
+   * @param cui concept unique identifier.
+   * @param inputTextTokenList tokenized version of input text.
+   * @param candidateCollection collection of entities found using input text.
+   * @throws FileNotFoundException
+   * @throws IOException
    */
   public double calculateScore(String textstring,
 			       String preferredName,
