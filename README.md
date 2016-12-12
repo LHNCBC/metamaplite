@@ -361,6 +361,77 @@ Or add it to config/metamaplite.properties:
 
     metamaplite.result.formatter.brat: gov.nih.nlm.nls.metamap.lite.resultformats.Brat
 
+## A BioC XML to A BioC XML implementation of MetaMapLite
+
+The class gov.nih.nlm.nls.metamap.lite.BioCProcess allows MetaMapLite
+to process BioC XML input and write the results in BioC XML.
+
+### Using from Java
+
+Below is an example using BioC Processing with MetaMapLite
+
+    // Initialize MetaMapLite
+    Properties defaultConfiguration = getDefaultConfiguration();
+	String configPropertiesFilename =
+		System.getProperty("metamaplite.propertyfile",
+		                   "config/metamaplite.properties");
+    Properties configProperties = new Properties();
+    // set any in-line properties here.
+	configProperties.load(new FileReader(configPropertiesFilename));
+	configProperties.setProperty("metamaplite.semanticgroup",
+	"acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy");
+	Properties properties =
+	  Configuration.mergeConfiguration(configProperties,
+					   defaultConfiguration);
+	BioCProcess process = new BioCProcess(properties);
+
+	// read BioC XML collection
+	Reader inputReader = new FileReader(inputFile);
+	BioCFactory bioCFactory = BioCFactory.newFactory("STANDARD");
+	BioCCollectionReader collectionReader =
+	bioCFactory.createBioCCollectionReader(inputReader);
+	BioCCollection collection = collectionReader.readCollection();
+
+	// Run named entity recognition on collection
+	BioCCollection newCollection = process.processCollection(collection);
+
+    // write out the annotated collection
+    File outputFile = new File(outputFilename);
+	Writer outputWriter = new PrintWriter(outputFile, "UTF-8");
+	BioCCollectionWriter collectionWriter = bioCFactory.createBioCCollectionWriter(outputWriter);
+	collectionWriter.writeCollection(newCollection);
+	outputWriter.close();
+
+This process attempts to preserve any annotation present in the
+original BioC XML input.    Some annotations applied to BioC
+structures before entity lookup, tokenization and
+part-of-speech-tagging, are discarded before the writing out the final
+annotated collection.   This occurs in the entity lookup class
+BioCEntityLookup (java package: gov.nih.nlm.nls.metamap.lite).
+
+### command line usage:
+
+The file biocprocess.sh is a wrapper for the BioC to BioC pipeline.
+
+    ./biocprocess.sh <bioc-xml-input-file> <bioc-xml-output-file>
+
+Note that the class is missing the command line options handler that
+is present in the gov.nih.nlm.nls.ner.MetaMapLite class, use the
+config/metamaplite.properties file to set any custom properties or
+place the properties in another custom file and use the system
+property "metamaplite.propertyfile" to refer to the custom file.
+
+## Omissions in BioC version
+
+The current version of the BioCProcess class does not call the
+abbreviation detector or the negation detector.   This should be
+relatively simple to add (particularly the abbreviation detector) and
+will probably be added in the next release.
+
 ## Future
 
-Added mechanism to use custom user-supplied segmenters.
++ Create a ReSTful interface for MetaMapLite.
++ Create a pipeline using a chunker.
++ Create a pipeline using a full parser.
++ Add a mechanism to use custom user-supplied segmenters.
+

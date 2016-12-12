@@ -170,6 +170,7 @@ public class SentenceAnnotator {
       bioCPosTag.setID("postag" + Integer.toString(i));
       bioCPosTag.setText(tag);
       bioCPosTag.setLocations(tokenAnnotations.get(i).getLocations());
+      tokenAnnotations.get(i).putInfon("postag", tag);
       bioCPosTag.putInfon("type", "postag");
       sentence.addAnnotation(bioCPosTag);
       i++;
