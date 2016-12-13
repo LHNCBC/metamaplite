@@ -409,7 +409,7 @@ part-of-speech-tagging, are discarded before the writing out the final
 annotated collection.   This occurs in the entity lookup class
 BioCEntityLookup (java package: gov.nih.nlm.nls.metamap.lite).
 
-### command line usage:
+### Command Line Usage:
 
 The file biocprocess.sh is a wrapper for the BioC to BioC pipeline.
 
@@ -421,7 +421,7 @@ config/metamaplite.properties file to set any custom properties or
 place the properties in another custom file and use the system
 property "metamaplite.propertyfile" to refer to the custom file.
 
-## Omissions in BioC version
+### Omissions in BioC version
 
 The current version of the BioCProcess class does not call the
 abbreviation detector or the negation detector.   This should be
