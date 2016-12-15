@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.Plugin;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 import gov.nih.nlm.nls.metamap.lite.BioCEntityLookup;
+import gov.nih.nlm.nls.metamap.lite.BioCLRLongestMatchLookup;
 
 import gov.nih.nlm.nls.utils.Configuration;
 
@@ -49,20 +51,44 @@ public class BioCProcess {
   /** log4j logger instance */
   private static final Logger logger = LogManager.getLogger(BioCProcess.class);
 
+  Set<String> semanticGroup = new HashSet<String>(); // initially empty
+  Set<String> sourceSet = new HashSet<String>(); // initially empty
+
   BioCEntityLookup bioCEntityLookup;
   SentenceAnnotator sentenceAnnotator;
 
   public BioCProcess()
     throws IOException
   {
-    bioCEntityLookup = new BioCEntityLookup();
+    this.setSemanticGroup(System.getProperty("metamaplite.semanticgroup", "all").split(","));
+    this.setSourceSet(System.getProperty("metamaplite.sourceset","all").split(","));
+    
+    bioCEntityLookup = new BioCLRLongestMatchLookup();
   }
 
   public BioCProcess(Properties properties)
     throws IOException
   {
+    this.setSemanticGroup(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
+    this.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
     this.sentenceAnnotator = new SentenceAnnotator(properties);
-    bioCEntityLookup = new BioCEntityLookup(properties, this.sentenceAnnotator);
+    bioCEntityLookup = new BioCLRLongestMatchLookup(properties, this.sentenceAnnotator);
+  }
+
+  /**
+   * Set list of semantic types concepts must belong to be retrieved.
+   * @param semanticTypeList list of semantic type strings
+   */
+  public void setSemanticGroup(String[] semanticTypeList) {
+    this.semanticGroup = new HashSet<String>(Arrays.asList(semanticTypeList));
+  }
+
+  /**
+   * Set list of sources concepts must belong to be retrieved.
+   * @param sourceList list of source strings
+   */
+  public void setSourceSet(String[] sourceList) {
+    this.sourceSet = new HashSet<String>(Arrays.asList(sourceList));
   }
 
   /**
@@ -70,9 +96,8 @@ public class BioCProcess {
    * @param sentence
    * @return updated sentence
    */
-  public BioCSentence processSentence(BioCSentence sentence,
-				      String docid,
-				      boolean useContext, 
+  public BioCSentence processSentence(String docid,
+				      BioCSentence sentence,
 				      Set<String> semanticGroup,
 				      Set<String> sourceSet)
     throws IllegalAccessException, InvocationTargetException,
@@ -91,47 +116,13 @@ public class BioCProcess {
     // }
     BioCSentence taggedSentence = SentenceAnnotator.tokenizeSentence(sentence);
     this.sentenceAnnotator.addPartOfSpeech(taggedSentence);
-    BioCSentence entityTaggedSentence = bioCEntityLookup.processSentence(taggedSentence,
-									 docid,
-									 useContext,
-									 semanticGroup,
-									 sourceSet);
-    logger.debug("exit processSentence");
+    BioCSentence entityTaggedSentence = bioCEntityLookup.findLongestMatches(docid,
+									    taggedSentence,
+									    semanticGroup,
+									    sourceSet);
     return entityTaggedSentence;
   }
   
-  /**
-   * Invoke sentence processing pipeline on each sentence in supplied sentence list.
-   * @param passage containing list of sentences
-   * @return list of results from sentence processing pipeline, one per sentence in input list.
-   */
-  public BioCPassage processSentences(BioCPassage passage,
-				      String docid,
-				      boolean useContext, 
-				      Set<String> semanticGroup,
-				      Set<String> sourceSet) 
-    throws IllegalAccessException, InvocationTargetException,
-	   IOException, FileNotFoundException
-  {
-    logger.debug("enter processSentences");
-    List<BioCSentence> resultList = new ArrayList<BioCSentence>();
-    for (BioCSentence sentence: passage.getSentences()) {
-      logger.info("Processing: " + sentence.getText());
-      resultList.add(processSentence(sentence, 
-				     docid,
-				     useContext,
-				     semanticGroup,
-				     sourceSet));
-    }
-    logger.debug("exit processSentences");
-    // passage.setSentences(resultList); // BioC 1.0.1
-    for (BioCSentence sentence: resultList) {
-      passage.addSentence(sentence);
-    }
-    return passage;
-  }
-
-
   /**
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
    * @param passage containing list of sentences
@@ -142,21 +133,24 @@ public class BioCProcess {
 	   IOException, FileNotFoundException
   {
     logger.debug("enter processSentences");
+    BioCPassage newPassage = new BioCPassage();
+    newPassage.setInfons(passage.getInfons());
+    newPassage.setText(passage.getText());
+    newPassage.setOffset(passage.getOffset());
     List<BioCSentence> resultList = new ArrayList<BioCSentence>();
     for (BioCSentence sentence: passage.getSentences()) {
       logger.info("Processing: " + sentence.getText());
-      resultList.add(processSentence(sentence, 
-				     "txt",
-				     true,
-				     new HashSet<String>(),
-				     new HashSet<String>()));
+      resultList.add(processSentence("txt",
+				     sentence, 
+				     this.semanticGroup,
+				     this.sourceSet));
     }
     logger.debug("exit processSentences");
     // passage.setSentences(resultList);  // BioC 1.0.1
     for (BioCSentence sentence: resultList) {
-      passage.addSentence(sentence);
+      newPassage.addSentence(sentence);
     }
-    return passage;
+    return newPassage;
   }
 
     public BioCPassage processPassage(String docid, BioCPassage passage)
@@ -164,13 +158,6 @@ public class BioCProcess {
 	   IOException, FileNotFoundException 
   {
     logger.debug("enter processPassage");
-    // List<Plugin> pipeSequence = PipelineRegistry.get("simple.passage");
-    // Object current = passage;
-    // for (Plugin plugin: pipeSequence) {
-    //   Object result = plugin.getMethod().invoke(plugin.getClassInstance(), current);
-    //   current = result;
-    // }
-    // BioCPassage newPassage = BioCPipeline.processSentences(SentenceExtractor.createSentences(passage));
     BioCPassage newPassage = processSentences(docid, SentenceExtractor.createSentences(passage));
     logger.debug("exit processPassage");
     return newPassage;
@@ -263,6 +250,7 @@ public class BioCProcess {
 	  Configuration.mergeConfiguration(configProperties,
 					   defaultConfiguration);
 	BioCProcess process = new BioCProcess(properties);
+	System.out.println("semantic group: " + process.semanticGroup);
 	
 	// read BioC XML collection
 	Reader inputReader = new FileReader(inputFile);

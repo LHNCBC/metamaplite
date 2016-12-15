@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite;
 
@@ -125,11 +124,12 @@ public class BioCPipeline {
   boolean useContext = false;
   boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
-  EntityLookup4 entityLookup;
+  // EntityLookup4 entityLookup;
+  BioCEntityLookup bioCEntityLookup;
   boolean segmentSentences = true;
   boolean segmentBlanklines = false;
 
-public BioCPipeline(Properties properties)
+  public BioCPipeline(Properties properties)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException,
 	   IOException
@@ -139,7 +139,9 @@ public BioCPipeline(Properties properties)
       SentenceExtractor.setModel(properties.getProperty("opennlp.en-sent.bin.path"));
     }
     this.sentenceAnnotator = new SentenceAnnotator(properties);
-    this.entityLookup = new EntityLookup4(properties);
+    // this.entityLookup = new EntityLookup4(properties);
+    this.bioCEntityLookup = new BioCLRLongestMatchLookup(properties,this.sentenceAnnotator);
+
     BioCDocumentLoaderRegistry.register("bioc",
 					"For BioC XML documents.", 
 					new FreeText());
@@ -184,26 +186,86 @@ public BioCPipeline(Properties properties)
     this.segmentBlanklines = status;
   }
 
-  public void processPassage(BioCPassage passage)
-    throws IllegalAccessException, InvocationTargetException
+  /**
+   * Invoke sentence processing pipeline on asentence
+   * @param sentence
+   * @return updated sentence
+   */
+  public BioCSentence processSentence(String docid, BioCSentence sentence)
+    throws IllegalAccessException, InvocationTargetException,
+	   IOException, FileNotFoundException 
+  {
+    logger.debug("enter processSentence");
+    // List<Plugin> pipeSequence = PipelineRegistry.get("simple.sentence");
+    // Object current = sentence;
+    // Object resultObject = null;
+    // for (Plugin plugin: pipeSequence) {
+    //   // resultObject = plugin.getMethod().invoke(plugin.getClassInstance(), current);
+    //   current = resultObject;
+    // }
+    // if (resultObject instanceof BioCSentence) {
+    //   result = (BioCSentence)resultObject;
+    // }
+    BioCSentence taggedSentence = SentenceAnnotator.tokenizeSentence(sentence);
+    sentenceAnnotator.addPartOfSpeech(taggedSentence);
+    BioCSentence entityTaggedSentence = bioCEntityLookup.findLongestMatches(docid,
+									    taggedSentence);
+
+    // BioCSentence entityTaggedSentence = bioCEntityLookup.processSentence(taggedSentence,
+    // 									 docid,
+    // 									 this.useContext,
+    // 									 this.semanticGroup,
+    // 									 this.sourceSet);
+    logger.debug("exit processSentence");
+    return entityTaggedSentence;
+  }
+  
+  /**
+   * Invoke sentence processing pipeline on each sentence in supplied sentence list.
+   * @param passage containing list of sentences
+   * @return list of results from sentence processing pipeline, one per sentence in input list.
+   */
+  public BioCPassage processSentences(String docid, BioCPassage passage) 
+    throws IllegalAccessException, InvocationTargetException,
+	   IOException, FileNotFoundException 
+  {
+    logger.debug("enter processSentences");
+    List<BioCSentence> resultList = new ArrayList<BioCSentence>();
+    for (BioCSentence sentence: passage.getSentences()) {
+      logger.info("Processing: " + sentence.getText());
+      resultList.add(processSentence(docid, sentence));
+    }
+    logger.debug("exit processSentences");
+    // passage.setSentences(resultList);  // BioC 1.0.1
+    for (BioCSentence sentence: resultList) {
+      passage.addSentence(sentence);
+    }
+    return passage;
+  }
+
+  public void processPassage(String docid, BioCPassage passage)
+    throws IllegalAccessException, InvocationTargetException,
+	   IOException, FileNotFoundException 
   {
     logger.debug("enter processPassage");
-    List<Plugin> pipeSequence = PipelineRegistry.get("simple.passage");
-    Object current = passage;
-    for (Plugin plugin: pipeSequence) {
-      Object result = plugin.getMethod().invoke(plugin.getClassInstance(), current);
-      current = result;
-    }
+    // List<Plugin> pipeSequence = PipelineRegistry.get("simple.passage");
+    // Object current = passage;
+    // for (Plugin plugin: pipeSequence) {
+    //   Object result = plugin.getMethod().invoke(plugin.getClassInstance(), current);
+    //   current = result;
+    // }
     // BioCPassage newPassage = BioCPipeline.processSentences(SentenceExtractor.createSentences(passage));
+    BioCPassage newPassage = processSentences(docid, SentenceExtractor.createSentences(passage));
     logger.debug("exit processPassage");
   }
 
   public BioCDocument processDocument(BioCDocument document) 
-    throws IllegalAccessException, InvocationTargetException
+    throws IllegalAccessException, InvocationTargetException,
+	   IOException, FileNotFoundException 
   {
     for (BioCPassage passage: document.getPassages()) {
       logger.info(passage.getText());
-      this.processPassage(passage);
+      this.processPassage(document.getID(), passage);
     }
     return document;
   }
@@ -241,12 +303,12 @@ public BioCPipeline(Properties properties)
     for (String name: PluginRegistry.listPlugins()) {
       logger.info(" " + name);
     }
-    logger.info("pipesequence keys:");
-    PipelineRegistry.registerPipeSequences("metamaplite.pipeline", properties);
-    for (String content: PipelineRegistry.listPipeContents()) {
-      logger.info(" " + content);
-    }
-    logger.debug("exit initPipeline");
+    // logger.info("pipesequence keys:");
+    // PipelineRegistry.registerPipeSequences("metamaplite.pipeline", properties);
+    // for (String content: PipelineRegistry.listPipeContents()) {
+    //   logger.info(" " + content);
+    // }
+    // logger.debug("exit initPipeline");
     return pipeline;
   }
 
@@ -570,110 +632,30 @@ public BioCPipeline(Properties properties)
 	// } else if (listSentencesWithPosTags) {
 	//   metaMapLiteInst.listSentencesWithPosTags(documentList);
 	// } else {
-	  newDocumentList = pipeline.processDocumentList(documentList);
+	newDocumentList = pipeline.processDocumentList(documentList);
 	// }
       } else {
 	logger.info("Loading and processing documents");
-	if (optionsConfiguration.getProperty("metamaplite.document.inputtype") != null) {
-	  if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("chemdnersldi")) {
-	    List<BioCDocument> documentList = ChemDNERSLDI.bioCLoadSLDIFile(filenameList.get(0));
-	    /*CHEMDNER SLDI style documents*/
-	    newDocumentList = pipeline.processDocumentList(documentList);
-	  } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("chemdner")) {
-	    List<BioCDocument> documentList = ChemDNER.bioCLoadFile(filenameList.get(0));
-	    /*CHEMDNER SLDI style documents*/
-	    newDocumentList = pipeline.processDocumentList(documentList);
-	  } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("ncbicorpus")) {
-	    List<BioCDocument> documentList = NCBICorpusDocument.bioCLoadFile(filenameList.get(0));
-	    /*CHEMDNER SLDI style documents*/
-	    newDocumentList = pipeline.processDocumentList(documentList);
-	  } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("freetext")) {
-	    
-	    // String inputtext = FreeText.loadFile(filenameList.get(0));
-	    // BioCDocument document = new BioCDocument();
-	    // logger.info(inputtext);
-	    // BioCPassage passage = new BioCPassage();
-	    // passage.setText(inputtext);
-	    // passage.putInfon("docid", "00000000.tx");
-	    // passage.putInfon("freetext", "freetext");
-	    // document.addPassage(passage);
-	    // document.setID("00000000.tx");
-	    // List<BioCDocument> documentList = new ArrayList<BioCDocument>();
-	    // documentList.add(document);
-	    
-	    List<BioCDocument> documentList = FreeText.loadFreeTextFile(filenameList.get(0));
-	    newDocumentList = pipeline.processDocumentList(documentList);
-	  } else if (optionsConfiguration.getProperty("metamaplite.document.inputtype").equals("sli")) {
-	    List<BioCDocument> documentList = SingleLineInput.bioCLoadFile(filenameList.get(0));
-	    /*Single line documents*/
-	    newDocumentList = pipeline.processDocumentList(documentList);
+	for (String filename: filenameList) {
+	  {
+	    BioCCollection bioCCollection = new BioCCollection();
+	    // bioCCollection.setDocuments(newDocumentList); // BioC 1.0.1
+	    for (BioCDocument doc: newDocumentList) {
+	      bioCCollection.addDocument(doc);
+	    }
+	    BioCFactory bioCFactory = new BioCFactoryImpl();
+	    try {
+	      BioCCollectionWriter collectionWriter =
+		bioCFactory.createBioCCollectionWriter(new OutputStreamWriter(output, "UTF-8"));
+	      collectionWriter.writeCollection(bioCCollection);
+	      output.flush();
+	    } catch (XMLStreamException xse) {
+	      throw new RuntimeException(xse);
+	    }
 	  }
-	} else {
-	  List<BioCDocument> documentList = FreeText.loadFreeTextFile(filenameList.get(0));
-	  newDocumentList = pipeline.processDocumentList(documentList);
-	}
-	logger.debug("document list length: " + newDocumentList.size());
-	for (BioCDocument doc: newDocumentList) {
-	  logger.debug(doc);
+	  output.close();
 	}
       }
-
-      logger.info("outputing results ");
-
-      if (optionsConfiguration.getProperty("metamaplite.outputformat") != null) {
-	if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("bc-evaluate") ||
-	    optionsConfiguration.getProperty("metamaplite.outputformat").equals("bc") ||
-	    optionsConfiguration.getProperty("metamaplite.outputformat").equals("cdi")) {
-	  logger.info("writing BC evaluate format file...");
-	  // for (BioCDocument document: newDocumentList) {
-	  // EntityLookup1.writeBcEvaluateAnnotations(output, document);
-	  // }
-	} else if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("brat")) {
-	  logger.debug("writing mmi format output");
-	  for (BioCDocument document: newDocumentList) {
-	    Brat.writeBratAnnotations("BioCPipeline",
-				      new PrintWriter
-				      (new BufferedWriter
-				       (new OutputStreamWriter(output))), 
-				      document);
-	  }
-	} else if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("bioc")) {
-	  BioCCollection bioCCollection = new BioCCollection();
-	  bioCCollection.setDocuments(newDocumentList);
-	  BioCFactory bioCFactory = new BioCFactoryImpl();
-	  try {
-	    BioCCollectionWriter collectionWriter =
-	      bioCFactory.createBioCCollectionWriter(new OutputStreamWriter(output, "UTF-8"));
-	    collectionWriter.writeCollection(bioCCollection);
-	    System.out.flush();
-	  } catch (XMLStreamException xse) {
-	    throw new RuntimeException(xse);
-	  }
-	} else if (optionsConfiguration.getProperty("metamaplite.outputformat").equals("mmi")) {
-	  logger.debug("writing mmi format output");
-	  for (BioCDocument document: newDocumentList) {
-	    // EntityLookup1.writeEntities(System.out, document);
-	  }
-	} else {
-	  logger.debug("writing mmi format output");
-	  for (BioCDocument document: newDocumentList) {
-	    // EntityLookup1.writeEntities(System.out, document);
-	  }
-	}
-      } else {
-        BioCCollection bioCCollection = new BioCCollection();
-	bioCCollection.setDocuments(newDocumentList);
-	BioCFactory bioCFactory = new BioCFactoryImpl();
-	try {
-	  BioCCollectionWriter collectionWriter =
-	    bioCFactory.createBioCCollectionWriter(new OutputStreamWriter(output, "UTF-8"));
-	  collectionWriter.writeCollection(bioCCollection);
-	  output.flush();
-	} catch (XMLStreamException xse) {
-	  throw new RuntimeException(xse);
-	}
-      }
-      output.close();
     } else {
       displayHelp();
       System.exit(1);
