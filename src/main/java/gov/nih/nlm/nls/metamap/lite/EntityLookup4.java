@@ -762,7 +762,10 @@ public class EntityLookup4 implements EntityLookup {
 	annotationList.add(annotation);
       }
     }
-    newPassage.setAnnotations(annotationList);
+    // newPassage.setAnnotations(annotationList); // BioC 1.0.1
+    for (BioCAnnotation annotation: annotationList) {
+      passage.addAnnotation(annotation);
+    }
     return newPassage;
   }
 }

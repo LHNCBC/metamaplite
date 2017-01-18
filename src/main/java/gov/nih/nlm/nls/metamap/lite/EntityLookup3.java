@@ -729,7 +729,10 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
 	annotationList.add(annotation);
       }
     }
-    newPassage.setAnnotations(annotationList);
+    // newPassage.setAnnotations(annotationList); // BioC 1.0.1
+    for (BioCAnnotation annotation: annotationList) {
+      newPassage.addAnnotation(annotation);
+    }
     return newPassage;
   }
 }
