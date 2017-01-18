@@ -18,7 +18,6 @@ import java.util.Properties;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.lucene.queryparser.classic.ParseException;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.Plugin;
@@ -217,7 +216,6 @@ public class Pipeline {
    * @throws InstantiationException exception instantiating instance of class
    * @throws NoSuchMethodException  no method in class
    * @throws IllegalAccessException illegal access of class
-   * @throws ParseException except while parsing
    * @throws InvocationTargetException exception while invoking target class
    * @throws ClassNotFoundException class not found exception
    */
@@ -225,7 +223,7 @@ public class Pipeline {
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException,
-	   ParseException , InvocationTargetException {
+	   InvocationTargetException {
     if (args.length > 0) {
       Pipeline pipeline = initPipeline();
       String filename = null;
