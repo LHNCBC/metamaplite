@@ -14,5 +14,6 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 public interface ResultFormatter {
   void entityListFormatter(PrintWriter writer,
 			   List<Entity> entityList);
+  String entityListFormatToString(List<Entity> entityList);
   void initProperties(Properties properties);
 }

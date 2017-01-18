@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite.resultformats;
 
@@ -54,7 +53,7 @@ public class Brat implements ResultFormatter {
        this.type = type;
        this.startOffset = start;
        this.endOffset = end;
-       this.text = text;
+       this.text = text.replaceAll("\n","\\n");
     }
     public TextBoundAnnotation(String id, String type, int start, int end, String text, 
 			       Set<NormalizationAnnotation> referenceSet) {
@@ -62,7 +61,7 @@ public class Brat implements ResultFormatter {
        this.type = type;
        this.startOffset = start;
        this.endOffset = end;
-       this.text = text;
+       this.text = text.replaceAll("\n","\\n");
        this.referenceSet = referenceSet;
     }
     public void setId(String id) { this.id = id; }
@@ -324,6 +323,73 @@ public class Brat implements ResultFormatter {
 				  String annotationTypeName) {
     writeAnnotationList(annotationTypeName, writer, entityList);
   }
+
+  
+  public static String annotationSetToString(String recognizerName,
+					   Set<TextBoundAnnotation> annotationSet) {
+    StringBuilder sb = new StringBuilder();
+    int cindex = 0;
+    int nindex = 0;
+    for (TextBoundAnnotation annotation: annotationSet) {
+      cindex++;
+      String tid = "T" + cindex;
+      annotation.setId(tid);
+      sb.append(annotation.toString()).append("\n");
+      if (annotation.getReferenceSet() != null) {
+	for (NormalizationAnnotation nAnnotation: annotation.getReferenceSet()) {
+	  nindex++;
+	  nAnnotation.setId("N" + nindex);
+	  nAnnotation.setTarget(tid);
+	  sb.append(nAnnotation.toString()).append("\n");
+	}
+      }
+    }
+    return sb.toString();
+  }
+
+ public static String annotationListToString(String recognizerName,
+					     List<Entity> entityList) {
+    Map<String,List<Entity>> locationMap = new HashMap<String,List<Entity>>();
+    for (Entity entity: entityList) {
+      String location = entity.getStart() + ":" + entity.getLength();
+      if (locationMap.containsKey(location)) {
+	locationMap.get(location).add(entity);
+      } else {
+	List<Entity> annotationList = new ArrayList<Entity>();
+	annotationList.add(entity);
+	locationMap.put(location, annotationList);
+      } /*if*/
+    } /*for*/
+    Map<String,TextBoundAnnotation> annotationMap = new HashMap<String,TextBoundAnnotation>();
+    for (Map.Entry<String,List<Entity>> entry: locationMap.entrySet()) {
+      for (Entity entity: entry.getValue()) {
+        int start = entity.getStart();
+	int end = start + entity.getLength();
+	String term = entity.getText();	  
+	TextBoundAnnotation textAnnot = new TextBoundAnnotation("T0",recognizerName,start,end,term);
+	if (annotationMap.containsKey(textAnnot.genKey())) {
+	  // textAnnot = annotationMap.get(textAnnot.genKey());
+	  // textAnnot.addToReferenceList(Brat.generateReferenceList(entity));
+	} else {
+	  textAnnot.setReferenceSet(Brat.generateReferenceSet(entity));
+	  annotationMap.put(textAnnot.genKey(), textAnnot);
+	}
+      }
+    }
+    Set<TextBoundAnnotation> annotationSet = new HashSet<TextBoundAnnotation>(annotationMap.values());
+    return annotationSetToString(recognizerName, annotationSet);
+  } /* listEntities */
+  
+
+  public String entityListFormatToString(List<Entity> entityList) {
+    return annotationListToString(this.textLabel, entityList);
+  }
+
+  public String entityListFormatToString(List<Entity> entityList,
+					 String annotationTypeName) {
+    return annotationListToString(annotationTypeName, entityList);
+  }
+
 
   public void initProperties(Properties properties) {
        if (properties.containsKey("metamaplite.brat.typename")) {

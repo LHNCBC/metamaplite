@@ -48,6 +48,10 @@ public class CuiList implements ResultFormatter {
     displayEntityList(writer, entityList);
   }
 
+  public String entityListFormatToString(List<Entity> entityList) {
+    return null;
+  }
+
   public void initProperties(Properties properties) {
   }
 

@@ -124,7 +124,7 @@ public class MMI implements ResultFormatter {
 	if (cuiMatchInfoMap.containsKey(cui)) {
 	  MatchInfo newEntity = cuiMatchInfoMap.get(cui);
 	  newEntity.addTriggerInfo(ev.getMatchedText(),
-				   preferredName,
+				   ev.getConceptString(),
 				   "txt",
 				   ev.getPartOfSpeech(),
 				   0,
@@ -134,7 +134,7 @@ public class MMI implements ResultFormatter {
 	  Set<String> semanticTypeSet = ev.getConceptInfo().getSemanticTypeSet();
 	  MatchInfo newEntity = new MatchInfo(preferredName, semanticTypeSet);
 	  newEntity.addTriggerInfo(ev.getMatchedText(),
-				   preferredName,
+				   ev.getConceptString(),
 				   "txt",
 				   ev.getPartOfSpeech(),
 				   0,
@@ -252,9 +252,38 @@ public class MMI implements ResultFormatter {
     }
   }
 
+  
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
     displayEntityList(writer, entityList);
+  }
+
+  public String entityListFormatToString(List<Entity> entityList)
+  {
+    int seqno = 0;
+    StringBuilder sb = new StringBuilder();
+    Map<String,MatchInfo> cuiEntityMap = genCuiMatchInfoMap(entityList);
+    for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
+      String cui = cuiEntity.getKey();
+      MatchInfo val = cuiEntity.getValue();
+      sb.append("text|0.0|").append(val.getPreferredName()).append("|").append(cui).append("|").append(seqno).append("|" +
+	       StringUtils.join(val.getSemanticTypeSet(), ",")).append("|");
+
+      Set<String> spanSet = new LinkedHashSet<String>();
+      Set<String> triggerInfoStringList = new LinkedHashSet<String>();
+      for (Map.Entry<String,Set<TriggerInfo>> entry: val.getMatchedTextTriggerInfoListMap().entrySet()) {
+	String matchedText = entry.getKey();
+	for (TriggerInfo triggerInfo: entry.getValue()) {
+	  triggerInfoStringList.add(triggerInfo.toString());
+	  spanSet.add(triggerInfo.getSpan().toString());
+	}
+      }
+      sb.append(StringUtils.join(triggerInfoStringList, ","))
+	.append("|" + StringUtils.join(spanSet, ","))
+	.append("\n");
+      seqno++;
+    }
+    return sb.toString();
   }
 
   public void initProperties(Properties properties) {
