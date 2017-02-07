@@ -1,4 +1,4 @@
-(defproject gov.nih.nlm.nls/metamaplite "2.0-SNAPSHOT"
+(defproject gov.nih.nlm.nls/metamaplite "3.2-SNAPSHOT"
   :description "Clojure code for exploring MetaMapLite in lieu of a debugger."
   :url "http://usa.gov/"
   :min-lein-version "2.0.0"
@@ -11,11 +11,16 @@
                  [clojure-opennlp "0.3.2"]
                  [org.apache.logging.log4j/log4j-api "2.1"]
                  [org.apache.logging.log4j/log4j-core "2.1"]
-                 [org.apache.lucene/lucene-analyzers-common "4.10.0"]
-                 [org.apache.lucene/lucene-queryparser "4.10.0"]
+                 ;; [org.apache.lucene/lucene-analyzers-common "4.10.0"]
+                 ;; [org.apache.lucene/lucene-queryparser "4.10.0"]
                  [net.sf.opencsv/opencsv "2.3"]
                  [gov.nih.nlm.nls/nlp "2.4.C"]
-                 ;; [context "2012"] ;; see context/* under src/main/java/
+                 ;; https://mvnrepository.com/artifact/org.jyaml/jyaml
+                 [org.jyaml/jyaml "1.3"]
+                 ;; https://mvnrepository.com/artifact/org.yaml/snakeyaml
+                 [org.yaml/snakeyaml "1.17"]
+                 [io.forward/yaml "1.0.5"]
+                 [context "2012"] ;; see context/* under src/main/java/
                  [bioc "1.0.1"]
                  [junit/junit "4.11"]]
   :profiles {:dev
