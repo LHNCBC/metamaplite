@@ -257,15 +257,33 @@ public class MetaMapLite {
       (properties.getProperty("metamaplite.segmentation.method","SENTENCE"));
   }
 
-  void setSemanticGroup(String[] semanticTypeList) {
+  /**
+   * Set list of semantic types concepts must belong to be retrieved.
+   * @param semanticTypeList list of semantic type strings
+   */
+  public void setSemanticGroup(String[] semanticTypeList) {
     this.semanticGroup = new HashSet<String>(Arrays.asList(semanticTypeList));
   }
 
-  void setSourceSet(String[] sourceList) {
+  /**
+   * Set list of sources concepts must belong to be retrieved.
+   * @param sourceList list of source strings
+   */
+  public void setSourceSet(String[] sourceList) {
     this.sourceSet = new HashSet<String>(Arrays.asList(sourceList));
   }
 
-  void setSegmentationMethod(String typeName) {
+  /**
+   * Set seqmentation method used by passage segmenter.
+   * segmentation methods:
+   * <dl>
+   * <dt><tt>SENTENCES</tt>  <dd>seqment text using sentence breaker.
+   * <dt><tt>BLANKLINES</tt> <dd>seqment text using blank lines as delimitor
+   * <dt><tt>LINES</tt>      <dd>seqment text using newlines as delimitor
+   * </dl>
+   * @param typeName name of segmentation method to use
+   */
+  public void setSegmentationMethod(String typeName) {
     if (typeName.equals("SENTENCES")) {
       this.segmentationMethod = SegmentatonType.SENTENCES;
     } else if (typeName.equals("BLANKLINES")) {

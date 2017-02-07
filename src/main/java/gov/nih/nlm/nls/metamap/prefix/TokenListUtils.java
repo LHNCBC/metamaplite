@@ -15,7 +15,9 @@ public class TokenListUtils {
   
   /** 
    * Create sequence of sublists of tokenlist always starting from
-   * the head each sublist smaller than the previous.
+   * the beginning of original tokenlist.
+   * @param tokenList original token list.
+   * @return listOftokenlists list of token sublists.
    */
   public static List<List<? extends Token>> applyHeadSubTokenLists(List<? extends Token> tokenList) {
     List<List<? extends Token>> listOfTokenLists = new ArrayList<List<? extends Token>>();
@@ -26,6 +28,12 @@ public class TokenListUtils {
     return listOfTokenLists;
   }
 
+  /** 
+   * Create sequence of sublists of tokenlist always starting from
+   * the head each sublist smaller than the previous.
+   * @param tokenList original token list.
+   * @return listOftokenlists list of token sublists.
+   */
   public static List<List<? extends Token>> createSubLists(List<? extends Token> tokenList) {
     List<List<? extends Token>> listOfTokenLists = new ArrayList<List<? extends Token>>();
     for (int i=0; i<tokenList.size(); i++) {
@@ -37,10 +45,11 @@ public class TokenListUtils {
 
   /* optimized versions */
 
-
   /** 
    * Create sequence of sublists of tokenlist always starting from
    * the head each sublist smaller than the previous.
+   * @param listOftokenlists unpopulated list to contain token sublists.
+   * @param tokenList original token list.
    */
   public static void applyHeadSubTokenListsOpt
 				    (List<List<? extends Token>> listOfTokenLists,
@@ -51,6 +60,12 @@ public class TokenListUtils {
     }
   }
 
+  /**
+   * Generate token sublists from original list using successive heads
+   * of original list.
+   * @param tokenList original tokenlist.
+   * @return list of token sublist
+   */
   public static List<List<? extends Token>> createSubListsOpt(List<? extends Token> tokenList) {
     List<List<? extends Token>> listOfTokenLists = new ArrayList<List<? extends Token>>();
     for (int i=0; i<tokenList.size(); i++) {
