@@ -1,18 +1,34 @@
-
 //
 package gov.nih.nlm.nls.metamap.lite;
 
-import java.util.Map;
-import java.util.HashMap;
 import gov.nih.nlm.nls.metamap.lite.Normalization;
+import gov.nih.nlm.nls.utils.LRUCache;
 
 /**
- *
+ * This module optionally caches the value of the function
+ * Normalization.normalizeLiteString.
+ * 
+ * You can enable the cache by
+ * setting the system property "metamaplite.normalized.string.cache.enable".
  */
 
 public class NormalizedStringCache {
     /** string -&gt; normalize string cache. */
-  public static Map<String,String> normalizeStringCache = new HashMap<String,String>();
+  public static LRUCache<String,String> normalizeStringCache =
+    new LRUCache<String,String>
+    (Integer.parseInt
+     (System.getProperty("metamaplite.normalized.string.cache.size","10000")));
+  /** set system property "metamaplite.normalized.string.cache.enable" to true to enable cache */
+  public static boolean enableCache =
+    Boolean.parseBoolean(System.getProperty("metamaplite.normalized.string.cache.enable", "false"));
+
+  /**
+   * Set to true to enable cache, false to disable cache.
+   * @param status status to set enable cache.
+   */
+  public static void setCacheEnable(boolean status) {
+    enableCache = status;
+  }
 
   /**
    * A memoization of MWIUtilities.normalizeLiteString 
@@ -20,15 +36,19 @@ public class NormalizedStringCache {
    * @return normalized version of input string.
    */
   static String normalizeString(String originalString) {
-    /* in the name of premature optimization, I'm memoizing normalizeAstString */
-    if (normalizeStringCache.containsKey(originalString)) {
-      return normalizeStringCache.get(originalString);
-    } else {
+    if (enableCache) {
+      /* in the name of premature optimization, I'm memoizing normalizeAstString */
+      if (normalizeStringCache.containsKey(originalString)) {
+	return normalizeStringCache.get(originalString);
+      } else {
 	String normalizedString = Normalization.normalizeLiteString(originalString);
 	synchronized (normalizeStringCache) {
 	  normalizeStringCache.put(originalString, normalizedString);
 	}
 	return normalizedString;
+      }
+    } else {
+      return Normalization.normalizeLiteString(originalString);
     }
   }
 }

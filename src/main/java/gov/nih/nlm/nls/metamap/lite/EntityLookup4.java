@@ -48,6 +48,7 @@ import gov.nih.nlm.nls.metamap.prefix.Scanner;
 import gov.nih.nlm.nls.types.Sentence;
 
 import gov.nih.nlm.nls.utils.StringUtils;
+import gov.nih.nlm.nls.utils.LRUCache;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,9 +57,21 @@ import opennlp.tools.dictionary.serializer.Entry;
 /**
  *
  */
+
 public class EntityLookup4 implements EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup4.class);
 
+  /** Set property
+   * "metamaplite.entitylookup4.term.concept.cache.enable" to true to
+   * enable term --> concept cache. */
+  boolean enableTermConceptInfoCache = 
+    Boolean.getBoolean("metamaplite.entitylookup4.term.concept.cache.enable");
+  /** Set property
+   * "metamaplite.entitylookup4.cui.preferredname.cache.enable" to
+   * true to enable cui --> preferred name cache. */
+  boolean enableCuiPreferredNameCache =
+    Boolean.getBoolean("metamaplite.entitylookup4.cui.preferredname.cache.enable");
+  
   public MetaMapIvfIndexes mmIndexes;
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   
@@ -68,7 +81,7 @@ public class EntityLookup4 implements EntityLookup {
   int cuiColumn = 0;		
   SpecialTerms excludedTerms = new SpecialTerms();
   int MAX_TOKEN_SIZE =
-    Integer.parseInt(System.getProperty("metamaplite.entitylookup3.maxtokensize","15"));
+    Integer.parseInt(System.getProperty("metamaplite.entitylookup4.maxtokensize","15"));
 
   SentenceAnnotator sentenceAnnotator;
   NegationDetector negationDetector;
@@ -99,12 +112,25 @@ public class EntityLookup4 implements EntityLookup {
   public EntityLookup4(Properties properties) 
     throws IOException, FileNotFoundException
   {
+    // override any system properties here
+    this.enableTermConceptInfoCache = 
+      Boolean.parseBoolean
+      (properties.getProperty
+       ("metamaplite.entitylookup4.term.concept.cache.enable",
+	Boolean.toString(this.enableTermConceptInfoCache)));
+    this.enableCuiPreferredNameCache =
+      Boolean.parseBoolean
+      (properties.getProperty
+       ("metamaplite.entitylookup4.cui.preferredname.cache.enable",
+	Boolean.toString(this.enableCuiPreferredNameCache)));
+    
     this.mmIndexes = new MetaMapIvfIndexes(properties);
-
-    addPartOfSpeechTagsFlag =
+    
+    this.addPartOfSpeechTagsFlag =
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
-    if (addPartOfSpeechTagsFlag) {
+
+    if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new SentenceAnnotator(properties);
     }
 
@@ -139,25 +165,98 @@ public class EntityLookup4 implements EntityLookup {
   }
 
   /** cache of string -&gt; concept and attributes */
-  public static Map<String,Set<ConceptInfo>> termConceptCache = new HashMap<String,Set<ConceptInfo>>();
+  public static LRUCache<String,Set<ConceptInfo>> termConceptCache = 
+    new LRUCache<String,Set<ConceptInfo>>
+    (Integer.parseInt
+     (System.getProperty
+      ("metamaplite.entity.lookup4.term.concept.cache.size","10000")));
 
   public void cacheConcept(String term, ConceptInfo concept) {
-    synchronized (termConceptCache) {
-      if (termConceptCache.containsKey(term)) {
-	synchronized (termConceptCache.get(term)) {
-	  termConceptCache.get(term).add(concept);
+    synchronized (this.termConceptCache) {
+      if (this.termConceptCache.containsKey(term)) {
+	synchronized (this.termConceptCache.get(term)) {
+	  this.termConceptCache.get(term).add(concept);
 	}
       } else {
 	Set<ConceptInfo> newConceptSet = new HashSet<ConceptInfo>();
 	newConceptSet.add(concept);
-	synchronized (termConceptCache) {
-	  termConceptCache.put(term, newConceptSet);
+	synchronized (this.termConceptCache) {
+	  this.termConceptCache.put(term, newConceptSet);
 	}
       }
     }
   }
+  
+  public void cacheConceptInfoSet(String term, Set<ConceptInfo> conceptInfoSet) {
+    if (this.termConceptCache.containsKey(term)) {
+      synchronized (this.termConceptCache.get(term)) {
+	this.termConceptCache.get(term).addAll(conceptInfoSet);
+      }
+    } else {
+      synchronized (this.termConceptCache) {
+	this.termConceptCache.put(term, conceptInfoSet);
+      }
+    }
+  }
 
-  public static Map<String,String> cuiPreferredNameCache =  new HashMap<String,String>();
+  public Set<ConceptInfo> lookupTermConceptInfoIVF(String originalTerm,
+						   String normTerm,
+						   List<? extends Token> tokenlist) 
+    throws FileNotFoundException, IOException
+  {
+    Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
+    // if not in cache then lookup term 
+    for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
+      String[] fields = doc.split("\\|");
+      String cui = fields[0];
+      String docStr = fields[3];
+      
+      // If term is not in excluded term list and term or
+      // normalized form of term matches lookup string or
+      // normalized form of lookup string then get
+      // information about lookup string.
+      if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(originalTerm,normTerm,docStr)) {
+	if (tokenlist.get(0) instanceof PosToken) {
+	  ConceptInfo conceptInfo = new ConceptInfo(cui, 
+						    this.findPreferredName(cui),
+						    this.getSourceSet(cui),
+						    this.getSemanticTypeSet(cui));
+	  conceptInfoSet.add(conceptInfo);
+	}
+      }
+    }
+    return conceptInfoSet;
+  }
+
+  /**
+   * Lookup Term - if term info is already in cache then use cached
+   * term info, otherwise, lookup term info in index.
+   * @param term Term to lookup
+   * @return map of entities keyed by span
+   */
+  public Set<ConceptInfo> lookupTermConceptInfo(String originalTerm,
+						String normTerm,
+						List<? extends Token> tokenlist)
+    throws FileNotFoundException, IOException
+  {
+    if (enableTermConceptInfoCache) {
+      if (this.termConceptCache.containsKey(normTerm) ) {
+	return this.termConceptCache.get(normTerm);
+      } else {
+	Set<ConceptInfo> conceptInfoSet = lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
+	this.cacheConceptInfoSet(normTerm, conceptInfoSet);
+	return conceptInfoSet;
+      }
+    } else {
+      return lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
+    }
+  }
+
+  public static LRUCache<String,String> cuiPreferredNameCache =
+  new LRUCache<String,String>
+     (Integer.parseInt
+      (System.getProperty
+       ("metamaplite.entity.lookup4.cui.preferred.name.cache.size","10000")));
   
   public void cachePreferredTerm(String cui, String preferredTerm) {
     synchronized (cuiPreferredNameCache) {
@@ -166,6 +265,23 @@ public class EntityLookup4 implements EntityLookup {
   }
 
   /**
+   * Lookup preferred name for cui (concept unique identifier) in inverted file.
+   * @param cui target cui
+   * @return preferredname for cui or null if not found
+   */
+  public String lookupPreferredNameIVF(String cui)
+    throws FileNotFoundException, IOException
+  {
+    List<String> hitList = 
+      this.mmIndexes.cuiConceptIndex.lookup(cui, 0);
+    if (hitList.size() > 0) {
+      String[] fields = hitList.get(0).split("\\|");
+      return fields[1];
+    }
+    return null;
+  }
+    
+  /**
    * Find preferred name for cui (concept unique identifier)
    * @param cui target cui
    * @return preferredname for cui or null if not found
@@ -173,18 +289,17 @@ public class EntityLookup4 implements EntityLookup {
   public String findPreferredName(String cui)
     throws FileNotFoundException, IOException
   {
-    if (cuiPreferredNameCache.containsKey(cui)) {
-      return cuiPreferredNameCache.get(cui);
-    } else {
-      List<String> hitList = 
-	this.mmIndexes.cuiConceptIndex.lookup(cui, 0);
-      if (hitList.size() > 0) {
-	String[] fields = hitList.get(0).split("\\|");
-	this.cachePreferredTerm(cui, fields[1]);
-	return fields[1];
+    if (enableCuiPreferredNameCache) {
+      if (this.cuiPreferredNameCache.containsKey(cui)) {
+	return this.cuiPreferredNameCache.get(cui);
+      } else {
+	String preferredName = lookupPreferredNameIVF(cui);
+	this.cachePreferredTerm(cui, preferredName);
+	return preferredName;
       }
+    } else {
+      return lookupPreferredNameIVF(cui);
     }
-    return null;
   }
 
   /**
@@ -196,7 +311,7 @@ public class EntityLookup4 implements EntityLookup {
     throws FileNotFoundException, IOException
   {
     Set<String> sourceSet = new HashSet<String>();
-    List<String> hitList = 
+    List<String> hitList =
       this.mmIndexes.cuiSourceInfoIndex.lookup(cui, 0);
     for (String hit: hitList) {
       String[] fields = hit.split("\\|");
@@ -335,6 +450,7 @@ public class EntityLookup4 implements EntityLookup {
     }
   }
 
+
   /**
    * Given Example:
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
@@ -374,82 +490,86 @@ public class EntityLookup4 implements EntityLookup {
     for (List<? extends Token> tokenSubList: listOfTokenSubLists) {
       List<String> tokenTextSubList = new ArrayList<String>();
       for (Token token: tokenSubList) {
-	tokenTextSubList.add(token.getText());
+       	tokenTextSubList.add(token.getText());
       }
       ERToken firstToken = (ERToken)tokenSubList.get(0);
       ERToken lastToken = (ERToken)tokenSubList.get(tokenSubList.size() - 1);
       if ((! firstToken.getText().toLowerCase().equals("other")) &&
-	  this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech())) {
-	int termLength = (tokenSubList.size() > 1) ?
-	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
-	  firstToken.getText().length();
-	String originalTerm = StringUtils.join(tokenTextSubList, "");
+       	  this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech())) {
+       	int termLength = (tokenSubList.size() > 1) ?
+       	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
+       	  firstToken.getText().length();
+       	String originalTerm = StringUtils.join(tokenTextSubList, "");
 	if ((originalTerm.length() > 2) &&
 	    (CharUtils.isAlphaNumeric(originalTerm.charAt(originalTerm.length() - 1)))) {
-	  String term = originalTerm;
-	  String query = term;
-	  normTerm = NormalizedStringCache.normalizeString(term);
+	 
+	  // String term = originalTerm;
+	  // String query = term;
+	  normTerm = NormalizedStringCache.normalizeString(originalTerm);
 	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
-	  if (CharUtils.isAlpha(term.charAt(0))) {
+	  if (CharUtils.isAlpha(originalTerm.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
-	    if (termConceptCache.containsKey(normTerm)) {
-	      for (ConceptInfo concept: termConceptCache.get(normTerm)) {
-		String cui = concept.getCUI();
-		Ev ev = new Ev(concept,
-			       originalTerm,
-			       normTerm,
-			       ((PosToken)tokenSubList.get(0)).getOffset(),
-			       termLength,
-			       0.0,
-			       ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
-		if (! evSet.contains(ev)) {
-		  logger.debug("add ev: " + ev);
-		  evSet.add(ev);
-		}
+
+	    for (ConceptInfo concept: lookupTermConceptInfo(originalTerm,
+							    normTerm,
+							    tokenSubList)) {
+	      //   if (this.termConceptCache.containsKey(normTerm)) {
+	      //     for (ConceptInfo concept: this.termConceptCache.get(normTerm)) {
+	      String cui = concept.getCUI();
+	      Ev ev = new Ev(concept,
+			     originalTerm,
+			     normTerm,
+			     ((PosToken)tokenSubList.get(0)).getOffset(),
+			     termLength,
+			     0.0,
+			     ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+	      if (! evSet.contains(ev)) {
+		logger.debug("add ev: " + ev);
+		evSet.add(ev);
 	      }
-	    } else {
-	      // if not in cache then lookup term 
-	      for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
-		String[] fields = doc.split("\\|");
-		String cui = fields[0];
-		String docStr = fields[3];
-		
-		// If term is not in excluded term list and term or
-		// normalized form of term matches lookup string or
-		// normalized form of lookup string then get
-		// information about lookup string.
-		if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(term,normTerm,docStr)) {
-		  if (tokenSubList.get(0) instanceof PosToken) {
-		    ConceptInfo concept = new ConceptInfo(cui, 
-							  this.findPreferredName(cui),
-							  this.getSourceSet(cui),
-							  this.getSemanticTypeSet(cui));
-		    this.cacheConcept(normTerm, concept);
-		    cui = concept.getCUI();
-		    Ev ev = new Ev(concept,
-				   originalTerm,
-				   docStr,
-				   offset,
-				   termLength,
-				   0.0,
-				   ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
-		    if (! evSet.contains(ev)) {
-		      logger.debug("add ev: " + ev);
-		      evSet.add(ev);
-		    }
-		  } /*if token instance of PosToken*/
-		} /*if term equals doc string */
-	      } /* for doc in documentList */
+	      //   } else {
+	      //     // if not in cache then lookup term 
+	      //     for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
+	      // 	String[] fields = doc.split("\\|");
+	      // 	String cui = fields[0];
+	      // 	String docStr = fields[3];
+	      
+	      // 	// If term is not in excluded term list and term or
+	      // 	// normalized form of term matches lookup string or
+	      // 	// normalized form of lookup string then get
+	      // 	// information about lookup string.
+	      // 	if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(term,normTerm,docStr)) {
+	      // 	  if (tokenSubList.get(0) instanceof PosToken) {
+	      // 	    ConceptInfo concept = new ConceptInfo(cui, 
+	      // 						  this.findPreferredName(cui),
+	      // 						  this.getSourceSet(cui),
+	      // 						  this.getSemanticTypeSet(cui));
+	      // 	    this.cacheConcept(normTerm, concept);
+	      // 	    cui = concept.getCUI();
+	      // 	    Ev ev = new Ev(concept,
+	      // 			   originalTerm,
+	      // 			   docStr,
+	      // 			   offset,
+	      // 			   termLength,
+	      // 			   0.0,
+	      // 			   ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+	      // 	    if (! evSet.contains(ev)) {
+	      // 	      logger.debug("add ev: " + ev);
+	      // 	      evSet.add(ev);
+	      // 	    }
+	      // 	  } /*if token instance of PosToken*/
+	      // 	} /*if term equals doc string */
+	      //     } /* for doc in documentList */
 	    } /* if term in concept cache */
 	    if (evSet.size() > 0) {
 	      this.addEvSetToSpanMap(spanMap, evSet, 
-				     docid,
-				     originalTerm,
-				     offset, termLength);
+	  			     docid,
+	  			     originalTerm,
+	  			     offset, termLength);
 	      longestMatchedTokenLength = Math.max(longestMatchedTokenLength,tokenTextSubList.size());
 	    }
-
+	    
 	  } /* if term alphabetic */
 	} /* if term length > 0 */
       } /* first token has allowed partOfSpeech */

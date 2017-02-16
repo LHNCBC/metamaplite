@@ -68,6 +68,7 @@ Current options are:
   Configuration Options:
 
     --configfile=<filename>        Use configuration file
+    --set_property=name=value      set property "name" to value
 
 Options that can be used to override configuration file or when
 configuration file is not present:
@@ -112,6 +113,8 @@ configuration file is not present:
     --list_sentences_postags  list sentences in input with part-of-speech tags
 
 
+
+
 ## Properties
 
 ### Command line and System properties for metamaplite
@@ -135,6 +138,13 @@ These properties can be set using a System property
     | metamaplite.semanticgroup             | use only concepts belonging to listed semantic types (default: all)
 	| metamaplite.negation.detector         | negation detector class: default: gov.nih.nlm.nls.metamap.lite.NegEx
 	                                                                   Alternate: 
+    | metamaplite.normalized.string.cache.size | set maximum size of string -> normalized string cache
+    | metamaplite.normalized.string.cache.enable | if true enable string -> normalized string cache
+    | metamaplite.entitylookup4.term.concept.cache.enable | if true enable term -> concept info cache
+    | metamaplite.entitylookup4.term.concept.cache.size | set maximum size of term -> concept info cache
+    | metamaplite.entitylookup4.cui.preferredname.cache.enable |  if true enable cui -> preferred name cache
+    | metamaplite.entitylookup4.cui.preferredname.cache.size | set maximum size cui -> preferred name cache
+
 
 ### Configuration properties
 
@@ -302,7 +312,7 @@ corresponding indexes for tables.
 
 Usage: 
 
-     java -cp target/metamaplite-2.0-SNAPSHOT.jar \
+     java -Xmx5g -cp target/metamaplite-<version>-SNAPSHOT.jar \
       gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
 
 The resulting indices are in <ivfdir>/indices.  The tables the indexes
@@ -312,7 +322,7 @@ To use the new indexes do one of the following:
 
 Use the --indexdir=<directory> option:
 
-    java -cp target/metamaplite-2.0-SNAPSHOT-standalone.jar \
+    java -cp target/metamaplite-<version>-SNAPSHOT-standalone.jar \
      gov.nih.nlm.nls.ner.MetaMapLite --indexdir=<ivfdir> <other-options> <other-args>
 
 Or modify the configuration file config/metamap.properties:
@@ -404,7 +414,7 @@ Below is an example using BioC Processing with MetaMapLite
 
 This process attempts to preserve any annotation present in the
 original BioC XML input.    Some annotations applied to BioC
-structures before entity lookup, tokenization and
+structures before entity lookup, including `tokenization and
 part-of-speech-tagging, are discarded before the writing out the final
 annotated collection.   This occurs in the entity lookup class
 BioCEntityLookup (java package: gov.nih.nlm.nls.metamap.lite).

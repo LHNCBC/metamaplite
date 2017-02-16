@@ -840,6 +840,24 @@ public class MetaMapLite {
   } /* processFile */
 
   /**
+   * log information about caches.
+   */
+  void logCacheInfo() {
+    System.out.println("cui -> preferred-name cache size: " +
+		       ((EntityLookup4)entityLookup).cuiPreferredNameCache.size());
+    System.out.println("term -> concept cache size: " +
+		       ((EntityLookup4)entityLookup).termConceptCache.size());
+    System.out.println("string -> normalized string cache size: " +
+		       gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
+    logger.info("cui -> preferred-name cache size: " +
+		       ((EntityLookup4)entityLookup).cuiPreferredNameCache.size());
+    logger.info("term -> concept cache size: " +
+		       ((EntityLookup4)entityLookup).termConceptCache.size());
+    logger.info("string -> normalized string cache size: " +
+		       gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
+  }
+
+  /**
    * MetaMapLite application commandline.
    * <p>
    * You'll need the model file for the sentence extractor
@@ -979,7 +997,9 @@ public class MetaMapLite {
 	  } else if (fields[0].equals("--list_sentences_postags")) {
 	    optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
 	  } else if (fields[0].equals("--output_extension")) {
-	    optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);	    
+	    optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);
+	  } else if (fields[0].equals("--set_property")) {
+	    optionsConfiguration.setProperty(fields[1],fields[2]);
 	  } else if (args[i].equals("--verbose")) {
 	    verbose = true;
 	  } else if (args[i].equals("--help")) {
@@ -1097,6 +1117,7 @@ public class MetaMapLite {
 	  }
 	} /*for filename */
       }
+      metaMapLiteInst.logCacheInfo();
     } else {
       // register default document loaders and result formatter for help display.
       BioCDocumentLoaderRegistry.register(defaultConfiguration);
