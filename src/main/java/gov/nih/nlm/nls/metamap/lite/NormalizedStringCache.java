@@ -39,7 +39,11 @@ public class NormalizedStringCache {
     if (enableCache) {
       /* in the name of premature optimization, I'm memoizing normalizeAstString */
       if (normalizeStringCache.containsKey(originalString)) {
-	return normalizeStringCache.get(originalString);
+	String result;
+	synchronized (normalizeStringCache) {
+	  result = normalizeStringCache.get(originalString);
+	}
+	return result;
       } else {
 	String normalizedString = Normalization.normalizeLiteString(originalString);
 	synchronized (normalizeStringCache) {

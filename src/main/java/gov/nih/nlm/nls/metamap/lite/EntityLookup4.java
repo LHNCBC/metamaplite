@@ -241,7 +241,11 @@ public class EntityLookup4 implements EntityLookup {
   {
     if (enableTermConceptInfoCache) {
       if (this.termConceptCache.containsKey(normTerm) ) {
-	return this.termConceptCache.get(normTerm);
+	Set<ConceptInfo> result;
+	synchronized(this.termConceptCache) {
+	  result = this.termConceptCache.get(normTerm);
+	}
+	return result;
       } else {
 	Set<ConceptInfo> conceptInfoSet = lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
 	this.cacheConceptInfoSet(normTerm, conceptInfoSet);
