@@ -17,7 +17,7 @@ metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
 # default semantic.type.list: if not defined is empty (all semantic types) 
 #   semantic type abbreviations separated by commas.
 # For example:
-# semantic.type.list: acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy
+#   metamaplite.semanticgroup: acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy
 
 # OpenNLP model files 
 opennlp.en-sent.bin.path: @@basedir@@/data/models/en-sent.bin
