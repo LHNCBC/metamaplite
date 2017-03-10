@@ -63,12 +63,12 @@ public class EntityLookup4 implements EntityLookup {
 
   /** Set property
    * "metamaplite.entitylookup4.term.concept.cache.enable" to true to
-   * enable term --> concept cache. */
+   * enable term to concept cache. */
   boolean enableTermConceptInfoCache = 
     Boolean.getBoolean("metamaplite.entitylookup4.term.concept.cache.enable");
   /** Set property
    * "metamaplite.entitylookup4.cui.preferredname.cache.enable" to
-   * true to enable cui --> preferred name cache. */
+   * true to enable cui to preferred name cache. */
   boolean enableCuiPreferredNameCache =
     Boolean.getBoolean("metamaplite.entitylookup4.cui.preferredname.cache.enable");
   
@@ -231,8 +231,12 @@ public class EntityLookup4 implements EntityLookup {
   /**
    * Lookup Term - if term info is already in cache then use cached
    * term info, otherwise, lookup term info in index.
-   * @param term Term to lookup
+   * @param originalTerm Term to lookup
+   * @param normTerm normalized version of originalTerm 
+   * @param tokenlist tokenized version of normTerm
    * @return map of entities keyed by span
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public Set<ConceptInfo> lookupTermConceptInfo(String originalTerm,
 						String normTerm,
@@ -257,10 +261,10 @@ public class EntityLookup4 implements EntityLookup {
   }
 
   public static LRUCache<String,String> cuiPreferredNameCache =
-  new LRUCache<String,String>
-     (Integer.parseInt
-      (System.getProperty
-       ("metamaplite.entity.lookup4.cui.preferred.name.cache.size","10000")));
+    new LRUCache<String,String>
+    (Integer.parseInt
+     (System.getProperty
+      ("metamaplite.entity.lookup4.cui.preferred.name.cache.size","10000")));
   
   public void cachePreferredTerm(String cui, String preferredTerm) {
     synchronized (cuiPreferredNameCache) {
@@ -272,6 +276,8 @@ public class EntityLookup4 implements EntityLookup {
    * Lookup preferred name for cui (concept unique identifier) in inverted file.
    * @param cui target cui
    * @return preferredname for cui or null if not found
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public String lookupPreferredNameIVF(String cui)
     throws FileNotFoundException, IOException
@@ -289,6 +295,8 @@ public class EntityLookup4 implements EntityLookup {
    * Find preferred name for cui (concept unique identifier)
    * @param cui target cui
    * @return preferredname for cui or null if not found
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public String findPreferredName(String cui)
     throws FileNotFoundException, IOException
@@ -310,6 +318,8 @@ public class EntityLookup4 implements EntityLookup {
    * Get source vocabulary abbreviations for cui (concept unique identifier)
    * @param cui target cui
    * @return set of source vocabulary abbreviations a for cui or empty set if none found.
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public Set<String> getSourceSet(String cui)
     throws FileNotFoundException, IOException
@@ -478,6 +488,7 @@ public class EntityLookup4 implements EntityLookup {
    *    ...
    * @param docid document id
    * @param tokenList tokenlist of document
+   * @return Span to entity map + token length map instance
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
    */
@@ -636,10 +647,13 @@ public class EntityLookup4 implements EntityLookup {
    * Or ORF version in NLS repository:
    *  http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/nls/tree/mmtx/sources/gov/nih/nlm/nls/mmtx/dfbuilder/ExtractMrconsoSources.java
    *
+   * @param docid document id
    * @param sentenceTokenList sentence to be examined.
    * @param semTypeRestrictSet semantic type 
    * @param sourceRestrictSet source list to restrict to
    * @return set of entities found in the sentence.
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public Set<Entity> processSentenceTokenList(String docid, List<ERToken> sentenceTokenList,
 					      Set<String> semTypeRestrictSet,
@@ -710,6 +724,8 @@ public class EntityLookup4 implements EntityLookup {
    * Apply negation detection to sentence using entity set.
    * @param entitySet entitySet associated with sentence 
    * @param sentence sentence to apply negation detection to.
+   * @param tokenList token list
+   * @throws Exception general exception
    */
   public void detectNegations(Set<Entity> entitySet, String sentence, List<ERToken> tokenList) 
     throws Exception {
