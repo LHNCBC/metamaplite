@@ -6,9 +6,10 @@
                  [org.clojure/data.xml "0.0.8"]
                  [org.clojure/data.zip "0.1.1"]
                  [org.clojure/data.json "0.2.6"]
+                 [org.clojure/math.numeric-tower "0.0.4"]
                  [org.apache.opennlp/opennlp-tools "1.5.3"]
                  [org.apache.opennlp/opennlp-maxent "3.0.3"]
-                 [clojure-opennlp "0.3.2"]
+                 [clojure-opennlp "0.3.3" :exclusions [instaparse]] ;; uses Opennlp 1.5.3
                  [org.apache.logging.log4j/log4j-api "2.1"]
                  [org.apache.logging.log4j/log4j-core "2.1"]
                  ;; [org.apache.lucene/lucene-analyzers-common "4.10.0"]
@@ -22,7 +23,13 @@
                  [io.forward/yaml "1.0.5"]
                  [context "2012"] ;; see context/* under src/main/java/
                  [bioc "1.0.1"]
-                 [junit/junit "4.11"]]
+                 [junit/junit "4.11"]
+                 [umls-tables "0.1.0-SNAPSHOT"]
+                 [skr "0.1.0-SNAPSHOT"]
+                 [lvgclj "0.1.0-SNAPSHOT"]
+                 [clj-fuzzy "0.3.3"]
+                 [info.debatty/java-string-similarity "0.23"]
+                 [com.rpl/specter "1.0.0"]]
   :profiles {:dev
              {:dependencies
               [[org.clojure/java.classpath "0.2.2"]]}
@@ -47,5 +54,6 @@
                  {:configuration ([:shadedArtifactAttached "true"]
                                   [:shadedClassifierName "standalone"])
                   :executions [:execution ([:phase "package"]
-                                           [:goals ([:goal "shade"])])]}]])
+                                           [:goals ([:goal "shade"])])]}]]
+  :marginalia {:javascript ["mathjax/MathJax.js?config=default"]})
 
