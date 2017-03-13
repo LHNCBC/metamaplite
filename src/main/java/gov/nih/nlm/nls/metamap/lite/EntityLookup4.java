@@ -54,6 +54,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import opennlp.tools.dictionary.serializer.Entry;
 
+import info.debatty.java.stringsimilarity.SorensenDice;
+
 /**
  *
  */
@@ -87,7 +89,10 @@ public class EntityLookup4 implements EntityLookup {
   NegationDetector negationDetector;
   boolean addPartOfSpeechTagsFlag =
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
-  
+
+  /** Sorensen Dice similarity measure. */
+  SorensenDice sd = new SorensenDice();
+
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
     this.allowedPartOfSpeechSet.add("NN");
@@ -217,8 +222,9 @@ public class EntityLookup4 implements EntityLookup {
       // information about lookup string.
       if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(originalTerm,normTerm,docStr)) {
 	if (tokenlist.get(0) instanceof PosToken) {
-	  ConceptInfo conceptInfo = new ConceptInfo(cui, 
-						    this.findPreferredName(cui),
+	  ConceptInfo conceptInfo = new ConceptInfo(cui,
+                                                    this.findPreferredName(cui),
+						    docStr,
 						    this.getSourceSet(cui),
 						    this.getSemanticTypeSet(cui));
 	  conceptInfoSet.add(conceptInfo);
@@ -392,7 +398,6 @@ public class EntityLookup4 implements EntityLookup {
     }
   }
 
-
   public class SpanInfo {
     int start;
     int length;
@@ -537,7 +542,7 @@ public class EntityLookup4 implements EntityLookup {
 			     normTerm,
 			     ((PosToken)tokenSubList.get(0)).getOffset(),
 			     termLength,
-			     0.0,
+			     sd.distance(originalTerm, concept.getConceptString()),
 			     ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
 	      if (! evSet.contains(ev)) {
 		logger.debug("add ev: " + ev);
