@@ -249,7 +249,7 @@ public class EntityLookup4 implements EntityLookup {
 						List<? extends Token> tokenlist)
     throws FileNotFoundException, IOException
   {
-    if (enableTermConceptInfoCache) {
+    if (this.enableTermConceptInfoCache) {
       if (this.termConceptCache.containsKey(normTerm) ) {
 	Set<ConceptInfo> result;
 	synchronized(this.termConceptCache) {
@@ -257,12 +257,12 @@ public class EntityLookup4 implements EntityLookup {
 	}
 	return result;
       } else {
-	Set<ConceptInfo> conceptInfoSet = lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
+	Set<ConceptInfo> conceptInfoSet = this.lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
 	this.cacheConceptInfoSet(normTerm, conceptInfoSet);
 	return conceptInfoSet;
       }
     } else {
-      return lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
+      return this.lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
     }
   }
 
@@ -316,7 +316,12 @@ public class EntityLookup4 implements EntityLookup {
 	return preferredName;
       }
     } else {
-      return lookupPreferredNameIVF(cui);
+      String preferredName = lookupPreferredNameIVF(cui);
+      if (preferredName == null) {
+	return "";
+      } else {
+	return preferredName;
+      }
     }
   }
 
@@ -358,6 +363,66 @@ public class EntityLookup4 implements EntityLookup {
       semanticTypeSet.add(fields[1]);
     }
     return semanticTypeSet;
+  }
+
+  /**
+   * Get variant records for term
+   * @param term user supplied term
+   * @param list of variant records with matching term
+   */
+  public List<String[]> getVariantsForTerm(String term)
+    throws IOException {
+    List<String[]> variantList = new ArrayList<String[]>();
+    if (this.mmIndexes.varsIndex != null) {
+      List<String> hitList = this.mmIndexes.varsIndex.lookup(term, 1);
+      for (String hit: hitList) {
+	String[] fields = hit.split("\\|");
+	variantList.add(fields);
+      }
+    }
+    return variantList;
+  }
+
+  /**
+   * Get variant records for word
+   * @param word user supplied word
+   * @param list of variant records with matching word
+   */
+  public List<String[]> getVariantsForWord(String word)
+    throws IOException {
+    List<String[]> variantList = new ArrayList<String[]>();
+    if (this.mmIndexes.varsIndex != null) {
+      List<String> hitList = this.mmIndexes.varsIndex.lookup(word, 2);
+      for (String hit: hitList) {
+	String[] fields = hit.split("\\|");
+	variantList.add(fields);
+      }
+    }
+    return variantList;
+  }
+
+  public static class IVFVariantLookup implements VariantLookup {
+    EntityLookup4 entityLookup;
+    public IVFVariantLookup(EntityLookup4 entityLookup) {
+      this.entityLookup = entityLookup;
+    }
+  
+    public int lookupVariant(String term, String word)
+    {
+      /* lookup term variants */
+      /* if word is in variant list return varlevel */
+      int variance = 99;
+      try {
+	for (String[] varFields: entityLookup.getVariantsForTerm(term)) {
+	  if (varFields[2].equals(word)) {
+	    variance = Integer.parseInt(varFields[4]); // use varlevel field
+	  }
+	}
+      } catch (IOException ioe) {
+	throw new RuntimeException(ioe);
+      }
+      return variance;
+    }
   }
 
   /**
