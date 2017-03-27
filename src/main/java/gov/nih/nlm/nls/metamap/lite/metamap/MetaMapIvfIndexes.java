@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.util.Properties;
 
@@ -23,6 +25,8 @@ public class MetaMapIvfIndexes {
   public MappedMultiKeyIndexLookup cuiSemanticTypeIndex;
   /** cui -&gt; concept index (actually bi-directional) */
   public MappedMultiKeyIndexLookup cuiConceptIndex;
+  /** term/cat/word/cat/level/history index */
+  public MappedMultiKeyIndexLookup varsIndex;
 
   String root =
     // "/net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices";
@@ -45,6 +49,12 @@ public class MetaMapIvfIndexes {
       (new MappedMultiKeyIndex
        (System.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
 
+    if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.varsindex", root + "/vars")))) {
+      this.cuiConceptIndex =
+	new MappedMultiKeyIndexLookup
+	(new MappedMultiKeyIndex
+	 (System.getProperty("metamaplite.ivf.varsindex", root + "/vars")));
+    }
   }
 
   public MetaMapIvfIndexes(Properties properties) 
@@ -63,6 +73,13 @@ public class MetaMapIvfIndexes {
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
        (properties.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
+
+    if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.varsindex", root + "/vars")))) {
+      this.cuiConceptIndex =
+	new MappedMultiKeyIndexLookup
+	(new MappedMultiKeyIndex
+	 (properties.getProperty("metamaplite.ivf.varsindex", root + "/vars")));
+    }
   }
 
 }
