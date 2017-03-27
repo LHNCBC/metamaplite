@@ -19,10 +19,22 @@ import gov.nih.nlm.nls.types.Annotation;
 public class ConceptInfo {
   String cui;
   String preferredName;
+  /** metathesaurus string that matched the input term. */
+  String conceptString;
 
   Set<String> sourceSet = null; 
   Set<String> semanticTypeSet = null;
 
+  public ConceptInfo(String cui, String prefname,
+		     String conceptString,
+		     Set<String> newSourceSet,
+		     Set<String> newSemanticTypeSet) {
+    this.cui = cui.intern();
+    this.preferredName = prefname.intern();
+    this.conceptString = conceptString;
+    this.sourceSet = newSourceSet;
+    this.semanticTypeSet = newSemanticTypeSet;
+  }
   public ConceptInfo(String cui, String prefname, 
 		     Set<String> newSourceSet,
 		     Set<String> newSemanticTypeSet) {
@@ -34,7 +46,8 @@ public class ConceptInfo {
 
   public ConceptInfo(ConceptInfo conceptInfo) {
     this.cui = conceptInfo.getCUI();
-    this.preferredName = conceptInfo.getPreferredName(); 
+    this.preferredName = conceptInfo.getPreferredName();
+    this.conceptString = conceptInfo.getConceptString();
     this.sourceSet = conceptInfo.getSourceSet();
     this.semanticTypeSet = conceptInfo.getSemanticTypeSet();
   }
@@ -43,6 +56,8 @@ public class ConceptInfo {
   public void setCUI(String cui) { this.cui = cui.intern(); }
   public String getPreferredName() { return this.preferredName; }
   public void setPreferredName(String name) { this.preferredName = name.intern(); }
+  public String getConceptString() { return this.conceptString; }
+  public void setConceptString(String name) { this.conceptString = name.intern(); }
   public void addSourceSet(Collection<String> newSourceList) {
     this.sourceSet.addAll(newSourceList);
   }
@@ -57,6 +72,7 @@ public class ConceptInfo {
     StringBuilder sb = new StringBuilder();
     sb.append(this.cui).append("|");
     sb.append(this.preferredName).append("|");
+    sb.append(this.conceptString).append("|");
     sb.append(Arrays.toString(this.semanticTypeSet.toArray()).replaceAll("(^\\[)|(\\]$)",""));
     sb.append("|");
     sb.append(Arrays.toString(this.sourceSet.toArray()).replaceAll("(^\\[)|(\\]$)",""));
