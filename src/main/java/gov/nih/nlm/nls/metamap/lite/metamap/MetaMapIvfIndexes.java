@@ -27,6 +27,8 @@ public class MetaMapIvfIndexes {
   public MappedMultiKeyIndexLookup cuiConceptIndex;
   /** term/cat/word/cat/level/history index */
   public MappedMultiKeyIndexLookup varsIndex;
+  /** MeSh Treecodes Relaxed Model index */
+  public MappedMultiKeyIndexLookup meshTcRelaxedIndex;
 
   String root =
     // "/net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices";
@@ -50,11 +52,19 @@ public class MetaMapIvfIndexes {
        (System.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
 
     if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.varsindex", root + "/vars")))) {
-      this.cuiConceptIndex =
+      this.varsIndex =
 	new MappedMultiKeyIndexLookup
 	(new MappedMultiKeyIndex
 	 (System.getProperty("metamaplite.ivf.varsindex", root + "/vars")));
     }
+    
+    if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")))) {
+      this.varsIndex =
+	new MappedMultiKeyIndexLookup
+	(new MappedMultiKeyIndex
+	 (System.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")));
+    }
+    
   }
 
   public MetaMapIvfIndexes(Properties properties) 
@@ -75,11 +85,19 @@ public class MetaMapIvfIndexes {
        (properties.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
 
     if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.varsindex", root + "/vars")))) {
-      this.cuiConceptIndex =
+      this.varsIndex =
 	new MappedMultiKeyIndexLookup
 	(new MappedMultiKeyIndex
 	 (properties.getProperty("metamaplite.ivf.varsindex", root + "/vars")));
     }
+
+    if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")))) {
+      this.varsIndex =
+	new MappedMultiKeyIndexLookup
+	(new MappedMultiKeyIndex
+	 (properties.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")));
+    }
+
   }
 
 }
