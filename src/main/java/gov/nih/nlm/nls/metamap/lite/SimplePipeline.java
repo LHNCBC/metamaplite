@@ -177,6 +177,7 @@ public class SimplePipeline {
    * Given a sentence, tokenize it then lookup any concepts that match
    * token extents with in sentence.
    *
+   * @param docid document id
    * @param sentence sentence to be examined.
    * @return set of entities found in the sentence.
    * @throws FileNotFoundException file not found exception
