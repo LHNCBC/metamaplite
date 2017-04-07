@@ -36,6 +36,8 @@ import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
+import gov.nih.nlm.nls.metamap.lite.ChunkerMethod;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPChunker;
 
 import gov.nih.nlm.nls.metamap.prefix.CharUtils;
 import gov.nih.nlm.nls.metamap.prefix.Token;
@@ -65,6 +67,7 @@ public class EntityLookup5 implements EntityLookup {
 
   public MetaMapIvfIndexes mmIndexes;
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
+  ChunkerMethod chunkerMethod = new OpenNLPChunker();
   
   /** string column for cuisourceinfo index*/
   int strColumn = 3;		
@@ -115,7 +118,7 @@ public class EntityLookup5 implements EntityLookup {
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
 
     if (this.addPartOfSpeechTagsFlag) {
-      this.sentenceAnnotator = new SentenceAnnotator(properties);
+      this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     }
 
     // Instantiate user-specified negation detector if present,
@@ -182,7 +185,7 @@ public class EntityLookup5 implements EntityLookup {
   public class SpanEntityMapAndTokenLength {
     Map<String,Entity> spanEntityMap;
     int length;
-    public SpanEntityMapAndTokenLength(    Map<String,Entity> spanEntityMap, int length) {
+    public SpanEntityMapAndTokenLength(Map<String,Entity> spanEntityMap, int length) {
       this.spanEntityMap = spanEntityMap;
       this.length = length;
     }
@@ -195,6 +198,7 @@ public class EntityLookup5 implements EntityLookup {
     public List<Entity> getEntityList() {
       return new ArrayList<Entity>(this.spanEntityMap.values());
     }
+    public int size() { return this.spanEntityMap.size(); }
   }
 
   public class SpanInfo {
@@ -401,7 +405,7 @@ public class EntityLookup5 implements EntityLookup {
     Set<Ev> newEvSet = new HashSet<Ev>();
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
-      if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
+      if (this.isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
 	newEvSet.add(ev);
       }
     }
@@ -414,11 +418,48 @@ public class EntityLookup5 implements EntityLookup {
     Set<Ev> newEvSet = new HashSet<Ev>();
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
-      if (isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
+      if (this.isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
 	newEvSet.add(ev);
       }
     }
     entity.setEvSet(newEvSet);
+  }
+
+  /**
+   * Find first occurrance of token in tokenlist with specified part
+   * of speech.
+   * @param tokenlist tokenlist to search for part of speech
+   * @param postag part of speech to search for.
+   * @return position of head in tokenlist, -1 if token not found.
+   */
+  public static int indexOfPartOfSpeech(List<ERToken> tokenlist, String postag) {
+    int i = 0;
+    for (ERToken token: tokenlist) {
+      if (token.getPartOfSpeech().substring(0,2).equals(postag)) {
+	return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+
+  /** 
+   * Add missing whitespace tokens to subtokenlist.
+   * @param originalTokenList original tokenlist with whitespace.
+   * @param subTokenList subrange of tokenlist with whitespace removed.
+   * @return subTokenList with missing whitespace added. 
+   */
+  public static List<ERToken> mapToTokenList(List<ERToken> originalTokenList, List<ERToken> subTokenList) {
+    ERToken firstToken = subTokenList.get(0);
+    ERToken lastToken = subTokenList.get(subTokenList.size() - 1);
+    int firstIndex = originalTokenList.indexOf(firstToken);
+    int lastIndex = originalTokenList.indexOf(lastToken) + 1;
+    // logger.info("firstToken: " + firstToken);
+    // logger.info("lastToken: " + lastToken);
+    // logger.info("firstIndex: " + firstIndex);
+    // logger.info("lastIndex: " + lastIndex);
+    // logger.info("sublist: " + originalTokenList.subList(firstIndex, lastIndex));
+    return originalTokenList.subList(firstIndex, lastIndex);
   }
 
   /**
@@ -463,19 +504,75 @@ public class EntityLookup5 implements EntityLookup {
 					      Set<String> semTypeRestrictSet,
 					      Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException {
-    Set<Entity> entitySet = new HashSet<Entity>();    int i = 0;
-    while (i<sentenceTokenList.size()) {
-      SpanEntityMapAndTokenLength spanEntityMapAndTokenLength = 
-	this.findLongestMatch
-	(docid,
-	 sentenceTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,sentenceTokenList.size())));
-      for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
-	if (entity.getEvList().size() > 0) {
-	  entitySet.add(entity);
-	}
+    Set<Entity> entitySet = new HashSet<Entity>();
+    List<ERToken> minimalSentenceTokenList = new ArrayList<ERToken>();
+    for (ERToken token: sentenceTokenList) {
+      if (! token.getTokenClass().equals("ws")) { // only keep non-ws tokens
+	minimalSentenceTokenList.add(token);
       }
-      i++;
-    } /*while*/
+    }
+    if (this.addPartOfSpeechTagsFlag) {
+      sentenceAnnotator.addPartOfSpeech(minimalSentenceTokenList);
+    }
+    // chunk first, then find entities in the chunks
+    List<Phrase> phraseList = this.chunkerMethod.applyChunker(minimalSentenceTokenList);
+    for (Phrase phrase: phraseList) {
+      System.out.println("phrase: " + phrase);
+      logger.info("phrase: " + phrase);
+      List<ERToken> phraseTokenList = mapToTokenList(sentenceTokenList, phrase.getPhrase());
+      int i = 0;
+      while (i<phraseTokenList.size()) {
+	SpanEntityMapAndTokenLength spanEntityMapAndTokenLength = 
+	  this.findLongestMatch
+	  (docid,
+	   phraseTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,phraseTokenList.size())));
+
+	if (spanEntityMapAndTokenLength.size() > 0) {
+	  // Does entity start at head of phrase?
+	  int headPos = 0;
+	  if (phrase.getTag().equals("NP")) {
+	    headPos = indexOfPartOfSpeech(phraseTokenList, "NN");
+	  } else if (phrase.getTag().equals("VP")) {
+	    headPos = indexOfPartOfSpeech(phraseTokenList, "VB");
+	  } else if (phrase.getTag().equals("PP")) {
+	    headPos = indexOfPartOfSpeech(phraseTokenList, "IN");
+	  }
+	  System.out.println("headpos: " + headPos);
+	  System.out.println("headpos offset: " + phraseTokenList.get(headPos).getOffset());
+	  for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
+	    if (entity.getEvList().size() > 0) {
+	      double sum = 0;
+	      for (Ev ev: entity.getEvList()) {
+		System.out.println("ev offset: " + ev.getOffset());	    
+		boolean centrality = phraseTokenList.get(headPos).getOffset() == ev.getOffset();
+		System.out.println("centrality: " + centrality);
+		int variation = variantLookup.lookupVariant(entity.getMatchedText(), entity.getEvList().get(0).getConceptString());
+		System.out.println("variation: " + variation);
+		// coverage steps:
+		//  1. extract components
+		// extractComponents();
+		//  2. compute lower and upper bounds of phrase
+		// computeBounds(phraseComponents);
+		//  3. compute phrase span
+		//  4. compute lower and upper bounds of metathesaurus string
+		// computeBounds(metaComponents);
+		//  5. metathesaurus string span
+		// metaSpan = metaUpperBound - metaLowerBound + 1;
+		// int coverage = (phraseSpan / nTokenPhraseWords + (2 * metaSpan) / nMetaWords)/3.0;
+		
+		// int cohesiveness = ?;
+		ev.setScore(centrality ? 1.0 : 0.0);
+		sum = sum + (centrality ? 1.0 : 0.0);
+	      }
+	      System.out.println("score: " + sum / entity.getEvList().size());
+	      entity.setScore( sum / entity.getEvList().size());
+	      entitySet.add(entity);
+	    }
+	  }
+	}
+	i++;	
+      } /*while*/
+    }
     return entitySet;
   }
 
@@ -564,9 +661,6 @@ public class EntityLookup5 implements EntityLookup {
       int i = 0;
       for (BioCSentence sentence: passage.getSentences()) {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
-	if (this.addPartOfSpeechTagsFlag) {
-	  sentenceAnnotator.addPartOfSpeech(tokenList);
-	}
 	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
@@ -611,9 +705,6 @@ public class EntityLookup5 implements EntityLookup {
     int i = 0;
     for (Sentence sentence: sentenceList) {
       List<ERToken> tokenList = Scanner.analyzeText(sentence);
-      if (this.addPartOfSpeechTagsFlag) {
-	sentenceAnnotator.addPartOfSpeech(tokenList);
-      }
       Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
 								    semTypeRestrictSet,
 								    sourceRestrictSet);

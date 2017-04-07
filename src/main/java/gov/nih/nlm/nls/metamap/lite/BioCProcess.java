@@ -40,6 +40,7 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.Plugin;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 import gov.nih.nlm.nls.metamap.lite.BioCEntityLookup;
 import gov.nih.nlm.nls.metamap.lite.BioCLRLongestMatchLookup;
+import gov.nih.nlm.nls.metamap.lite.BioCUtilities;
 
 import gov.nih.nlm.nls.utils.Configuration;
 
@@ -56,6 +57,7 @@ public class BioCProcess {
 
   BioCEntityLookup bioCEntityLookup;
   SentenceAnnotator sentenceAnnotator;
+  SentenceExtractor sentenceExtractor;
 
   public BioCProcess()
     throws IOException
@@ -71,7 +73,7 @@ public class BioCProcess {
   {
     this.setSemanticGroup(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
     this.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
-    this.sentenceAnnotator = new SentenceAnnotator(properties);
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     bioCEntityLookup = new BioCLRLongestMatchLookup(properties, this.sentenceAnnotator);
   }
 
@@ -93,7 +95,10 @@ public class BioCProcess {
 
   /**
    * Invoke sentence processing pipeline on asentence
-   * @param sentence
+   * @param docid document identifier
+   * @param sentence BioC sentence
+   * @param semanticGroup semantic type group set
+   * @param sourceSet vocabulary source set.
    * @return updated sentence
    */
   public BioCSentence processSentence(String docid,
@@ -114,7 +119,7 @@ public class BioCProcess {
     // if (resultObject instanceof BioCSentence) {
     //   result = (BioCSentence)resultObject;
     // }
-    BioCSentence taggedSentence = SentenceAnnotator.tokenizeSentence(sentence);
+    BioCSentence taggedSentence = BioCUtilities.tokenizeSentence(sentence);
     this.sentenceAnnotator.addPartOfSpeech(taggedSentence);
     BioCSentence entityTaggedSentence = bioCEntityLookup.findLongestMatches(docid,
 									    taggedSentence,
@@ -127,6 +132,10 @@ public class BioCProcess {
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
    * @param passage containing list of sentences
    * @return list of results from sentence processing pipeline, one per sentence in input list.
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
    */
   public BioCPassage processSentences(String docid, BioCPassage passage)
     throws IllegalAccessException, InvocationTargetException,
@@ -158,7 +167,7 @@ public class BioCProcess {
 	   IOException, FileNotFoundException 
   {
     logger.debug("enter processPassage");
-    BioCPassage newPassage = processSentences(docid, SentenceExtractor.createSentences(passage));
+    BioCPassage newPassage = processSentences(docid, this.sentenceExtractor.createSentences(passage));
     logger.debug("exit processPassage");
     return newPassage;
   }

@@ -63,17 +63,6 @@ import info.debatty.java.stringsimilarity.SorensenDice;
 public class EntityLookup4 implements EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup4.class);
 
-  /** Set property
-   * "metamaplite.entitylookup4.term.concept.cache.enable" to true to
-   * enable term to concept cache. */
-  boolean enableTermConceptInfoCache = 
-    Boolean.getBoolean("metamaplite.entitylookup4.term.concept.cache.enable");
-  /** Set property
-   * "metamaplite.entitylookup4.cui.preferredname.cache.enable" to
-   * true to enable cui to preferred name cache. */
-  boolean enableCuiPreferredNameCache =
-    Boolean.getBoolean("metamaplite.entitylookup4.cui.preferredname.cache.enable");
-  
   public MetaMapIvfIndexes mmIndexes;
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   
@@ -84,6 +73,17 @@ public class EntityLookup4 implements EntityLookup {
   SpecialTerms excludedTerms = new SpecialTerms();
   int MAX_TOKEN_SIZE =
     Integer.parseInt(System.getProperty("metamaplite.entitylookup4.maxtokensize","15"));
+
+  /** cui to preferred name index/cache */
+  public CuiPreferredNameCache cuiPreferredNameCache;
+  /** cui to semantic type set cache */
+  public CuiSemanticTypeSetIndex cuiSemanticTypeSetIndex;
+  /** cui to sourceset cache */
+  public CuiSourceSetIndex cuiSourceSetIndex;
+  /** term to concept info index/cache */
+  public TermConceptInfoCache termConceptInfoCache;
+  /** word to variant lookup */
+  VariantLookupIVF variantLookup;
 
   SentenceAnnotator sentenceAnnotator;
   NegationDetector negationDetector;
@@ -105,30 +105,9 @@ public class EntityLookup4 implements EntityLookup {
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
 
-  public EntityLookup4() 
-    throws IOException, FileNotFoundException
-  {
-    this.mmIndexes = new MetaMapIvfIndexes();
-    this.sentenceAnnotator = new SentenceAnnotator();
-    this.defaultAllowedPartOfSpeech();
-    this.negationDetector = new ContextWrapper();
-  }
-
   public EntityLookup4(Properties properties) 
     throws IOException, FileNotFoundException
   {
-    // override any system properties here
-    this.enableTermConceptInfoCache = 
-      Boolean.parseBoolean
-      (properties.getProperty
-       ("metamaplite.entitylookup4.term.concept.cache.enable",
-	Boolean.toString(this.enableTermConceptInfoCache)));
-    this.enableCuiPreferredNameCache =
-      Boolean.parseBoolean
-      (properties.getProperty
-       ("metamaplite.entitylookup4.cui.preferredname.cache.enable",
-	Boolean.toString(this.enableCuiPreferredNameCache)));
-    
     this.mmIndexes = new MetaMapIvfIndexes(properties);
     
     this.addPartOfSpeechTagsFlag =
@@ -136,7 +115,7 @@ public class EntityLookup4 implements EntityLookup {
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
 
     if (this.addPartOfSpeechTagsFlag) {
-      this.sentenceAnnotator = new SentenceAnnotator(properties);
+      this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     }
 
     // Instantiate user-specified negation detector if present,
@@ -167,262 +146,17 @@ public class EntityLookup4 implements EntityLookup {
     MAX_TOKEN_SIZE =
       Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
 					      Integer.toString(MAX_TOKEN_SIZE)));
-  }
 
-  /** cache of string -&gt; concept and attributes */
-  public static LRUCache<String,Set<ConceptInfo>> termConceptCache = 
-    new LRUCache<String,Set<ConceptInfo>>
-    (Integer.parseInt
-     (System.getProperty
-      ("metamaplite.entity.lookup4.term.concept.cache.size","10000")));
-
-  public void cacheConcept(String term, ConceptInfo concept) {
-    synchronized (this.termConceptCache) {
-      if (this.termConceptCache.containsKey(term)) {
-	synchronized (this.termConceptCache.get(term)) {
-	  this.termConceptCache.get(term).add(concept);
-	}
-      } else {
-	Set<ConceptInfo> newConceptSet = new HashSet<ConceptInfo>();
-	newConceptSet.add(concept);
-	synchronized (this.termConceptCache) {
-	  this.termConceptCache.put(term, newConceptSet);
-	}
-      }
-    }
-  }
-  
-  public void cacheConceptInfoSet(String term, Set<ConceptInfo> conceptInfoSet) {
-    if (this.termConceptCache.containsKey(term)) {
-      synchronized (this.termConceptCache.get(term)) {
-	this.termConceptCache.get(term).addAll(conceptInfoSet);
-      }
-    } else {
-      synchronized (this.termConceptCache) {
-	this.termConceptCache.put(term, conceptInfoSet);
-      }
-    }
-  }
-
-  public Set<ConceptInfo> lookupTermConceptInfoIVF(String originalTerm,
-						   String normTerm,
-						   List<? extends Token> tokenlist) 
-    throws FileNotFoundException, IOException
-  {
-    Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
-    // if not in cache then lookup term 
-    for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
-      String[] fields = doc.split("\\|");
-      String cui = fields[0];
-      String docStr = fields[3];
-      
-      // If term is not in excluded term list and term or
-      // normalized form of term matches lookup string or
-      // normalized form of lookup string then get
-      // information about lookup string.
-      if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(originalTerm,normTerm,docStr)) {
-	if (tokenlist.get(0) instanceof PosToken) {
-	  ConceptInfo conceptInfo = new ConceptInfo(cui,
-                                                    this.findPreferredName(cui),
-						    docStr,
-						    this.getSourceSet(cui),
-						    this.getSemanticTypeSet(cui));
-	  conceptInfoSet.add(conceptInfo);
-	}
-      }
-    }
-    return conceptInfoSet;
-  }
-
-  /**
-   * Lookup Term - if term info is already in cache then use cached
-   * term info, otherwise, lookup term info in index.
-   * @param originalTerm Term to lookup
-   * @param normTerm normalized version of originalTerm 
-   * @param tokenlist tokenized version of normTerm
-   * @return map of entities keyed by span
-   * @throws FileNotFoundException File Not Found Exception
-   * @throws IOException IO Exception
-   */
-  public Set<ConceptInfo> lookupTermConceptInfo(String originalTerm,
-						String normTerm,
-						List<? extends Token> tokenlist)
-    throws FileNotFoundException, IOException
-  {
-    if (this.enableTermConceptInfoCache) {
-      if (this.termConceptCache.containsKey(normTerm) ) {
-	Set<ConceptInfo> result;
-	synchronized(this.termConceptCache) {
-	  result = this.termConceptCache.get(normTerm);
-	}
-	return result;
-      } else {
-	Set<ConceptInfo> conceptInfoSet = this.lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
-	this.cacheConceptInfoSet(normTerm, conceptInfoSet);
-	return conceptInfoSet;
-      }
-    } else {
-      return this.lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
-    }
-  }
-
-  public static LRUCache<String,String> cuiPreferredNameCache =
-    new LRUCache<String,String>
-    (Integer.parseInt
-     (System.getProperty
-      ("metamaplite.entity.lookup4.cui.preferred.name.cache.size","10000")));
-  
-  public void cachePreferredTerm(String cui, String preferredTerm) {
-    synchronized (cuiPreferredNameCache) {
-      cuiPreferredNameCache.put(cui, preferredTerm);
-    }
-  }
-
-  /**
-   * Lookup preferred name for cui (concept unique identifier) in inverted file.
-   * @param cui target cui
-   * @return preferredname for cui or null if not found
-   * @throws FileNotFoundException File Not Found Exception
-   * @throws IOException IO Exception
-   */
-  public String lookupPreferredNameIVF(String cui)
-    throws FileNotFoundException, IOException
-  {
-    List<String> hitList = 
-      this.mmIndexes.cuiConceptIndex.lookup(cui, 0);
-    if (hitList.size() > 0) {
-      String[] fields = hitList.get(0).split("\\|");
-      return fields[1];
-    }
-    return null;
-  }
-    
-  /**
-   * Find preferred name for cui (concept unique identifier)
-   * @param cui target cui
-   * @return preferredname for cui or null if not found
-   * @throws FileNotFoundException File Not Found Exception
-   * @throws IOException IO Exception
-   */
-  public String findPreferredName(String cui)
-    throws FileNotFoundException, IOException
-  {
-    if (enableCuiPreferredNameCache) {
-      if (this.cuiPreferredNameCache.containsKey(cui)) {
-	return this.cuiPreferredNameCache.get(cui);
-      } else {
-	String preferredName = lookupPreferredNameIVF(cui);
-	this.cachePreferredTerm(cui, preferredName);
-	return preferredName;
-      }
-    } else {
-      String preferredName = lookupPreferredNameIVF(cui);
-      if (preferredName == null) {
-	return "";
-      } else {
-	return preferredName;
-      }
-    }
-  }
-
-  /**
-   * Get source vocabulary abbreviations for cui (concept unique identifier)
-   * @param cui target cui
-   * @return set of source vocabulary abbreviations a for cui or empty set if none found.
-   * @throws FileNotFoundException File Not Found Exception
-   * @throws IOException IO Exception
-   */
-  public Set<String> getSourceSet(String cui)
-    throws FileNotFoundException, IOException
-  {
-    Set<String> sourceSet = new HashSet<String>();
-    List<String> hitList =
-      this.mmIndexes.cuiSourceInfoIndex.lookup(cui, 0);
-    for (String hit: hitList) {
-      String[] fields = hit.split("\\|");
-      sourceSet.add(fields[4]);
-    }
-    return sourceSet;
-  }
-
-  /**
-   * Get semantic type set for cui (concept unique identifier)
-   * @param cui target cui
-   * @return set of semantic type abbreviations a for cui or empty set if none found.
-   * @throws FileNotFoundException file not found exception
-   * @throws IOException IO exception
-   */
-  public Set<String> getSemanticTypeSet(String cui)
-    throws FileNotFoundException, IOException
-  {
-    Set<String> semanticTypeSet = new HashSet<String>();
-    List<String> hitList = 
-      this.mmIndexes.cuiSemanticTypeIndex.lookup(cui, this.cuiColumn);
-    for (String hit: hitList) {
-      String[] fields = hit.split("\\|");
-      semanticTypeSet.add(fields[1]);
-    }
-    return semanticTypeSet;
-  }
-
-  /**
-   * Get variant records for term
-   * @param term user supplied term
-   * @param list of variant records with matching term
-   */
-  public List<String[]> getVariantsForTerm(String term)
-    throws IOException {
-    List<String[]> variantList = new ArrayList<String[]>();
-    if (this.mmIndexes.varsIndex != null) {
-      List<String> hitList = this.mmIndexes.varsIndex.lookup(term, 1);
-      for (String hit: hitList) {
-	String[] fields = hit.split("\\|");
-	variantList.add(fields);
-      }
-    }
-    return variantList;
-  }
-
-  /**
-   * Get variant records for word
-   * @param word user supplied word
-   * @param list of variant records with matching word
-   */
-  public List<String[]> getVariantsForWord(String word)
-    throws IOException {
-    List<String[]> variantList = new ArrayList<String[]>();
-    if (this.mmIndexes.varsIndex != null) {
-      List<String> hitList = this.mmIndexes.varsIndex.lookup(word, 2);
-      for (String hit: hitList) {
-	String[] fields = hit.split("\\|");
-	variantList.add(fields);
-      }
-    }
-    return variantList;
-  }
-
-  public static class IVFVariantLookup implements VariantLookup {
-    EntityLookup4 entityLookup;
-    public IVFVariantLookup(EntityLookup4 entityLookup) {
-      this.entityLookup = entityLookup;
-    }
-  
-    public int lookupVariant(String term, String word)
-    {
-      /* lookup term variants */
-      /* if word is in variant list return varlevel */
-      int variance = 99;
-      try {
-	for (String[] varFields: entityLookup.getVariantsForTerm(term)) {
-	  if (varFields[2].equals(word)) {
-	    variance = Integer.parseInt(varFields[4]); // use varlevel field
-	  }
-	}
-      } catch (IOException ioe) {
-	throw new RuntimeException(ioe);
-      }
-      return variance;
-    }
+    this.cuiPreferredNameCache = new CuiPreferredNameCache(properties, mmIndexes);
+    this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
+    this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes);
+    this.termConceptInfoCache = new TermConceptInfoCache(properties,
+							 this.mmIndexes,
+							 this.cuiPreferredNameCache,
+							 this.cuiSemanticTypeSetIndex,
+							 this.cuiSourceSetIndex,
+							 this.excludedTerms);
+    this.variantLookup = new VariantLookupIVF(this.mmIndexes);
   }
 
   /**
@@ -497,7 +231,7 @@ public class EntityLookup4 implements EntityLookup {
       return true;
     try {
       boolean inSet = false;
-      for (String semtype: getSemanticTypeSet(cui)) {
+      for (String semtype: cuiSemanticTypeSetIndex.getSemanticTypeSet(cui)) {
 	inSet = inSet || semanticTypeRestrictSet.contains(semtype);
       }
       return inSet;
@@ -515,7 +249,7 @@ public class EntityLookup4 implements EntityLookup {
       return true;
     try {
       boolean inSet = false;
-      for (String semtype: getSourceSet(cui)) {
+      for (String semtype: cuiSourceSetIndex.getSourceSet(cui)) {
 	inSet = inSet || sourceRestrictSet.contains(semtype);
       }
       return inSet;
@@ -596,7 +330,7 @@ public class EntityLookup4 implements EntityLookup {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
 
-	    for (ConceptInfo concept: lookupTermConceptInfo(originalTerm,
+	    for (ConceptInfo concept: this.termConceptInfoCache.lookupTermConceptInfo(originalTerm,
 							    normTerm,
 							    tokenSubList)) {
 	      //   if (this.termConceptCache.containsKey(normTerm)) {

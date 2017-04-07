@@ -35,16 +35,20 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.MarkAbbreviations;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPSentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup3;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup4;
+import gov.nih.nlm.nls.metamap.lite.EntityLookup5;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroupFilter;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroups;
 import gov.nih.nlm.nls.metamap.lite.EntityAnnotation;
 import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 import gov.nih.nlm.nls.metamap.lite.resultformats.CuiList;
+import gov.nih.nlm.nls.metamap.lite.BioCUtilities;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
@@ -77,6 +81,9 @@ import org.apache.logging.log4j.Logger;
 import opennlp.tools.util.Span;
 
 import gov.nih.nlm.nls.utils.Configuration;
+
+import gov.nih.nlm.nls.metamap.mmi.TermFrequency;
+import gov.nih.nlm.nls.metamap.mmi.Ranking;
 
 /**
  * Using MetaMapLite from a Java program:
@@ -123,7 +130,6 @@ import gov.nih.nlm.nls.utils.Configuration;
  * <dt>metamaplite.ivf.cuisemantictypeindex</dt><dd>location of cui-semantictype index</dd>
  * <dt>metamaplite.document.inputtype</dt><dd>document input type (default: freetext)</dd>
  * <dt>metamaplite.property.file</dt><dd>load configuration from file (default: ./config/metamaplite.properties)</dd>
- * <dt></dt><dd></dd>
  * </dl>
  * <p>
  * Command line frontend properties 
@@ -188,6 +194,7 @@ public class MetaMapLite {
 
   boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
+  SentenceExtractor sentenceExtractor;
   EntityLookup entityLookup;
   enum SegmentatonType {
     SENTENCES,
@@ -203,11 +210,13 @@ public class MetaMapLite {
 	   IOException
   {
     this.properties = properties;
-    if (properties.getProperty("opennlp.en-sent.bin.path") != null) {
-      SentenceExtractor.setModel(properties.getProperty("opennlp.en-sent.bin.path"));
+    this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    if (properties.get("metamaplite.outputformat").equals("mmi")) {
+      this.entityLookup = new EntityLookup5(properties);
+    } else {
+      this.entityLookup = new EntityLookup4(properties);
     }
-    this.sentenceAnnotator = new SentenceAnnotator(properties);
-    this.entityLookup = new EntityLookup4(properties);
     BioCDocumentLoaderRegistry.register("bioc",
 					"For BioC XML documents.", 
 					new FreeText());
@@ -295,8 +304,13 @@ public class MetaMapLite {
 
   /**
    * Invoke sentence processing pipeline on a sentence
-   * @param sentence
+   * @param sentence BioC sentence containing passage
+   * @param passage BioC sentence containing sentences
    * @return updated sentence
+   * @throws Exception general exception
+   * @throws IOException IO Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
    */
   public BioCSentence processSentence(BioCSentence sentence, BioCPassage passage)
     throws IllegalAccessException, InvocationTargetException, 
@@ -305,8 +319,7 @@ public class MetaMapLite {
     logger.debug("enter processSentence");
     // BioCSentence annotatedSentence = SentenceAnnotator.tokenizeSentence(passage, sentence);
     BioCSentence result0 = 
-      sentenceAnnotator.addEntities
-      (this.entityLookup, sentence, passage);
+      BioCUtilities.addEntities(this.entityLookup, this.sentenceAnnotator, sentence);
     // System.out.println("unfiltered entity list: ");
     // Brat.listEntities(result0);
     BioCSentence result = result0;
@@ -330,6 +343,10 @@ public class MetaMapLite {
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
    * @param passage containing list of sentences
    * @return list of results from sentence processing pipeline, one per sentence in input list.
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
+   * @throws Exception general exception
+   * @throws IOException IO Exception
    */
   public BioCPassage processSentences(BioCPassage passage) 
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
@@ -361,7 +378,7 @@ public class MetaMapLite {
     String[] segmentList;
     switch (segmentationMethod) {
     case SENTENCES:
-      passage0 = SentenceExtractor.createSentences(passage);
+      passage0 = this.sentenceExtractor.createSentences(passage);
       break;
     case BLANKLINES:
       sentenceList = new ArrayList<BioCSentence>();
@@ -471,7 +488,7 @@ public class MetaMapLite {
     List<Sentence> sentenceList = new ArrayList<Sentence>();
     for (BioCDocument document: documentList) {
       for (BioCPassage passage: document.getPassages()) {
-	sentenceList.addAll(SentenceExtractor.createSentenceList(passage.getText(), passage.getOffset()));
+	sentenceList.addAll(this.sentenceExtractor.createSentenceList(passage.getText(), passage.getOffset()));
       }
     }
     return sentenceList;
@@ -481,7 +498,7 @@ public class MetaMapLite {
     List <AbbrInfo> infos = new ArrayList<AbbrInfo>();
     for (BioCDocument document: documentList) {
       for (BioCPassage passage: document.getPassages()) {
-	for (Sentence sentence: SentenceExtractor.createSentenceList(passage.getText())) {
+	for (Sentence sentence: this.sentenceExtractor.createSentenceList(passage.getText())) {
 	  infos.addAll(extractAbbr.extractAbbrPairsString(sentence.getText()));
 	}
       }
@@ -517,7 +534,7 @@ public class MetaMapLite {
     }
     System.err.println("output options:");
     System.err.println("  --bioc|cdi|bc|bc-evaluate");
-    System.err.println("  --mmilike|mmi");
+    System.err.println("  --mmilike");
     System.err.println("  --mmi");
     System.err.println("  --brat");    
     //    System.err.println("  --luceneresultlen");
@@ -693,7 +710,9 @@ public class MetaMapLite {
     return properties;
   }
 
-  /** list entities using document list from stdin */
+  /** list entities using document list from stdin 
+   * @param documentList list of BioC documents
+   */
   void listSentences(List<BioCDocument> documentList)
   {
     // output results for file
@@ -843,18 +862,30 @@ public class MetaMapLite {
    * log information about caches.
    */
   void logCacheInfo() {
-    System.out.println("cui -> preferred-name cache size: " +
-		       ((EntityLookup4)entityLookup).cuiPreferredNameCache.size());
-    System.out.println("term -> concept cache size: " +
-		       ((EntityLookup4)entityLookup).termConceptCache.size());
+    if (entityLookup instanceof EntityLookup4) {
+      System.out.println("cui -> preferred-name cache size: " +
+			 ((EntityLookup4)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
+      System.out.println("term -> concept cache size: " +
+			 ((EntityLookup4)entityLookup).termConceptInfoCache.termConceptCache.size());
+      logger.info("cui -> preferred-name cache size: " +
+		  ((EntityLookup4)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
+      logger.info("term -> concept cache size: " +
+		  ((EntityLookup4)entityLookup).termConceptInfoCache.termConceptCache.size());
+    } else if (entityLookup instanceof EntityLookup5) {
+      System.out.println("cui -> preferred-name cache size: " +
+			 ((EntityLookup5)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
+      System.out.println("term -> concept cache size: " +
+			 ((EntityLookup5)entityLookup).termConceptInfoCache.termConceptCache.size());
+      logger.info("cui -> preferred-name cache size: " +
+		  ((EntityLookup5)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
+      logger.info("term -> concept cache size: " +
+		  ((EntityLookup5)entityLookup).termConceptInfoCache.termConceptCache.size());
+      
+    }
     System.out.println("string -> normalized string cache size: " +
 		       gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
-    logger.info("cui -> preferred-name cache size: " +
-		       ((EntityLookup4)entityLookup).cuiPreferredNameCache.size());
-    logger.info("term -> concept cache size: " +
-		       ((EntityLookup4)entityLookup).termConceptCache.size());
     logger.info("string -> normalized string cache size: " +
-		       gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
+		gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
   }
 
   /**
@@ -892,7 +923,15 @@ public class MetaMapLite {
    * gov.nih.nlm.nls.metamap.lite.EntityAnnotation.displayEntitySet)
    * </pre>
    * @param args - Arguments passed from the command line
-   */
+   * @throws Exception general exception
+   * @throws ClassNotFoundException class not found exception
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception instantiating instance of class
+   * @throws InvocationTargetException exception while invoking target class 
+   * @throws NoSuchMethodException  no method in class
+ */
   public static void main(String[] args)
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
@@ -943,21 +982,21 @@ public class MetaMapLite {
 	    optionsConfiguration.setProperty("metamaplite.outputextension",
 					     (outputExtensionMap.containsKey(fields[1]) ?
 					      outputExtensionMap.get(fields[1]) :
-					      "out"));
+					      ".out"));
 	  } else if (fields[0].equals("--brat") || 
 		     fields[0].equals("--BRAT")) {
 	    optionsConfiguration.setProperty("metamaplite.outputformat","brat");
 	    optionsConfiguration.setProperty("metamaplite.outputextension",
 					     (outputExtensionMap.containsKey("brat") ?
 					      outputExtensionMap.get("brat") :
-					      "brat"));
+					      ".ann"));
 	  } else if (fields[0].equals("--mmi") || 
 		     fields[0].equals("--mmilike")) {
 	    optionsConfiguration.setProperty("metamaplite.outputformat","mmi");
 	    optionsConfiguration.setProperty("metamaplite.outputextension",
 					     (outputExtensionMap.containsKey("mmi") ?
 					      outputExtensionMap.get("mmi") :
-					      "mmi"));
+					      ".mmi"));
 	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
 		     fields[0].equals("--restrict-to-sts") ||
 		     fields[0].equals("--restrict_to_semantic_types") ||

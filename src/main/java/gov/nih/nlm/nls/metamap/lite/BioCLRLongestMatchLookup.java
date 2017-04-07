@@ -36,6 +36,7 @@ import gov.nih.nlm.nls.metamap.prefix.CharUtils;
 import gov.nih.nlm.nls.metamap.lite.BioCEntityLookup;
 import gov.nih.nlm.nls.metamap.lite.BioCSentenceEntityAnnotator;
 import gov.nih.nlm.nls.metamap.lite.BioCSentenceEntityAnnotatorImpl;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
 
 /**
  *
@@ -98,7 +99,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
     if (addPartOfSpeechTagsFlag) {
-      this.sentenceAnnotator = new SentenceAnnotator(properties);
+      this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     }
 
     // Instantiate user-specified negation detector if present,
@@ -146,7 +147,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
     if (addPartOfSpeechTagsFlag) {
-      this.sentenceAnnotator = new SentenceAnnotator(properties);
+      this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     }
 
     // Instantiate user-specified negation detector if present,
@@ -233,6 +234,8 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
    * Get source vocabulary abbreviations for cui (concept unique identifier)
    * @param cui target cui
    * @return set of source vocabulary abbreviations a for cui or empty set if none found.
+   * @throws FileNotFoundException IO Exception
+   * @throws IOException IO Exception
    */
   public Set<String> getSourceSet(String cui)
     throws FileNotFoundException, IOException
@@ -380,6 +383,8 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
   /** 
    * Create sequence of sublists of tokenlist always starting from
    * the head each sublist smaller than the previous.
+   * @param listOfTokenLists list of tokenlists each a subset of original tokenlist.
+   * @param tokenList original tokenlist.
    */
   public static void applyHeadSubTokenListsOpt
     (List<List<BioCAnnotation>> listOfTokenLists,
@@ -393,6 +398,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
   /**
    * Generate token sublists from original list using .
    * @param tokenList original tokenlist.
+   * @return list of lists of BioC annotations
    */
   public static List<List<BioCAnnotation>> createSubListsOpt(List<BioCAnnotation> tokenList) {
     List<List<BioCAnnotation>> listOfTokenLists = new ArrayList<List<BioCAnnotation>>();
@@ -409,7 +415,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
    * annotations finding entities. Return set of entities.
    *
    * @param docid document id of parent BioCDocument of sentence
-   * @param BioCSentence with token and part-of-speech annotations.
+   * @param tokenizedSentence with token and part-of-speech annotations.
    * @return set of entities corresponding to sentence.
    */
   public Set<Entity> listEntities(String docid, BioCSentence tokenizedSentence)
@@ -421,7 +427,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
       // span -> entity list map
       Map<String,Entity> spanMap = new HashMap<String,Entity>();
       List<BioCAnnotation> tokenAnnotationList =
-	this.sentenceAnnotator.keepTokens(tokenizedSentence.getAnnotations());
+	BioCUtilities.keepTokenAnnotations(tokenizedSentence.getAnnotations());
       List<List<BioCAnnotation>> listOfTokenSubLists =
 	createSubListsOpt(tokenAnnotationList);
       for (List<BioCAnnotation> tokenSubList: listOfTokenSubLists) {
@@ -604,7 +610,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
    * part-of-speech annotations are removed.
    *
    * @param docid document id of parent BioCDocument of sentence
-   * @param BioCSentence with token and part-of-speech annotations.
+   * @param tokenizedSentence with token and part-of-speech annotations.
    * @return BioCSentence with entity and concept annotations with linking relations.
    */
   public BioCSentence findLongestMatches(String docid, BioCSentence tokenizedSentence)

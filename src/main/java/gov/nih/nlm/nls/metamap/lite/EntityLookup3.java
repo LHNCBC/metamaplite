@@ -87,7 +87,7 @@ public class EntityLookup3 implements EntityLookup {
     throws IOException, FileNotFoundException
   {
     this.mmIndexes = new MetaMapIvfIndexes();
-    this.sentenceAnnotator = new SentenceAnnotator();
+    this.sentenceAnnotator = new OpenNLPPoSTagger();
     this.defaultAllowedPartOfSpeech();
   }
 
@@ -95,7 +95,7 @@ public class EntityLookup3 implements EntityLookup {
     throws IOException, FileNotFoundException
   {
     this.mmIndexes = new MetaMapIvfIndexes(properties);
-    this.sentenceAnnotator = new SentenceAnnotator(properties);
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     this.defaultAllowedPartOfSpeech();
     if (System.getProperty("metamaplite.excluded.termsfile") != null) {
       this.excludedTerms.addTerms(System.getProperty("metamaplite.excluded.termsfile"));
@@ -134,6 +134,8 @@ public class EntityLookup3 implements EntityLookup {
    * Find preferred name for cui (concept unique identifier)
    * @param cui target cui
    * @return preferredname for cui or null if not found
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public String findPreferredName(String cui)
     throws FileNotFoundException, IOException
@@ -156,6 +158,8 @@ public class EntityLookup3 implements EntityLookup {
    * Get source vocabulary abbreviations for cui (concept unique identifier)
    * @param cui target cui
    * @return set of source vocabulary abbreviations a for cui or empty set if none found.
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    */
   public Set<String> getSourceSet(String cui)
     throws FileNotFoundException, IOException
@@ -326,6 +330,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    *    ...
    * @param docid document id
    * @param tokenList tokenlist of document
+   * @return span to entity and token length map instance
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
    */
@@ -488,9 +493,12 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    * Or ORF version in NLS repository:
    *  http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/nls/tree/mmtx/sources/gov/nih/nlm/nls/mmtx/dfbuilder/ExtractMrconsoSources.java
    *
+   * @param docid document identifier
    * @param sentenceTokenList sentence to be examined.
    * @param semTypeRestrictSet semantic type 
    * @param sourceRestrictSet source list to restrict to
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    * @return set of entities found in the sentence.
    */
   public Set<Entity> processSentenceTokenList(String docid, List<ERToken> sentenceTokenList,
@@ -568,6 +576,7 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
    * Apply Context negation and temporality matching to sentence using entity set.
    * @param entitySet entitySet associated with sentence 
    * @param sentence sentence to apply Context annotations to.
+   * @throws Exception general exception
    */
   public static void applyContext(Set<Entity> entitySet, BioCSentence sentence) 
     throws Exception {
@@ -594,7 +603,15 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
     return entityList;
   }
 
-  /** Process passage */
+  /** Process passage
+   *
+   * @param docid document id
+   * @param passage passage of document to be processed
+   * @param useContext if true the use ContexT negation detection 
+   * @param semTypeRestrictSet set of semantic types to restrict concepts to
+   * @param sourceRestrictSet set of sources to restrict concepts to
+   * @return List of entity instances
+   */
   public List<Entity> processPassage(String docid, BioCPassage passage, boolean useContext,
 				     Set<String> semTypeRestrictSet,
 				     Set<String> sourceRestrictSet) 

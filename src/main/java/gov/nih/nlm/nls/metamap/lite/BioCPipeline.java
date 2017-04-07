@@ -39,6 +39,8 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.MarkAbbreviations;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPSentenceExtractor;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup4;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroupFilter;
@@ -59,6 +61,7 @@ import gov.nih.nlm.nls.metamap.document.BioCDocumentLoader;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry;
 import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
 import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
+import gov.nih.nlm.nls.metamap.lite.BioCUtilities;
 import gov.nih.nlm.nls.types.Sentence;
 import bioc.BioCCollection;
 import bioc.BioCDocument;
@@ -124,6 +127,7 @@ public class BioCPipeline {
   boolean useContext = false;
   boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
+  SentenceExtractor sentenceExtractor;
   // EntityLookup4 entityLookup;
   BioCEntityLookup bioCEntityLookup;
   boolean segmentSentences = true;
@@ -135,10 +139,9 @@ public class BioCPipeline {
 	   IOException
   {
     this.properties = properties;
-    if (properties.getProperty("opennlp.en-sent.bin.path") != null) {
-      SentenceExtractor.setModel(properties.getProperty("opennlp.en-sent.bin.path"));
-    }
-    this.sentenceAnnotator = new SentenceAnnotator(properties);
+    
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
     // this.entityLookup = new EntityLookup4(properties);
     this.bioCEntityLookup = new BioCLRLongestMatchLookup(properties,this.sentenceAnnotator);
 
@@ -206,7 +209,7 @@ public class BioCPipeline {
     // if (resultObject instanceof BioCSentence) {
     //   result = (BioCSentence)resultObject;
     // }
-    BioCSentence taggedSentence = SentenceAnnotator.tokenizeSentence(sentence);
+    BioCSentence taggedSentence = BioCUtilities.tokenizeSentence(sentence);
     sentenceAnnotator.addPartOfSpeech(taggedSentence);
     BioCSentence entityTaggedSentence = bioCEntityLookup.findLongestMatches(docid,
 									    taggedSentence);
@@ -224,7 +227,11 @@ public class BioCPipeline {
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
    * @param passage containing list of sentences
    * @return list of results from sentence processing pipeline, one per sentence in input list.
-   */
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
+ */
   public BioCPassage processSentences(String docid, BioCPassage passage) 
     throws IllegalAccessException, InvocationTargetException,
 	   IOException, FileNotFoundException 
@@ -254,8 +261,8 @@ public class BioCPipeline {
     //   Object result = plugin.getMethod().invoke(plugin.getClassInstance(), current);
     //   current = result;
     // }
-    // BioCPassage newPassage = BioCPipeline.processSentences(SentenceExtractor.createSentences(passage));
-    BioCPassage newPassage = processSentences(docid, SentenceExtractor.createSentences(passage));
+    // BioCPassage newPassage = BioCPipeline.processSentences(this.sentenceExtractor.createSentences(passage));
+    BioCPassage newPassage = processSentences(docid, this.sentenceExtractor.createSentences(passage));
     logger.debug("exit processPassage");
   }
 
