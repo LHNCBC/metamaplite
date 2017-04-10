@@ -1,4 +1,4 @@
-(defproject gov.nih.nlm.nls/metamaplite "3.2-SNAPSHOT"
+(defproject gov.nih.nlm.nls/metamaplite "3.4-SNAPSHOT"
   :description "Clojure code for exploring MetaMapLite in lieu of a debugger."
   :url "http://usa.gov/"
   :min-lein-version "2.0.0"
@@ -9,6 +9,7 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [org.apache.opennlp/opennlp-tools "1.5.3"]
                  [org.apache.opennlp/opennlp-maxent "3.0.3"]
+                 [instaparse "1.4.5"]
                  [clojure-opennlp "0.3.3" :exclusions [instaparse]] ;; uses Opennlp 1.5.3
                  [org.apache.logging.log4j/log4j-api "2.1"]
                  [org.apache.logging.log4j/log4j-core "2.1"]
