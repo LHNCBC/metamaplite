@@ -117,7 +117,7 @@ public class TermConceptInfoCache {
 
   public static boolean isLikelyMatch(String term, String normTerm, String docStr) {
     if (term.length() < 5) {
-      return term.equals(docStr);
+      return term.toLowerCase().equals(docStr.toLowerCase());
     } else {
       return normTerm.equals(NormalizedStringCache.normalizeString(docStr));
     }
