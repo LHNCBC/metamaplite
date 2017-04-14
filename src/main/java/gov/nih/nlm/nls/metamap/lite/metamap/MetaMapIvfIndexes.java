@@ -30,9 +30,12 @@ public class MetaMapIvfIndexes {
   /** MeSh Treecodes Relaxed Model index */
   public MappedMultiKeyIndexLookup meshTcRelaxedIndex;
 
-  String root =
+  static String defaultRoot =
     // "/net/lhcdevfiler/vol/cgsb5/ind/II_Group_WorkArea/wjrogers/data/mult-key-index/strict/indices";
-    "data/ivf/strict/indices";
+    "data/ivf/strict";
+
+  public String root = defaultRoot;
+  
 
   public MetaMapIvfIndexes() 
     throws IOException, FileNotFoundException
@@ -41,30 +44,30 @@ public class MetaMapIvfIndexes {
     this.cuiSourceInfoIndex = 
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (System.getProperty("metamaplite.ivf.cuisourceinfoindex", root + "/cuisourceinfo")));
+       (System.getProperty("metamaplite.ivf.cuisourceinfoindex", defaultRoot + "/indices/cuisourceinfo")));
     this.cuiSemanticTypeIndex =
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (System.getProperty("metamaplite.ivf.cuisemantictypeindex", root + "/cuist")));
+       (System.getProperty("metamaplite.ivf.cuisemantictypeindex", defaultRoot + "/indices/cuist")));
     this.cuiConceptIndex =
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (System.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
+       (System.getProperty("metamaplite.ivf.cuiconceptindex", defaultRoot + "/indices/cuiconcept")));
 
-    if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.varsindex", root + "/vars")))) {
+    if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.varsindex", defaultRoot + "/indices/vars")))) {
       this.varsIndex =
 	new MappedMultiKeyIndexLookup
 	(new MappedMultiKeyIndex
-	 (System.getProperty("metamaplite.ivf.varsindex", root + "/vars")));
+	 (System.getProperty("metamaplite.ivf.varsindex", defaultRoot + "/indices/vars")));
     }
     
-    if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")))) {
-      this.varsIndex =
+    if (Files.exists(Paths.get(System.getProperty("metamaplite.ivf.meshtcrelaxedindex", defaultRoot + "/indices/meshtcrelaxed")))) {
+      this.meshTcRelaxedIndex =
 	new MappedMultiKeyIndexLookup
 	(new MappedMultiKeyIndex
-	 (System.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")));
+	 (System.getProperty("metamaplite.ivf.meshtcrelaxedindex", defaultRoot + "/indices/meshtcrelaxed")));
     }
-    
+    this.root = System.getProperty("metamaplite.index.directory", defaultRoot);
   }
 
   public MetaMapIvfIndexes(Properties properties) 
@@ -74,30 +77,39 @@ public class MetaMapIvfIndexes {
     this.cuiSourceInfoIndex =
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (properties.getProperty("metamaplite.ivf.cuisourceinfoindex", root + "/cuisourceinfo")));
+       (properties.getProperty("metamaplite.ivf.cuisourceinfoindex", defaultRoot + "/indices/cuisourceinfo")));
     this.cuiSemanticTypeIndex =
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (properties.getProperty("metamaplite.ivf.cuisemantictypeindex", root + "/cuist")));
+       (properties.getProperty("metamaplite.ivf.cuisemantictypeindex", defaultRoot + "/indices/cuist")));
     this.cuiConceptIndex =
       new MappedMultiKeyIndexLookup
       (new MappedMultiKeyIndex
-       (properties.getProperty("metamaplite.ivf.cuiconceptindex", root + "/cuiconcept")));
+       (properties.getProperty("metamaplite.ivf.cuiconceptindex", defaultRoot + "/indices/cuiconcept")));
 
-    if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.varsindex", root + "/vars")))) {
+    if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.varsindex", defaultRoot + "/indices/vars")))) {
       this.varsIndex =
 	new MappedMultiKeyIndexLookup
 	(new MappedMultiKeyIndex
-	 (properties.getProperty("metamaplite.ivf.varsindex", root + "/vars")));
+	 (properties.getProperty("metamaplite.ivf.varsindex", defaultRoot + "/indices/vars")));
     }
 
-    if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")))) {
-      this.varsIndex =
+    if (Files.exists(Paths.get(properties.getProperty("metamaplite.ivf.meshtcrelaxedindex", defaultRoot + "/indices/meshtcrelaxed")))) {
+      this.meshTcRelaxedIndex =
 	new MappedMultiKeyIndexLookup
 	(new MappedMultiKeyIndex
-	 (properties.getProperty("metamaplite.ivf.meshtcrelaxedindex", root + "/meshtcrelaxed")));
+	 (properties.getProperty("metamaplite.ivf.meshtcrelaxedindex", defaultRoot + "/indices/meshtcrelaxed")));
     }
+    this.root = properties.getProperty("metamaplite.index.directory", defaultRoot);
+  }
 
+  
+  /**
+   * Get root path of index
+   * @return path of index root directory.
+   */  
+  public String getRoot() {
+    return this.root;
   }
 
 }
