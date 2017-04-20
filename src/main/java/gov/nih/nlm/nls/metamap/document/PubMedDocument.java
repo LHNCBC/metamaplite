@@ -9,6 +9,7 @@ import gov.nih.nlm.nls.types.Document;
  */
 
 public interface PubMedDocument extends Document {
+  String getId();
   String getTitle();
   String getAbstract();
 }
