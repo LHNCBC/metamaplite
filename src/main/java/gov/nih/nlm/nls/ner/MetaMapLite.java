@@ -60,6 +60,7 @@ import gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoader;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry;
 import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
+import gov.nih.nlm.nls.metamap.document.PubMedXMLDocument;
 
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatterRegistry;
@@ -212,7 +213,16 @@ public class MetaMapLite {
     this.properties = properties;
     this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    boolean enableScoring = false;
     if (properties.get("metamaplite.outputformat").equals("mmi")) {
+      enableScoring = true;
+    }
+    if (properties.containsKey("metamaplite.enable.scoring")) {
+      if (Boolean.parseBoolean(properties.getProperty("metamaplite.enable.scoring"))) {
+	enableScoring = true;
+      }
+    }
+    if (enableScoring) {
       this.entityLookup = new EntityLookup5(properties);
     } else {
       this.entityLookup = new EntityLookup4(properties);
@@ -241,6 +251,9 @@ public class MetaMapLite {
     BioCDocumentLoaderRegistry.register("sldi",
     					"Single Line Input document sets",
     					new SingleLineDelimitedInputWithID());
+    BioCDocumentLoaderRegistry.register("pubmed",
+    					"PubMed XML Abstract",
+    					new PubMedXMLDocument());
     ResultFormatterRegistry.register("brat",
 				     "BRAT Annotation format (.ann)",
 				     new Brat());
@@ -433,6 +446,7 @@ public class MetaMapLite {
     }
     //BioCPassage passageWithSentsAndAbbrevs = abbrConverter.getPassage(passage0);
     BioCPassage passageWithSentsAndAbbrevs = new BioCPassage();
+    passageWithSentsAndAbbrevs.setInfons( passage0.getInfons() );
     passageWithSentsAndAbbrevs.setOffset( passage0.getOffset() );
     passageWithSentsAndAbbrevs.setText( passage0.getText() );
     for (BioCAnnotation note : passage0.getAnnotations() ) {
@@ -458,7 +472,7 @@ public class MetaMapLite {
       MarkAbbreviations.markAbbreviations
       (passageWithSentsAndAbbrevs,
        this.entityLookup.processPassage
-       ((passage.getInfon("section") != null) ? passage.getInfon("section") : "text",
+       ((passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000",
 	passageWithSentsAndAbbrevs, this.detectNegationsFlag, this.semanticGroup, this.sourceSet));
     logger.debug("exit processPassage");
     return entityList;
@@ -467,7 +481,12 @@ public class MetaMapLite {
   public List<Entity> processDocument(BioCDocument document) 
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
-    List<Entity> entityList = new ArrayList<Entity>();    
+    List<Entity> entityList = new ArrayList<Entity>();
+    if (document.getID() == null) {
+      document.setID("0000000.TXT");
+    } else if (document.getID().trim().equals("")) {
+      document.setID("0000000.TXT");
+    }
     for (BioCPassage passage: document.getPassages()) {
       entityList.addAll(processPassage(passage));
     }
@@ -584,6 +603,7 @@ public class MetaMapLite {
       properties.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirName + "/indices/cuisourceinfo");
       properties.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirName + "/indices/cuist");
       properties.setProperty("metamaplite.ivf.varsindex", indexDirName + "/indices/vars");
+      properties.setProperty("metamaplite.ivf.meshtcrelaxedindex", indexDirName + "/indices/meshtcrelaxed");
     }
   }
   public static void expandIndexDir(Properties properties) {
@@ -627,6 +647,10 @@ public class MetaMapLite {
 				     indexDirectory + "/strict/indices/cuisourceinfo");
     defaultConfiguration.setProperty("metamaplite.ivf.cuisemantictypeindex", 
 				     indexDirectory + "/strict/indices/cuist");
+    defaultConfiguration.setProperty("metamaplite.ivf.varsindex", 
+				     indexDirectory + "/strict/indices/varss");
+    defaultConfiguration.setProperty("metamaplite.ivf.meshtcrelaxedindex", 
+				     indexDirectory + "/strict/indices/meshtcrelaxed");
       
     defaultConfiguration.setProperty("bioc.document.loader.chemdner",
 				     "gov.nih.nlm.nls.metamap.document.ChemDNER");
@@ -764,6 +788,7 @@ public class MetaMapLite {
     // format output
     ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
     if (formatter != null) {
+      formatter.initProperties(this.properties);
       formatter.entityListFormatter(pw, entityList);
     } else {
       System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
@@ -975,6 +1000,8 @@ public class MetaMapLite {
 	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","BLANKLINES");
 	  } else if (fields[0].equals("--segment_lines")) {
 	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","LINES");
+	  } else if (fields[0].equals("--enable_scoring")) {
+	      optionsConfiguration.setProperty ("metamaplite.enable.scoring","true");
 	  } else if (fields[0].equals("--freetext")) {
 	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
 	  } else if (fields[0].equals("--outputformat")) {
@@ -1078,8 +1105,10 @@ public class MetaMapLite {
 
       String documentInputOption = properties.getProperty("metamaplite.document.inputtype", "freetext");
       String outputFormatOption = properties.getProperty("metamaplite.outputformat","mmi");
-      String outputExtension =	properties.getProperty("metamaplite.outputextension", ".mmi");
-      
+      String outputExtension = ".out";
+      if (properties.getProperty("metamaplite.outputformat").equals("mmi")) {
+	properties.getProperty("metamaplite.outputextension", ".mmi");
+      }
       boolean listSentences =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
       boolean listAcronyms =
