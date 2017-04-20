@@ -50,12 +50,12 @@ public class Main {
 
 	PubMedDocument cDoc = ChemDNERSLDI.instantiateSLDIDocument(docText);
 
-	List<List<Entity>> titleListOfEntityList = inst.processText(cDoc.getId(), cDoc.getTitle());
+	List<List<Entity>> titleListOfEntityList = inst.processText(cDoc.getId(), "title", cDoc.getTitle());
 	for (List<Entity> entityList: titleListOfEntityList) {
 	  MMI.displayEntityList(entityList);
 	}
 
-	List<List<Entity>> listOfEntityList = inst.processText(cDoc.getId(), cDoc.getAbstract());
+	List<List<Entity>> listOfEntityList = inst.processText(cDoc.getId(), "abstract", cDoc.getAbstract());
 	for (List<Entity> entityList: listOfEntityList) {
 	  MMI.displayEntityList(entityList);
 	}
