@@ -1,12 +1,17 @@
 package gov.nih.nlm.nls.metamap.lite;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Describe class VariantLookupIVF here.
@@ -18,6 +23,8 @@ import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
  * @version 1.0
  */
 public class VariantLookupIVF implements VariantLookup {
+  private static final Logger logger = LogManager.getLogger(VariantLookupIVF.class);
+
   public MetaMapIvfIndexes mmIndexes;
 
   /**
@@ -39,7 +46,7 @@ public class VariantLookupIVF implements VariantLookup {
     throws IOException {
     List<String[]> variantList = new ArrayList<String[]>();
     if (this.mmIndexes.varsIndex != null) {
-      List<String> hitList = this.mmIndexes.varsIndex.lookup(term, 1);
+      List<String> hitList = this.mmIndexes.varsIndex.lookup(term, 0);
       for (String hit: hitList) {
 	String[] fields = hit.split("\\|");
 	variantList.add(fields);
@@ -69,12 +76,18 @@ public class VariantLookupIVF implements VariantLookup {
   public int lookupVariant(String term, String word)
   {
     /* lookup term variants */
-    /* if word is in variant list return varlevel */
-    int variance = 99;
+    /* if word is in variant list return varlevel (column 4)*/
+    int variance = 9;		// maximum variance (should this value be larger?)
     try {
-      for (String[] varFields: this.getVariantsForTerm(term)) {
-	if (varFields[2].equals(word)) {
+      logger.debug("term: " + term);
+      logger.debug("word: " + word);
+      for (String[] varFields: this.getVariantsForTerm(term.toLowerCase())) {
+	if ((varFields[2].toLowerCase().equals(word.toLowerCase())) ||
+	    (varFields[2].toLowerCase().equals(term.toLowerCase()))) {
 	  variance = Integer.parseInt(varFields[4]); // use varlevel field
+	  logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+	} else {
+	  logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
 	}
       }
     } catch (IOException ioe) {
