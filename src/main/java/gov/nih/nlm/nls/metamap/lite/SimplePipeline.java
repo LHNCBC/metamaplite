@@ -183,11 +183,11 @@ public class SimplePipeline {
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
    */
-  public Set<Entity> processSentence(String docid, String sentence)
+  public Set<Entity> processSentence(String docid, String fieldid, String sentence)
     throws FileNotFoundException, IOException
   {
     // Set<Entity> entitySet = EntityLookup1.generateEntitySet(Scanner.analyzeText(sentence));
-    Set<Entity> entitySet = this.entityLookup.processSentenceTokenList(docid,
+    Set<Entity> entitySet = this.entityLookup.processSentenceTokenList(docid, fieldid,
     								       Scanner.analyzeText(sentence),
     								       new HashSet<String>(),
     								       new HashSet<String>());
@@ -195,13 +195,13 @@ public class SimplePipeline {
   }
 
 
-  public List<List<Entity>> processText(String docid, String text)
+  public List<List<Entity>> processText(String docid, String fieldid, String text)
     throws FileNotFoundException, IOException
   {
     List<List<Entity>> listOfEntityList = new ArrayList<List<Entity>>();
     String[] sentenceList = this.sentenceDetector.sentDetect(text);
     for (String sentence: sentenceList) {
-      Set<Entity> entitySet = this.processSentence(docid, sentence);
+      Set<Entity> entitySet = this.processSentence(docid, fieldid, sentence);
       List<Entity> entityList = new ArrayList<Entity>();
       entityList.addAll(entitySet);
       // Collections.sort(entityList, new EntityScoreConceptNameComparator()); 
@@ -226,7 +226,7 @@ public class SimplePipeline {
 	  String docId = docFields[0];
 	  String docBody = docFields[1];
 
-	  List<List<Entity>> titleListOfEntityList = inst.processText(docId, docBody);
+	  List<List<Entity>> titleListOfEntityList = inst.processText(docId, "TEXT", docBody);
 	  for (List<Entity> entityList: titleListOfEntityList) {
 	    MMI.displayEntityList(entityList);
 	  }
