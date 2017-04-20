@@ -15,13 +15,17 @@ QUERYPARSER=$PROJECTDIR/lib/lucene-queryparser-4.10.0.jar
 OPENNLPMAXENT=$PROJECTDIR/lib/opennlp-maxent-3.0.3.jar
 OPENCSV=$PROJECTDIR/lib/opencsv-2.3.jar
 IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
+STRINGSIM=$HOME/.m2/repository/info/debatty/java-string-similarity/0.23/java-string-similarity-0.23.jar
 
-JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS
+JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS:$STRINGSIM
 
 OPENNLP_MODELS=$PROJECTDIR/data/models
 CONFIGDIR=$PROJECTDIR/config
 
-JVMOPTS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
+MML_JVM_OPTS=-Xmx12g
+
+# metamaplite properties
+MMLPROPS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dopennlp.en-token.bin.path=$OPENNLP_MODELS/en-token.bin \
     -Dopennlp.en-pos.bin.path=$OPENNLP_MODELS/en-pos-perceptron.bin \
     -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
@@ -33,5 +37,5 @@ JVMOPTS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars \
     -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
 
-java -Xmx12g -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $JVMOPTS gov.nih.nlm.nls.ner.MetaMapLite $* 
+java $MML_JVM_OPTS -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $MMLPROPS gov.nih.nlm.nls.ner.MetaMapLite $* 
 
