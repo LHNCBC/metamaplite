@@ -11,6 +11,9 @@ import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.chunker.ChunkerME;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Describe class OpenNLPChunker here.
  *
@@ -21,6 +24,7 @@ import gov.nih.nlm.nls.metamap.prefix.ERToken;
  * @version 1.0
  */
 public class OpenNLPChunker implements ChunkerMethod {
+  private static final Logger logger = LogManager.getLogger(OpenNLPPoSTagger.class);
 
   ChunkerME chunker;
 
@@ -117,17 +121,17 @@ public class OpenNLPChunker implements ChunkerMethod {
     String tag[] = this.chunker.chunk(sentence, pos);
     List<Phrase> chunkList = new ArrayList<Phrase>();
 
-    System.out.println("---begin");
+    logger.debug("---begin");
     for (int k = 0; k< tag.length; k++) {
-      System.out.println(k + ": " + tag[k] + "|" + sentence[k] + "|" + pos[k]);
+      logger.debug(k + ": " + tag[k] + "|" + sentence[k] + "|" + pos[k]);
     }
-    System.out.println("---end");
+    logger.debug("---end");
 
     int i = 0;
     String phraseTag = "unk";
     List<ERToken> cTokenList = new ArrayList<ERToken>();
     for (String tagChunk: tag) {
-      // System.out.println(tagChunk + "-chunk");
+      // logger.debug(tagChunk + "-chunk");
       String fields[] = tagChunk.split("-");
       if (fields[0].equals("B")) {
 	if (cTokenList.size() > 0) {
