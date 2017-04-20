@@ -15,20 +15,32 @@ import gov.nih.nlm.nls.types.Annotation;
  */
 public class Entity implements Annotation, Comparable<Entity>
 {		// for lack of a better name.
-  String docid;
+  /** entity id */
   String id = "en0";
+  /** id of document entity occurred in. */
+  String docid = "0000000";
+  /** id of field  entity occurred in. */
+  String fieldId = "TXT";
+  /** lexical category of entity */
+  String lexicalCategory = "UNK";
+  /** ordinal number of sentence entity occurred in */
+  int sentenceNumber = 1;
+  /** text that matched entity */
   String matchedText;
   // offset in the original text
   int start;
   int length;
   double score;
-  boolean negationStatus = false; // negation status from ConText
-  String temporality = "";	// temporality set from ConText
-  int locationPosition = 0;	// 
+  /** negation status from ConText or other negation detection program */
+  boolean negationStatus = false;
+  /** temporality set from ConText or other program */
+  String temporality = "";	
+  int locationPosition = 0;	
   Set<Ev> evSet;
 
   public Entity(String docid,  
-		String matchedText, int start, int length,
+		String matchedText,
+		int start, int length,
 		double scoreValue,
 		Set<Ev> evSet) {
     this.docid = docid;
@@ -40,7 +52,8 @@ public class Entity implements Annotation, Comparable<Entity>
   }
 
   public Entity(String docid,  
-		String matchedText, int start, int length,
+		String matchedText,
+		int start, int length,
 		double scoreValue,
 		List<Ev> evList) {
     this.docid = docid;
@@ -50,6 +63,27 @@ public class Entity implements Annotation, Comparable<Entity>
     this.length = length;
     this.evSet = new HashSet<Ev>(evList);
   }
+
+
+  public Entity(String docid,
+		String fieldId,
+		String matchedText,
+		String lexicalCategory,
+		int sentenceNumber,
+		int start, int length,
+		double scoreValue,
+		Set<Ev> evSet) {
+    this.docid = docid;
+    this.fieldId = fieldId;
+    this.matchedText = matchedText;
+    this.lexicalCategory = lexicalCategory;
+    this.sentenceNumber = sentenceNumber;
+    this.score = scoreValue;
+    this.start = start;
+    this.length = length;
+    this.evSet = evSet;
+  }
+
 
   public Entity(Entity entity) {
     this.docid = entity.getDocid();
@@ -93,7 +127,9 @@ public class Entity implements Annotation, Comparable<Entity>
   public String getDocid() { return this.docid; }
   public double getScore() { return this.score; }
 
-  /** get start position of  in text */
+  /** get start position of input text 
+   * @return start position as an integer
+   */
   public int getStart() { return this.start; }
   public void setScore(double value) { this.score = value; }
   /** set start position of entity in text */
@@ -142,6 +178,18 @@ public class Entity implements Annotation, Comparable<Entity>
     return this.id;
   }
 
+  public String getFieldId() {
+    return this.fieldId;
+  }
+
+  public String getLexicalCategory() {
+    return this.lexicalCategory;
+  }
+
+  public int getSentenceNumber() {
+    return this.sentenceNumber;
+  }
+
   @Override
     public String getType() {
     return "concept";
@@ -165,7 +213,9 @@ public class Entity implements Annotation, Comparable<Entity>
     return this.matchedText;
   }
 
-  /** get matched text of entity */  
+  /** get matched text of entity
+   * @return String containing matched text.
+   */  
   public String getMatchedText() {
     return this.matchedText;
   }
@@ -181,8 +231,16 @@ public class Entity implements Annotation, Comparable<Entity>
     }
     return sb.toString();
   }
+
+  public boolean equals(Object obj) {
+    return (((Entity)obj).start == this.start) &&
+      (((Entity)obj).length == this.length);
+  }
+
+  public int hashCode() {
+    return this.length + this.start;
+  }
+
 }
-
-
 
 

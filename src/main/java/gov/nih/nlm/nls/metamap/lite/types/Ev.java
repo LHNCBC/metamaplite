@@ -95,10 +95,10 @@ public class Ev implements Annotation {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append(this.id).append("|");
-    sb.append(this.matchedText).append("|");
-    sb.append(this.score).append("|");
-    sb.append("|").append(this.start).append(":").append(this.length).append("|");
+    sb.append(this.id).append("+");
+    sb.append(this.matchedText).append("+");
+    sb.append(this.score).append("+");
+    sb.append("+").append(this.start).append(":").append(this.length).append("+");
     sb.append(this.conceptInfo);
     return sb.toString();
   }
