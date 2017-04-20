@@ -2,6 +2,7 @@
 package gov.nih.nlm.nls.metamap.lite.resultformats.mmi;
 
 import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Collection;
@@ -16,14 +17,25 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.metamap.lite.types.Span;
 import gov.nih.nlm.nls.metamap.lite.types.SpanImpl;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
+import gov.nih.nlm.nls.metamap.lite.types.Position;
+import gov.nih.nlm.nls.metamap.lite.types.PositionImpl;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.types.TriggerInfo;
 import gov.nih.nlm.nls.metamap.lite.types.MatchInfo;
+import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
+
+import gov.nih.nlm.nls.metamap.mmi.AATF;
+import gov.nih.nlm.nls.metamap.mmi.Ranking;
+import gov.nih.nlm.nls.metamap.mmi.TermFrequency;
+import gov.nih.nlm.nls.metamap.mmi.Tuple;
+import gov.nih.nlm.nls.metamap.mmi.Tuple7;
+
 
 /**
  * Fielded MetaMap Indexing (MMI) Output
@@ -221,11 +233,16 @@ public class MMI implements ResultFormatter {
     for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
       String cui = cuiEntity.getKey();
       MatchInfo val = cuiEntity.getValue();
-      System.out.print("text|0.0|" + cui + "|" + seqno + "|" + val);
+      System.out.print("text|" + entityList.get(0).getScore() + "|" + cui + "|" + seqno + "|" + val);
       seqno++;
     }
   }
 
+  /**
+   * @param pw printwriter used for output
+   * @param entityList entitylist to be rendered for output
+   * @deprecated
+   */
   public static void displayEntityList(PrintWriter pw, List<Entity> entityList) 
   {
     int seqno = 0;
@@ -233,7 +250,7 @@ public class MMI implements ResultFormatter {
     for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
       String cui = cuiEntity.getKey();
       MatchInfo val = cuiEntity.getValue();
-      pw.print("text|0.0|" + val.getPreferredName() + "|" + cui + "|" + seqno + "|" +
+      pw.print("text|" + entityList.get(0).getScore() + "|" + val.getPreferredName() + "|" + cui + "|" + seqno + "|" +
 	       StringUtils.join(val.getSemanticTypeSet(), ",") + "|");
 
       Set<String> spanSet = new LinkedHashSet<String>();
@@ -252,10 +269,82 @@ public class MMI implements ResultFormatter {
     }
   }
 
+  /**
+   * render tuple without positional information.
+   * @param tuple seven item Tuple.
+   * @return tuple string representation with positional information
+   */
+  public String renderTupleInfo(Tuple tuple) {
+    return "\"" + tuple.getTerm() + "\"-" +
+      tuple.getField() + "-" +
+      tuple.getNSent() + "-\"" +
+      tuple.getText() + "\"-" +		
+      tuple.getLexCat() + "-" +
+      tuple.getNeg();
+  }
   
+  /**
+   * render positional information from tuple to string.
+   * @param tuple seven item Tuple.
+   * @return positional information in formatted string form.
+   */
+  public String renderPositionInfo(Tuple tuple) {
+    return tuple.getPosInfo().stream().map(i -> ((PositionImpl)i).toStringStartLength()).collect(Collectors.joining(","));
+  }
+
+  
+  
+  /**
+   * @param pw printwriter used for output
+   * @param entityList entitylist to be rendered for output
+   */
+  public void renderEntityList(PrintWriter pw, String docid, List<Entity> entityList) 
+  {
+    List<TermFrequency> tfList = this.entityToTermFrequencyInfo(entityList);
+    List<AATF> aatfList = Ranking.processTF(tfList, 1000);
+    Collections.sort(aatfList);
+    for (AATF aatf: aatfList) {
+      pw.println(docid + "|MMI|" + aatf.getNegNRank() + "|" +
+		 aatf.getConcept() +"|" +
+		 aatf.getCui() +"|" +
+		 aatf.getSemanticTypes() +"|" +
+		 aatf.getTuplelist().stream().map(i -> this.renderTupleInfo(i)).collect(Collectors.joining(","))  + "|" +
+		 aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(","))  + "|" +
+		 aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(",")));
+    }
+  }
+
+  /**
+   * map entities by document id.
+   * @param entityList input entitylist 
+   * @return map of entities key by document id.
+   */
+  public static Map<String,List<Entity>> genDocidEntityMap(List<Entity> entityList) {
+    Map<String,List<Entity>> docidEntityMap =
+      new HashMap<String,List<Entity>>();
+    for (Entity entity: entityList) {
+      if (docidEntityMap.containsKey(entity.getDocid())) {
+	docidEntityMap.get(entity.getDocid()).add(entity);
+      } else {
+	List<Entity> newEntityList = new ArrayList<Entity>();
+	newEntityList.add(entity);
+	docidEntityMap.put(entity.getDocid(), newEntityList);
+      }
+    }
+    return docidEntityMap;
+  }
+  
+
+  /**
+   * @param pw printwriter used for output
+   * @param entityList entitylist to be rendered for output
+   */
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
-    displayEntityList(writer, entityList);
+    
+    for (Map.Entry<String,List<Entity>> entry: genDocidEntityMap(entityList).entrySet() ) {
+      this.renderEntityList(writer, entry.getKey(), entry.getValue());
+    }
   }
 
   public String entityListFormatToString(List<Entity> entityList)
@@ -266,7 +355,7 @@ public class MMI implements ResultFormatter {
     for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
       String cui = cuiEntity.getKey();
       MatchInfo val = cuiEntity.getValue();
-      sb.append("text|0.0|").append(val.getPreferredName()).append("|").append(cui).append("|").append(seqno).append("|" +
+      sb.append("text|" + entityList.get(0).getScore() + "|").append(val.getPreferredName()).append("|").append(cui).append("|").append(seqno).append("|" +
 	       StringUtils.join(val.getSemanticTypeSet(), ",")).append("|");
 
       Set<String> spanSet = new LinkedHashSet<String>();
@@ -286,6 +375,80 @@ public class MMI implements ResultFormatter {
     return sb.toString();
   }
 
+  public List<TermFrequency> entityToTermFrequencyInfo(List<Entity> entityList) {
+    Map<String,TermFrequency> termFreqMap = new HashMap<String,TermFrequency>();
+    for (Entity entity: entityList) {
+      for (Ev ev: entity.getEvList()) {
+	String cui = ev.getConceptInfo().getCUI();
+	String conceptString = ev.getConceptString();
+	String tfKey = cui + "|" + conceptString;
+	if (termFreqMap.containsKey(tfKey)) {
+	  TermFrequency tf = termFreqMap.get(tfKey);
+	  List<Position> posInfo = new ArrayList<Position>();
+	  int start = ev.getStart();
+	  int end = ev.getStart() + ev.getLength();
+	  posInfo.add(new PositionImpl(start, end));
+	  Tuple tuple = new Tuple7(ev.getConceptInfo().getConceptString(),
+				   entity.getFieldId(), // section/location field needs to be added to Entity or Ev (or both)
+				   entity.getSentenceNumber(), // sentence number needs to be added to Entity or Ev (or both)
+				   ev.getMatchedText(), // text?
+				   entity.getLexicalCategory(), // lexical category needs to be added to Entity or Ev (or both)
+				   0, // neg?
+				   posInfo);
+	  tf.getTupleSet().add(tuple);
+	  tf.setFrequencyCount(tf.getFrequencyCount() + 1);
+	} else {
+	  List<Position> posInfo = new ArrayList<Position>();
+	  int start = ev.getStart();
+	  int end = ev.getStart() + ev.getLength();
+	  posInfo.add(new PositionImpl(start, end));
+	  Set<Tuple> tupleSet = new LinkedHashSet<Tuple>();
+	  Tuple tuple = new Tuple7(ev.getConceptInfo().getConceptString(),
+				   entity.getFieldId(), // section/location field needs to be added to Entity or Ev (or both)
+				   entity.getSentenceNumber(), // sentence number needs to be added to Entity or Ev (or both)
+				   ev.getMatchedText(), // text?
+				   entity.getLexicalCategory(), // lexical category needs to be added to Entity or Ev (or both)
+				   0, // neg?
+				   posInfo); 
+	  tupleSet.add(tuple);
+	  termFreqMap.put(tfKey,
+			  new TermFrequency(conceptString,
+					    new ArrayList<String>(ev.getConceptInfo().getSemanticTypeSet()),
+					    tupleSet, 
+					    (entity.getFieldId().equals("title") ||
+					     entity.getFieldId().equals("TI") )
+					    , 
+					    cui,
+					    1,
+					    ev.getScore(),
+					    getTreecodes(conceptString)));
+	}
+      }
+    }
+    // List<TermFrequency> tfList = new ArrayList<TermFrequency>();
+    return new ArrayList<TermFrequency>(termFreqMap.values());
+  }
+
+  public MetaMapIvfIndexes mmIndexes;
+
+  public List<String> getTreecodes(String term) {
+    try {
+      List<String> treecodeList = new ArrayList<String>();
+      for (String hit :this.mmIndexes.meshTcRelaxedIndex.lookup(term,0)) {
+	String[] fields = hit.split("\\|");
+	treecodeList.add(fields[1]);
+      }
+      return treecodeList;
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+  }
+
   public void initProperties(Properties properties) {
+    try {
+      this.mmIndexes = new MetaMapIvfIndexes(properties);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 }
