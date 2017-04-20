@@ -44,8 +44,10 @@ public class Config {
       {
 	if ( line.trim().length() > 0 && line.charAt(0) != '#' ) {
 	  String[] fields = line.split("\\|");
-	  String tablename = fields[1];
-	  tableMap.put(tablename, fields);
+	  if (fields.length > 5) {
+	    String tablename = fields[1];
+	    tableMap.put(tablename, fields);
+	  }
 	}
       }
     reader.close();
