@@ -182,7 +182,7 @@ public class EntityLookup4 implements EntityLookup {
   public class SpanEntityMapAndTokenLength {
     Map<String,Entity> spanEntityMap;
     int length;
-    public SpanEntityMapAndTokenLength(    Map<String,Entity> spanEntityMap, int length) {
+    public SpanEntityMapAndTokenLength(Map<String,Entity> spanEntityMap, int length) {
       this.spanEntityMap = spanEntityMap;
       this.length = length;
     }
@@ -195,6 +195,7 @@ public class EntityLookup4 implements EntityLookup {
     public List<Entity> getEntityList() {
       return new ArrayList<Entity>(this.spanEntityMap.values());
     }
+    public int size() { return this.spanEntityMap.size(); }
   }
 
   public class SpanInfo {
@@ -205,7 +206,9 @@ public class EntityLookup4 implements EntityLookup {
   }
 
   public void addEvSetToSpanMap(Map<String,Entity> spanMap, Set<Ev> evSet, 
-				String docid, String matchedText, 
+				String docid, String fieldid, String matchedText,
+				String lexicalCategory,
+				int sentenceNumber,
 				int offset, int length) {
     String span = offset + ":" + length;
     if (spanMap.containsKey(span)) {
@@ -220,7 +223,9 @@ public class EntityLookup4 implements EntityLookup {
 	}
       }
     } else {
-      Entity entity = new Entity(docid, matchedText, offset, length, 0.0, evSet);
+      Entity entity = new Entity(docid, fieldid, matchedText,
+				 lexicalCategory, sentenceNumber,
+				 offset, length, 0.0, evSet);
       spanMap.put(span, entity);
     }
   }
@@ -297,6 +302,8 @@ public class EntityLookup4 implements EntityLookup {
    * @throws IOException IO exception
    */
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
+						      String fieldid,
+						      int sentenceNumber,
 						      List<ERToken> tokenList)
     throws FileNotFoundException, IOException
   {
@@ -384,7 +391,10 @@ public class EntityLookup4 implements EntityLookup {
 	    if (evSet.size() > 0) {
 	      this.addEvSetToSpanMap(spanMap, evSet, 
 	  			     docid,
+				     fieldid,
 	  			     originalTerm,
+				     ((ERToken)tokenSubList.get(0)).getPartOfSpeech(), // should this be noun/verb/adj phrase?
+				     sentenceNumber,
 	  			     offset, termLength);
 	      longestMatchedTokenLength = Math.max(longestMatchedTokenLength,tokenTextSubList.size());
 	    }
@@ -401,7 +411,7 @@ public class EntityLookup4 implements EntityLookup {
     Set<Ev> newEvSet = new HashSet<Ev>();
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
-      if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
+      if (this.isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
 	newEvSet.add(ev);
       }
     }
@@ -414,7 +424,7 @@ public class EntityLookup4 implements EntityLookup {
     Set<Ev> newEvSet = new HashSet<Ev>();
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
-      if (isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
+      if (this.isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
 	newEvSet.add(ev);
       }
     }
@@ -459,15 +469,19 @@ public class EntityLookup4 implements EntityLookup {
    * @throws FileNotFoundException File Not Found Exception
    * @throws IOException IO Exception
    */
-  public Set<Entity> processSentenceTokenList(String docid, List<ERToken> sentenceTokenList,
+  public Set<Entity> processSentenceTokenList(String docid, String fieldid,
+					      List<ERToken> sentenceTokenList,
 					      Set<String> semTypeRestrictSet,
 					      Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException {
-    Set<Entity> entitySet = new HashSet<Entity>();    int i = 0;
+    Set<Entity> entitySet = new HashSet<Entity>();
+    int i = 0;
     while (i<sentenceTokenList.size()) {
       SpanEntityMapAndTokenLength spanEntityMapAndTokenLength = 
 	this.findLongestMatch
 	(docid,
+	 fieldid,
+	 i,
 	 sentenceTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,sentenceTokenList.size())));
       for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
 	if (entity.getEvList().size() > 0) {
@@ -541,9 +555,10 @@ public class EntityLookup4 implements EntityLookup {
 				 Set<String> sourceRestrictSet) {
     List<Entity> entityList = new ArrayList<Entity>();
     try {
-      String docid = "text";
+      String docid = "000000";
+      String fieldid = "text";
       List<ERToken> tokenList = Scanner.analyzeText(term);
-      Set<Entity> entitySet = this.processSentenceTokenList(docid, tokenList,
+      Set<Entity> entitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
 							    semTypeRestrictSet,
 							    sourceRestrictSet);
       entityList.addAll(entitySet);
@@ -559,6 +574,7 @@ public class EntityLookup4 implements EntityLookup {
 				     Set<String> semTypeRestrictSet,
 				     Set<String> sourceRestrictSet) 
   {
+    String fieldid = passage.getInfon("section");
     try {
       Set<Entity> entitySet0 = new HashSet<Entity>();
       int i = 0;
@@ -567,7 +583,7 @@ public class EntityLookup4 implements EntityLookup {
 	if (this.addPartOfSpeechTagsFlag) {
 	  sentenceAnnotator.addPartOfSpeech(tokenList);
 	}
-	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
+	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
 	for (Entity entity: sentenceEntitySet) {
@@ -607,6 +623,7 @@ public class EntityLookup4 implements EntityLookup {
 				       Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException, Exception
   {
+    String fieldid = "text";
     Set<Entity> entitySet0 = new HashSet<Entity>();
     int i = 0;
     for (Sentence sentence: sentenceList) {
@@ -614,7 +631,7 @@ public class EntityLookup4 implements EntityLookup {
       if (this.addPartOfSpeechTagsFlag) {
 	sentenceAnnotator.addPartOfSpeech(tokenList);
       }
-      Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, tokenList,
+      Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
 								    semTypeRestrictSet,
 								    sourceRestrictSet);
       for (Entity entity: sentenceEntitySet) {
@@ -637,11 +654,12 @@ public class EntityLookup4 implements EntityLookup {
   public Set<BioCAnnotation> generateBioCEntitySet(String docid,
 						   List<ERToken> sentenceTokenList)
   {
+    String fieldid = "text";
     try {
       Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
       Set<Entity> entitySet = 
 	removeSubsumingEntities
-	(this.processSentenceTokenList(docid, sentenceTokenList,
+	(this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
 				       new HashSet<String>(),
 				       new HashSet<String>()));
       for (Entity entity: entitySet) {
