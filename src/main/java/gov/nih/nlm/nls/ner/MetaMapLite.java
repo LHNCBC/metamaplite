@@ -1108,6 +1108,7 @@ public class MetaMapLite {
       String outputExtension = ".out";
       if (properties.getProperty("metamaplite.outputformat").equals("mmi")) {
 	properties.getProperty("metamaplite.outputextension", ".mmi");
+	outputExtension = ".mmi";
       }
       boolean listSentences =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
