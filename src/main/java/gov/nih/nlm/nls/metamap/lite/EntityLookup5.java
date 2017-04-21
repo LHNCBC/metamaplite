@@ -310,7 +310,9 @@ public class EntityLookup5 implements EntityLookup {
   public SpanEntityMapAndTokenLength findLongestMatch(String docid, 
 						      String fieldid,
 						      int sentenceNumber,
-						      List<ERToken> tokenList)
+						      List<ERToken> tokenList,
+						      List<ERToken> phraseTokenList,
+						      String phraseType)
     throws FileNotFoundException, IOException
   {
     logger.debug("findLongestMatch");
@@ -354,7 +356,9 @@ public class EntityLookup5 implements EntityLookup {
 			     normTerm,
 			     ((PosToken)tokenSubList.get(0)).getOffset(),
 			     termLength,
-			     sd.distance(originalTerm, concept.getConceptString()),
+			     scoreTerm(originalTerm, concept.getConceptString(),
+				       ((PosToken)tokenSubList.get(0)).getOffset(),
+				       phraseTokenList, phraseType),
 			     ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
 	      if (! evSet.contains(ev)) {
 		logger.debug("add ev: " + ev);
@@ -555,6 +559,53 @@ public class EntityLookup5 implements EntityLookup {
       }
       return headPos;
   }
+
+  public double scoreTerm(String matchedText, String metaTerm,
+			  int matchedTermOffset,
+			  List<ERToken> phraseTokenList, String phraseType) {
+    logger.debug("phraseTokenList: " + phraseTokenList);
+    logger.debug("phraseType: " + phraseType);
+
+    List<ERToken> matchTokenList = Scanner.analyzeTextNoWS(matchedText);
+    logger.debug("matchTokenList: " + matchTokenList);
+    int headPos = findHeadPos(phraseTokenList, phraseType);
+    double sum = 0;
+    double centrality =
+      isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, matchedTermOffset) ? 1.0 : 0.0;
+    int variation = variantLookup.lookupVariant(matchedText, metaTerm);
+    // coverage steps:
+    //  1. extract components
+    // extractComponents();
+    //  2. compute lower and upper bounds of phrase
+    // computeBounds(phraseComponents);
+    int phraseLowerBound = 0;
+    int phraseUpperBound = phraseTokenList.size();
+    int nTokenPhraseWords = phraseTokenList.size();
+    //  3. compute phrase span
+    double phraseSpan = (double)(phraseUpperBound - phraseLowerBound + 1.0);
+    //  4. compute lower and upper bounds of metathesaurus string
+    // computeBounds(metaComponents);
+    List<ERToken> metaTokenList = Scanner.analyzeText(metaTerm);
+    int metaLowerBound = phraseTokenList.indexOf(metaTokenList.get(0));
+    int metaUpperBound = metaLowerBound + metaTokenList.size();
+    int nMetaWords = metaTokenList.size();
+    
+    //  5. metathesaurus string span
+    double metaSpan = (double)(metaUpperBound - metaLowerBound + 1.0);
+    logger.debug("variation: " + variation);
+    logger.debug("centrality: " + centrality);	
+    logger.debug("phraseSpan: " + phraseSpan);
+    logger.debug("nTokenPhraseWords: " + nTokenPhraseWords);
+    logger.debug("metaSpan: " + metaSpan);
+    logger.debug("nTokenMetaWords: " + nMetaWords);
+    double coverage = ((phraseSpan / nTokenPhraseWords) + (2 * (metaSpan / nMetaWords)))/3.0;
+    double cohesiveness = (((phraseSpan*phraseSpan) / (nTokenPhraseWords*nTokenPhraseWords) +
+			    (2 * (metaSpan*metaSpan) / (nMetaWords*nMetaWords))))/3.0;
+    logger.debug("cohesiveness: " + cohesiveness);
+    double score = -1000*((centrality + variation + (2.0*coverage) + (2.0*cohesiveness))/6.0);
+    logger.debug("score: " + score);
+    return score;
+  }
   
   public void scoreEntity(Entity entity, List<ERToken> phraseTokenList, String phraseType)
   {
@@ -682,7 +733,9 @@ public class EntityLookup5 implements EntityLookup {
 	  (docid,
 	   fieldid,
 	   i,
-	   phraseTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,phraseTokenList.size())));
+	   phraseTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,phraseTokenList.size())),
+	   phraseTokenList,
+	   phrase.getTag());
 
 	if (spanEntityMapAndTokenLength.size() > 0) {
 	  for (Entity entity: spanEntityMapAndTokenLength.getEntityList()) {
