@@ -140,7 +140,7 @@ public class OpenNLPChunker implements ChunkerMethod {
 	}
 	phraseTag = fields[1];
 	cTokenList.add(tokenList.get(i));
-      } else if (fields[0].equals("I")) {
+      } else if (fields[0].equals("I") || fields[0].equals("O")) {
 	cTokenList.add(tokenList.get(i));
       }
       i++;
