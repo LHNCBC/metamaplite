@@ -1,4 +1,4 @@
-package gov.nih.nlm.nis.metamap.lite;
+package gov.nih.nlm.nls.metamap.lite;
 
 import org.junit.Test;
 import org.junit.Ignore;
