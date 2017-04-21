@@ -40,7 +40,7 @@ public class NegExTest extends TestCase {
   @Test
   public void testFindPhrase0()
   {
-    List<String> stringlist =	Arrays.asList
+    List<String> stringlist = Arrays.asList
       ("The", "diagnosis", "suggests", "that", "pneumonia", "can", "be", "ruled", "out");
     List<String> phrase = Arrays.asList("can", "be", "ruled", "out");
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
