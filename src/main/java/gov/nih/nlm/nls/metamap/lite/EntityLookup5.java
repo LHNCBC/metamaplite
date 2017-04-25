@@ -303,6 +303,7 @@ public class EntityLookup5 implements EntityLookup {
    * @param fieldid id of field in document
    * @param sentenceNumber number of sentence in field
    * @param tokenList tokenlist of document
+   * @param phraseTokenList 
    * @return Span to entity map + token length map instance
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
@@ -465,12 +466,13 @@ public class EntityLookup5 implements EntityLookup {
    * Add missing whitespace tokens to subtokenlist.
    * @param originalTokenList original tokenlist with whitespace.
    * @param subTokenList subrange of tokenlist with whitespace removed.
-   * @return subTokenList with missing whitespace added. 
+   * @return copy of subTokenList with missing whitespace added. 
    */
   public static List<ERToken> mapToTokenList(List<ERToken> originalTokenList, List<ERToken> subTokenList) {
+    List<ERToken> newTokenlist = new ArrayList<ERToken>(subTokenList);
     try {
-      ERToken firstToken = subTokenList.get(0);
-      ERToken lastToken = subTokenList.get(subTokenList.size() - 1);
+      ERToken firstToken = newTokenlist.get(0);
+      ERToken lastToken = newTokenlist.get(newTokenlist.size() - 1);
       int firstIndex = originalTokenList.indexOf(firstToken);
       int lastIndex = originalTokenList.indexOf(lastToken);
       logger.debug("firstToken: " + firstToken);
@@ -490,7 +492,7 @@ public class EntityLookup5 implements EntityLookup {
     } catch (IllegalArgumentException iae) {
       logger.error(iae);
       throw new RuntimeException("originaltokenlist: " + originalTokenList +
-				 ", subtokenlist: " + subTokenList, iae);
+				 ", subtokenlist: " + newTokenlist, iae);
     }
   }
 
@@ -563,6 +565,7 @@ public class EntityLookup5 implements EntityLookup {
   public double scoreTerm(String matchedText, String metaTerm,
 			  int matchedTermOffset,
 			  List<ERToken> phraseTokenList, String phraseType) {
+    logger.debug("scoreTerm");
     logger.debug("phraseTokenList: " + phraseTokenList);
     logger.debug("phraseType: " + phraseType);
 
@@ -572,26 +575,30 @@ public class EntityLookup5 implements EntityLookup {
     double sum = 0;
     double centrality =
       isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, matchedTermOffset) ? 1.0 : 0.0;
-    int variation = variantLookup.lookupVariant(matchedText, metaTerm);
+    int variation = 4/(variantLookup.lookupVariant(matchedText, metaTerm) + 4 );
     // coverage steps:
     //  1. extract components
     // extractComponents();
     //  2. compute lower and upper bounds of phrase
     // computeBounds(phraseComponents);
     int phraseLowerBound = 0;
+    logger.debug("phraseLowerBound: " + phraseLowerBound);
     int phraseUpperBound = phraseTokenList.size();
+    logger.debug("phraseUpperBound: " + phraseUpperBound);
     int nTokenPhraseWords = phraseTokenList.size();
     //  3. compute phrase span
-    double phraseSpan = (double)(phraseUpperBound - phraseLowerBound + 1.0);
+    double phraseSpan = (double)(phraseUpperBound - phraseLowerBound);
     //  4. compute lower and upper bounds of metathesaurus string
     // computeBounds(metaComponents);
-    List<ERToken> metaTokenList = Scanner.analyzeText(metaTerm);
+    List<ERToken> metaTokenList = Scanner.analyzeTextNoWS(metaTerm);
     int metaLowerBound = phraseTokenList.indexOf(metaTokenList.get(0));
+    logger.debug("metaLowerBound: " + metaLowerBound);
     int metaUpperBound = metaLowerBound + metaTokenList.size();
+    logger.debug("metaUpperBound: " + metaUpperBound);
     int nMetaWords = metaTokenList.size();
     
     //  5. metathesaurus string span
-    double metaSpan = (double)(metaUpperBound - metaLowerBound + 1.0);
+    double metaSpan = (double)(metaUpperBound - metaLowerBound);
     logger.debug("variation: " + variation);
     logger.debug("centrality: " + centrality);	
     logger.debug("phraseSpan: " + phraseSpan);
@@ -599,16 +606,18 @@ public class EntityLookup5 implements EntityLookup {
     logger.debug("metaSpan: " + metaSpan);
     logger.debug("nTokenMetaWords: " + nMetaWords);
     double coverage = ((phraseSpan / nTokenPhraseWords) + (2 * (metaSpan / nMetaWords)))/3.0;
+    logger.debug("coverage: " + coverage);
     double cohesiveness = (((phraseSpan*phraseSpan) / (nTokenPhraseWords*nTokenPhraseWords) +
 			    (2 * (metaSpan*metaSpan) / (nMetaWords*nMetaWords))))/3.0;
     logger.debug("cohesiveness: " + cohesiveness);
-    double score = -1000*((centrality + variation + (2.0*coverage) + (2.0*cohesiveness))/6.0);
+    double score = 1000*((centrality + variation + (2.0*(coverage + cohesiveness)))/6.0);
     logger.debug("score: " + score);
     return score;
   }
   
   public void scoreEntity(Entity entity, List<ERToken> phraseTokenList, String phraseType)
   {
+    logger.debug("scoreEntity");
     logger.debug("phraseTokenList: " + phraseTokenList);
     logger.debug("phraseType: " + phraseType);
 
@@ -623,28 +632,30 @@ public class EntityLookup5 implements EntityLookup {
 	logger.debug("phrase head offset: " +  phraseTokenList.get(headPos).getOffset());
 	double centrality =
 	  isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, ev.getOffset()) ? 1.0 : 0.0;
-	int variation =
-	  variantLookup.lookupVariant(entity.getMatchedText(),
-				      entity.getEvList().get(0).getConceptString());
+	int variation = 4 /(variantLookup.lookupVariant(entity.getMatchedText(),
+							entity.getEvList().get(0).getConceptString()) + 4);
 	// coverage steps:
 	//  1. extract components
 	// extractComponents();
 	//  2. compute lower and upper bounds of phrase
 	// computeBounds(phraseComponents);
 	int phraseLowerBound = 0;
+	logger.debug("phraseLowerBound: " + phraseLowerBound);
 	int phraseUpperBound = phraseTokenList.size();
+	logger.debug("phraseUpperBound: " + phraseUpperBound);
 	int nTokenPhraseWords = phraseTokenList.size();
 	//  3. compute phrase span
-	double phraseSpan = (double)(phraseUpperBound - phraseLowerBound + 1.0);
+	double phraseSpan = (double)(phraseUpperBound - phraseLowerBound);
 	//  4. compute lower and upper bounds of metathesaurus string
 	// computeBounds(metaComponents);
-	List<ERToken> metaTokenList = Scanner.analyzeText(ev.getConceptInfo().getConceptString());
+	List<ERToken> metaTokenList = Scanner.analyzeTextNoWS(ev.getConceptInfo().getConceptString());
 	int metaLowerBound = phraseTokenList.indexOf(metaTokenList.get(0));
+	logger.debug("metaLowerBound: " + metaLowerBound);
 	int metaUpperBound = metaLowerBound + metaTokenList.size();
+	logger.debug("metaUpperBound: " + metaUpperBound);
 	int nMetaWords = metaTokenList.size();
-
 	//  5. metathesaurus string span
-	double metaSpan = (double)(metaUpperBound - metaLowerBound + 1.0);
+	double metaSpan = (double)(metaUpperBound - metaLowerBound);
 	logger.debug("variation: " + variation);
 	logger.debug("centrality: " + centrality);	
 	logger.debug("phraseSpan: " + phraseSpan);
@@ -652,11 +663,11 @@ public class EntityLookup5 implements EntityLookup {
 	logger.debug("metaSpan: " + metaSpan);
 	logger.debug("nTokenMetaWords: " + nMetaWords);
 	double coverage = ((phraseSpan / nTokenPhraseWords) + (2 * (metaSpan / nMetaWords)))/3.0;
-	
+	logger.debug("coverage: " + coverage);
 	double cohesiveness = (((phraseSpan*phraseSpan) / (nTokenPhraseWords*nTokenPhraseWords) +
 				(2 * (metaSpan*metaSpan) / (nMetaWords*nMetaWords))))/3.0;
 	logger.debug("cohesiveness: " + cohesiveness);
-	double score = -1000*((centrality + variation + (2.0*coverage) + (2.0*cohesiveness))/6.0);
+	double score = 1000*((centrality + variation + (2.0*(coverage + cohesiveness)))/6.0);
 	logger.debug("score: " + score);
 	ev.setScore(score);
 	sum = score + sum;
@@ -716,6 +727,7 @@ public class EntityLookup5 implements EntityLookup {
 	minimalSentenceTokenList.add(token);
       }
     }
+    logger.debug("minimalSentenceTokenList: " + minimalSentenceTokenList);
     if (this.addPartOfSpeechTagsFlag) {
       sentenceAnnotator.addPartOfSpeech(minimalSentenceTokenList);
     }
@@ -734,7 +746,7 @@ public class EntityLookup5 implements EntityLookup {
 	   fieldid,
 	   i,
 	   phraseTokenList.subList(i,Math.min(i+MAX_TOKEN_SIZE,phraseTokenList.size())),
-	   phraseTokenList,
+	   phrase.getPhrase(),
 	   phrase.getTag());
 
 	if (spanEntityMapAndTokenLength.size() > 0) {
