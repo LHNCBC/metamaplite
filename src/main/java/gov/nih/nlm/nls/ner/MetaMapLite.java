@@ -214,8 +214,10 @@ public class MetaMapLite {
     this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     boolean enableScoring = false;
-    if (properties.get("metamaplite.outputformat").equals("mmi")) {
-      enableScoring = true;
+    if (properties.containsKey("metamaplite.outputformat")) {
+      if (properties.get("metamaplite.outputformat").equals("mmi")) {
+	enableScoring = true;
+      }
     }
     if (properties.containsKey("metamaplite.enable.scoring")) {
       if (Boolean.parseBoolean(properties.getProperty("metamaplite.enable.scoring"))) {
@@ -1107,8 +1109,10 @@ public class MetaMapLite {
       String outputFormatOption = properties.getProperty("metamaplite.outputformat","mmi");
       String outputExtension = ".out";
       if (properties.getProperty("metamaplite.outputformat").equals("mmi")) {
-	properties.getProperty("metamaplite.outputextension", ".mmi");
-	outputExtension = ".mmi";
+	properties.setProperty("metamaplite.outputextension", ".mmi");
+      }
+      if (properties.containsKey("metamaplite.outputextension")) {
+	outputExtension = properties.getProperty("metamaplite.outputextension");
       }
       boolean listSentences =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
