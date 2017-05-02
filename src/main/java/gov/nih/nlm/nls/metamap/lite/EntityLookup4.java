@@ -343,7 +343,7 @@ public class EntityLookup4 implements EntityLookup {
 			     normTerm,
 			     ((PosToken)tokenSubList.get(0)).getOffset(),
 			     termLength,
-			     sd.distance(originalTerm, concept.getConceptString()),
+			     0.0,
 			     ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
 	      if (! evSet.contains(ev)) {
 		logger.debug("add ev: " + ev);
