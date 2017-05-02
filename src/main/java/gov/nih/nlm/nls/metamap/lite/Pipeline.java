@@ -26,6 +26,7 @@ import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
 
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPSentenceExtractor;
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
 import gov.nih.nlm.nls.metamap.document.ChemDNERSLDI;
 import gov.nih.nlm.nls.metamap.document.PubMedDocumentImpl;
