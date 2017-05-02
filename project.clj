@@ -1,8 +1,8 @@
-(defproject gov.nih.nlm.nls/metamaplite "3.4-SNAPSHOT"
+(defproject gov.nih.nlm.nls/metamaplite "3.4"
   :description "Clojure code for exploring MetaMapLite in lieu of a debugger."
   :url "http://usa.gov/"
   :min-lein-version "2.0.0"
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/data.xml "0.0.8"]
                  [org.clojure/data.zip "0.1.1"]
                  [org.clojure/data.json "0.2.6"]
@@ -15,6 +15,7 @@
                  [org.apache.logging.log4j/log4j-core "2.1"]
                  ;; [org.apache.lucene/lucene-analyzers-common "4.10.0"]
                  ;; [org.apache.lucene/lucene-queryparser "4.10.0"]
+                 [org.apache.uima/uimaj-core "2.3.1"]
                  [net.sf.opencsv/opencsv "2.3"]
                  [gov.nih.nlm.nls/nlp "2.4.C"]
                  ;; https://mvnrepository.com/artifact/org.jyaml/jyaml
@@ -30,7 +31,11 @@
                  [lvgclj "0.1.0-SNAPSHOT"]
                  [clj-fuzzy "0.3.3"]
                  [info.debatty/java-string-similarity "0.23"]
-                 [com.rpl/specter "1.0.0"]]
+                 [com.rpl/specter "1.0.0"]
+                 [org.functionaljava/functionaljava "4.7"]
+                 [org.functionaljava/functionaljava-java8 "4.7"]
+                 [org.functionaljava/functionaljava-quickcheck "4.7"]
+                 [org.functionaljava/functionaljava-java-core "4.7"]]
   :profiles {:dev
              {:dependencies
               [[org.clojure/java.classpath "0.2.2"]]}

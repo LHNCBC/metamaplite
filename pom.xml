@@ -4,7 +4,7 @@
   <groupId>gov.nih.nlm.nls</groupId>
   <artifactId>metamaplite</artifactId>
   <packaging>jar</packaging>
-  <version>3.4-SNAPSHOT</version>
+  <version>3.4</version>
   <name>metamaplite</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -82,6 +82,10 @@
     <repository>
       <id>central</id>
       <url>http://central.maven.org/maven2/</url>
+    </repository>
+    <repository>
+      <id>ii internal</id>
+      <url>http://indlx1.nlm.nih.gov:8000/maven2/</url>
     </repository>
   </repositories>
   <dependencies>
