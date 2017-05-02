@@ -64,3 +64,8 @@ metamaplite.excluded.termsfile: @@basedir@@/data/specialterms.txt
 
 # Negation detector
 metamaplite.negation.detector: gov.nih.nlm.nls.metamap.lite.NegEx
+
+# BioCreative Evaluator style formatter
+metamaplite.result.formatter.BC=gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate
+metamaplite.result.formatter.CEM=gov.nih.nlm.nls.metamap.lite.resultformats.CEMFormat
+metamaplite.result.formatter.CEMPlus=gov.nih.nlm.nls.metamap.lite.resultformats.CEMPlusFormat
