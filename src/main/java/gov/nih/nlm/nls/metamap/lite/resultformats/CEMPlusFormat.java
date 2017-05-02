@@ -56,9 +56,9 @@ public class CEMPlusFormat implements ResultFormatter {
 		     entity.getFieldId() + "\t" +
 		     entity.getStart() + "\t" +
 		     entity.getStart() + entity.getLength() + "\t" +
+		     entity.getMatchedText() + "\t" +
 		     "MetaMapLite\t" +
 		     scoreFormat.format(entity.getScore()) + "\t" +
-		     entity.getMatchedText() + "\t" +
 		     entity.getEvList().stream().map(i -> i.getConceptInfo().getCUI()).collect(Collectors.joining(",")));
     }
   }
@@ -70,9 +70,9 @@ public class CEMPlusFormat implements ResultFormatter {
 	.append(entity.getFieldId()).append("\t")
 	.append(entity.getStart()).append("\t")
 	.append(entity.getStart()).append(entity.getLength()).append("\t")
+	.append(entity.getMatchedText()).append("\t")
 	.append("MetaMapLite\t")
 	.append(scoreFormat.format(entity.getScore())).append("\t")
-	.append(entity.getMatchedText()).append("\t")
 	.append(entity.getEvList().stream().map(i -> i.getConceptInfo().getCUI()).collect(Collectors.joining(",")));
     }
     return sb.toString();
