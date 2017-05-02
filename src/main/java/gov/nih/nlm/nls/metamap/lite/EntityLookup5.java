@@ -622,53 +622,15 @@ public class EntityLookup5 implements EntityLookup {
     logger.debug("phraseType: " + phraseType);
 
     if (entity.getEvList().size() > 0) {
-      List<ERToken> matchTokenList = Scanner.analyzeTextNoWS(entity.getMatchedText());
-      logger.debug("matchTokenList: " + matchTokenList);
-      int headPos = findHeadPos(phraseTokenList, phraseType);
+      // List<ERToken> matchTokenList = Scanner.analyzeTextNoWS(entity.getMatchedText());
+      // logger.debug("matchTokenList: " + matchTokenList);
+      // int headPos = findHeadPos(phraseTokenList, phraseType);
       double sum = 0;
       for (Ev ev: entity.getEvList()) {
-	// centrality: does entity involve the head of phrase?
-	logger.debug("ev offset: " + ev.getOffset());	    
-	logger.debug("phrase head offset: " +  phraseTokenList.get(headPos).getOffset());
-	double centrality =
-	  isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, ev.getOffset()) ? 1.0 : 0.0;
-	int variation = 4 /(variantLookup.lookupVariant(entity.getMatchedText(),
-							entity.getEvList().get(0).getConceptString()) + 4);
-	// coverage steps:
-	//  1. extract components
-	// extractComponents();
-	//  2. compute lower and upper bounds of phrase
-	// computeBounds(phraseComponents);
-	int phraseLowerBound = 0;
-	logger.debug("phraseLowerBound: " + phraseLowerBound);
-	int phraseUpperBound = phraseTokenList.size();
-	logger.debug("phraseUpperBound: " + phraseUpperBound);
-	int nTokenPhraseWords = phraseTokenList.size();
-	//  3. compute phrase span
-	double phraseSpan = (double)(phraseUpperBound - phraseLowerBound);
-	//  4. compute lower and upper bounds of metathesaurus string
-	// computeBounds(metaComponents);
 	List<ERToken> metaTokenList = Scanner.analyzeTextNoWS(ev.getConceptInfo().getConceptString());
-	int metaLowerBound = phraseTokenList.indexOf(metaTokenList.get(0));
-	logger.debug("metaLowerBound: " + metaLowerBound);
-	int metaUpperBound = metaLowerBound + metaTokenList.size();
-	logger.debug("metaUpperBound: " + metaUpperBound);
-	int nMetaWords = metaTokenList.size();
-	//  5. metathesaurus string span
-	double metaSpan = (double)(metaUpperBound - metaLowerBound);
-	logger.debug("variation: " + variation);
-	logger.debug("centrality: " + centrality);	
-	logger.debug("phraseSpan: " + phraseSpan);
-	logger.debug("nTokenPhraseWords: " + nTokenPhraseWords);
-	logger.debug("metaSpan: " + metaSpan);
-	logger.debug("nTokenMetaWords: " + nMetaWords);
-	double coverage = ((phraseSpan / nTokenPhraseWords) + (2 * (metaSpan / nMetaWords)))/3.0;
-	logger.debug("coverage: " + coverage);
-	double cohesiveness = (((phraseSpan*phraseSpan) / (nTokenPhraseWords*nTokenPhraseWords) +
-				(2 * (metaSpan*metaSpan) / (nMetaWords*nMetaWords))))/3.0;
-	logger.debug("cohesiveness: " + cohesiveness);
-	double score = 1000*((centrality + variation + (2.0*(coverage + cohesiveness)))/6.0);
-	logger.debug("score: " + score);
+	double score = scoreTerm(entity.getMatchedText(), ev.getConceptString(),
+				 phraseTokenList.indexOf(metaTokenList.get(0)),
+				 phraseTokenList, phraseType);
 	ev.setScore(score);
 	sum = score + sum;
       }
