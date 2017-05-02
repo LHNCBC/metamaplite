@@ -56,7 +56,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import opennlp.tools.dictionary.serializer.Entry;
 
-import info.debatty.java.stringsimilarity.SorensenDice;
 import gov.nih.nlm.nls.metamap.evaluation.Scoring;
 
 /**
@@ -93,9 +92,6 @@ public class EntityLookup5 implements EntityLookup {
   NegationDetector negationDetector;
   boolean addPartOfSpeechTagsFlag =
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
-
-  /** Sorensen Dice similarity measure. */
-  SorensenDice sd = new SorensenDice();
 
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
