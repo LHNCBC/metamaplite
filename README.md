@@ -112,9 +112,6 @@ configuration file is not present:
     --list_acronyms           list acronyms in input if present.
     --list_sentences_postags  list sentences in input with part-of-speech tags
 
-
-
-
 ## Properties
 
 ### Command line and System properties for metamaplite
@@ -312,11 +309,27 @@ corresponding indexes for tables.
 
 Usage: 
 
-     java -Xmx5g -cp target/metamaplite-<version>-SNAPSHOT.jar \
+     java -Xmx5g -cp target/metamaplite-<version>.jar \
       gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
 
 The resulting indices are in <ivfdir>/indices.  The tables the indexes
 are generated from are in <ivfdir>/tables.
+
+### Checking newly generated indexes
+
+You can use the class irutils.MappedMultiKeyIndexLookup to check the
+new indexes:
+
+     java -Xmx20g -cp target/metamaplite-<version>-standalone.jar \
+      irutils.MappedMultiKeyIndexLookup lookup workingdir indexname column
+
+For example:
+
+     java -Xmx20g -cp target/metamaplite-<version>-standalone.jar \
+      irutils.MappedMultiKeyIndexLookup lookup data/ivf/2016AB/USAbase/strict vars 0
+
+### Using newly generated indexes with MetaMapLite
+
 
 To use the new indexes do one of the following:
 
@@ -440,8 +453,25 @@ will probably be added in the next release.
 
 ## Future
 
++ add optional scoring
++ Use |vars| files to add lexical distance for optional scoring
 + Create a ReSTful interface for MetaMapLite.
 + Create a pipeline using a chunker.
 + Create a pipeline using a full parser.
 + Add a mechanism to use custom user-supplied segmenters.
 
+
+## Building vars ivf index
+
+
+
+    java -Xmx5g -cp target/metamaplite-3.3-SNAPSHOT-standalone.jar \
+         gov.nih.nlm.nls.metamap.dfbuilder.CreateVarsIndexes \
+         <src-vars.txt> <ivfdir>
+
+example:
+
+     java -Xmx5g -cp target/metamaplite-3.3-SNAPSHOT-standalone.jar \
+          gov.nih.nlm.nls.metamap.dfbuilder.CreateVarsIndexes \
+          $GWA/MetaMap_DB/DB.USAbase.2016AB.strict/vars.txt \
+          data/ivf/2016AB/USAbase
