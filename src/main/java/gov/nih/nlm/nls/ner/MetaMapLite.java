@@ -890,27 +890,17 @@ public class MetaMapLite {
    */
   void logCacheInfo() {
     if (entityLookup instanceof EntityLookup4) {
-      System.out.println("cui -> preferred-name cache size: " +
-			 ((EntityLookup4)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
-      System.out.println("term -> concept cache size: " +
-			 ((EntityLookup4)entityLookup).termConceptInfoCache.termConceptCache.size());
       logger.info("cui -> preferred-name cache size: " +
 		  ((EntityLookup4)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
       logger.info("term -> concept cache size: " +
 		  ((EntityLookup4)entityLookup).termConceptInfoCache.termConceptCache.size());
     } else if (entityLookup instanceof EntityLookup5) {
-      System.out.println("cui -> preferred-name cache size: " +
-			 ((EntityLookup5)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
-      System.out.println("term -> concept cache size: " +
-			 ((EntityLookup5)entityLookup).termConceptInfoCache.termConceptCache.size());
       logger.info("cui -> preferred-name cache size: " +
 		  ((EntityLookup5)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
       logger.info("term -> concept cache size: " +
 		  ((EntityLookup5)entityLookup).termConceptInfoCache.termConceptCache.size());
       
     }
-    System.out.println("string -> normalized string cache size: " +
-		       gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
     logger.info("string -> normalized string cache size: " +
 		gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
   }
