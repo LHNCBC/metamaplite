@@ -211,7 +211,7 @@ public class MedlineDomReader implements MedlineReader {
       NodeList citationNodeList = root.getElementsByTagName("MedlineCitation");
       for (int i = 0; i < citationNodeList.getLength(); i++) {
 	Node citation = citationNodeList.item(i);
-	Citation citationObj = new Citation();
+	Citation citationObj = new CitationImpl();
 	String PMID = this.getPmid(citation);
 	citationObj.add("pmid", PMID);
 	citationObj.add("articleTitle", this.getArticleTitle(citation));
@@ -265,7 +265,7 @@ public class MedlineDomReader implements MedlineReader {
       NodeList citationNodeList = root.getElementsByTagName("MedlineCitation");
       for (int i = 0; i < citationNodeList.getLength(); i++) {
 	Node citation = citationNodeList.item(i);
-	Citation citationObj = new Citation();
+	Citation citationObj = new CitationImpl();
 	String PMID = this.getPmid(citation);
 	citationObj.add("pmid", PMID);
 	citationObj.add("articleTitle", this.getArticleTitle(citation));
@@ -312,7 +312,7 @@ public class MedlineDomReader implements MedlineReader {
       NodeList citationNodeList = root.getElementsByTagName("MedlineCitation");
       for (int i = 0; i < citationNodeList.getLength(); i++) {
 	Node citation = citationNodeList.item(i);
-	Citation citationObj = new Citation();
+	Citation citationObj = new CitationImpl();
 	citationObj.add("pmid",this.getPmid(citation));
 	citationObj.add("articleTitle", this.getArticleTitle(citation));
 	citationObj.add("articleAbstract", this.getAbstract(citation));
