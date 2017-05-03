@@ -15,13 +15,13 @@ set OPENNLPMAXENT=%projectdir%/lib/opennlp-maxent-3.0.3.jar
 set OPENCSV=%projectdir%/lib/opencsv-2.3.jar
 set IRUTILS=%projectdir%/lib/irutils-2.0-SNAPSHOT.jar
 set STRINGSIM=%projectdir%/lib/java-string-similarity-0.23.jar
-set METAMAPLITE=%projectdir%/target/metamaplite-3.3-SNAPSHOT.jar
-set JARSPATH=%ANALYZERS%;%CORE%;%QUERYPARSER%;%OPENNLPTOOLS%;%OPENNLPMAXENT%;%BIOC%;%NLP%;%LOG4JAPI%;%LOG4JCORE%;%CONTEXT%;%STRINGSIM%
+set METAMAPLITE=%projectdir%/target/metamaplite-3.4.jar
+set JARSPATH=%ANALYZERS%;%CORE%;%QUERYPARSER%;%OPENNLPTOOLS%;%OPENNLPMAXENT%;%BIOC%;%NLP%;%LOG4JAPI%;%LOG4JCORE%;%CONTEXT%;%STRINGSIM%;%METAMAPLITE%
 
 set OPENNLP_MODELS=%projectdir%/data/models
 set CONFIGDIR=%projectdir%/config
 
 set JVMOPTS=-Den-sent.bin.path=%OPENNLP_MODELS%/en-sent.bin -Den-token.bin.path=%OPENNLP_MODELS%/en-token.bin -Den-pos-maxent.bin.path=%OPENNLP_MODELS%/en-pos-maxent.bin -Dlog4j.configurationFile=file://%projectdir%/config/log4j2.xml -Dmetamaplite.property.file=%CONFIGDIR%/metamaplite.properties -Dmetamaplite.entitylookup.resultlength=1500 -Dmetamaplite.cuiconceptindex=%projectdir%/data/lucenedb/strict/cuiconcept -Dmetamaplite.firstwordsofonewideindex=%projectdir%/data/lucenedb/strict/first_words_of_one_WIDE -Dmetamaplite.cuisourceinfoindex=%projectdir%/data/lucenedb/strict/cui_sourceinfo -Dmetamaplite.cuisemantictypeindex=%projectdir%/data/lucenedb/strict/cui_st -Dmetamaplite.varsindex=%projectdir%/data/lucenedb/strict/vars
 
-java -cp %projectdir%/target/classes;%projectdir%/classes;%JARSPATH%;%CONFIGDIR% %JVMOPTS% gov.nih.nlm.nls.ner.MetaMapLite %* 
+java -cp %projectdir%/target/classes;%projectdir%/build/classes;%projectdir%/classes;%JARSPATH%;%CONFIGDIR% %JVMOPTS% gov.nih.nlm.nls.ner.MetaMapLite %* 
 

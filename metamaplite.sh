@@ -16,8 +16,8 @@ OPENNLPMAXENT=$PROJECTDIR/lib/opennlp-maxent-3.0.3.jar
 OPENCSV=$PROJECTDIR/lib/opencsv-2.3.jar
 IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
 STRINGSIM=$HOME/.m2/repository/info/debatty/java-string-similarity/0.23/java-string-similarity-0.23.jar
-
-JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS:$STRINGSIM
+METAMAPLITE=$PROJECTDIR/target/metamaplite-3.4.jar
+JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS:$STRINGSIM:$METAMAPLITE
 
 OPENNLP_MODELS=$PROJECTDIR/data/models
 CONFIGDIR=$PROJECTDIR/config
@@ -37,5 +37,5 @@ MMLPROPS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/strict/indices/vars \
     -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
 
-java $MML_JVM_OPTS -cp $PROJECTDIR/target/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $MMLPROPS gov.nih.nlm.nls.ner.MetaMapLite $* 
+java $MML_JVM_OPTS -cp $PROJECTDIR/target/classes:$PROJECTDIR/build/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $MMLPROPS gov.nih.nlm.nls.ner.MetaMapLite $* 
 
