@@ -127,6 +127,11 @@ public class Brat implements ResultFormatter {
 
   public static Set<NormalizationAnnotation> generateReferenceSet(Entity entity) {
     Set<NormalizationAnnotation> referenceSet = new HashSet<NormalizationAnnotation>();
+    if (entity.getScore() > 0.0) {
+      referenceSet.add(new NormalizationAnnotation("N0","T0", "Score",
+						   Double.toString(entity.getScore()),
+						   Double.toString(entity.getScore())));
+    }
     for (Ev ev: entity.getEvList()) {
       String cui = ev.getConceptInfo().getCUI();
       String preferredName = ev.getConceptInfo().getPreferredName();

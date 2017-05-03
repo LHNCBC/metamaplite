@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
@@ -27,6 +28,11 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 
 public class BcEvaluate implements ResultFormatter {
 
+  NumberFormat scoreFormat = NumberFormat.getInstance();
+
+  public BcEvaluate() {
+    scoreFormat.setMaximumFractionDigits(2);
+  }
 
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
@@ -35,14 +41,24 @@ public class BcEvaluate implements ResultFormatter {
       writer.println(entity.getDocid() + "\t" +
 		     entity.getMatchedText() + "\t" +
 		     rindex + "\t" +
-		     entity.getScore());
+		     scoreFormat.format(entity.getScore()));
       rindex++;
     }
   }
   
   public String entityListFormatToString(List<Entity> entityList) {
-    return null;
+    StringBuilder sb = new StringBuilder();
+    int rindex = 1;
+    for (Entity entity: entityList) {
+      sb.append(entity.getDocid() + "\t" +
+		entity.getMatchedText() + "\t" +
+		rindex + "\t" +
+		scoreFormat.format(entity.getScore())).append("\n");
+      rindex++;
+    }
+    return sb.toString();
   }
+
   public void initProperties(Properties properties) {
   }
 

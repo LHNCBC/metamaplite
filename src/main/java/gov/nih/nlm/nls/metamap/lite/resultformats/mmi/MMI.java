@@ -3,6 +3,7 @@ package gov.nih.nlm.nls.metamap.lite.resultformats.mmi;
 
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Collection;
@@ -57,6 +58,13 @@ import gov.nih.nlm.nls.metamap.mmi.Tuple7;
  */
 
 public class MMI implements ResultFormatter {
+
+  NumberFormat scoreFormat = NumberFormat.getInstance();
+
+  public MMI()
+  {
+    scoreFormat.setMaximumFractionDigits(2);
+  }
 
   public static String evToTriggerString(Ev ev, Entity entity) {
     StringBuilder sb = new StringBuilder();
@@ -291,8 +299,6 @@ public class MMI implements ResultFormatter {
   public String renderPositionInfo(Tuple tuple) {
     return tuple.getPosInfo().stream().map(i -> ((PositionImpl)i).toStringStartLength()).collect(Collectors.joining(","));
   }
-
-  
   
   /**
    * @param pw printwriter used for output
@@ -304,7 +310,8 @@ public class MMI implements ResultFormatter {
     List<AATF> aatfList = Ranking.processTF(tfList, 1000);
     Collections.sort(aatfList);
     for (AATF aatf: aatfList) {
-      pw.println(docid + "|MMI|" + aatf.getNegNRank() + "|" +
+      pw.println(docid + "|MMI|" +
+		 scoreFormat.format(-10000 *aatf.getNegNRank()) + "|" +
 		 aatf.getConcept() +"|" +
 		 aatf.getCui() +"|" +
 		 aatf.getSemanticTypes() +"|" +
@@ -314,6 +321,7 @@ public class MMI implements ResultFormatter {
     }
   }
 
+  
   /**
    * map entities by document id.
    * @param entityList input entitylist 
@@ -347,30 +355,32 @@ public class MMI implements ResultFormatter {
     }
   }
 
+  /**
+   * @param pw printwriter used for output
+   * @param entityList entitylist to be rendered for output
+   */
+  public void renderEntityList(StringBuilder sb, String docid, List<Entity> entityList)
+  {
+    List<TermFrequency> tfList = this.entityToTermFrequencyInfo(entityList);
+    List<AATF> aatfList = Ranking.processTF(tfList, 1000);
+    Collections.sort(aatfList);
+    for (AATF aatf: aatfList) {
+      sb.append(docid).append("|MMI|").append(scoreFormat.format(-10000 * aatf.getNegNRank())).append("|")
+	.append(aatf.getConcept()).append("|")
+	.append(aatf.getCui()).append("|")
+	.append(aatf.getSemanticTypes()).append("|")
+	.append(aatf.getTuplelist().stream().map(i -> this.renderTupleInfo(i)).collect(Collectors.joining(","))).append("|")
+	.append(aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(","))).append("|")
+	.append(aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(","))).append("\n");
+    }
+  }
+
   public String entityListFormatToString(List<Entity> entityList)
   {
     int seqno = 0;
     StringBuilder sb = new StringBuilder();
-    Map<String,MatchInfo> cuiEntityMap = genCuiMatchInfoMap(entityList);
-    for (Map.Entry<String,MatchInfo> cuiEntity: cuiEntityMap.entrySet()) {
-      String cui = cuiEntity.getKey();
-      MatchInfo val = cuiEntity.getValue();
-      sb.append("text|" + entityList.get(0).getScore() + "|").append(val.getPreferredName()).append("|").append(cui).append("|").append(seqno).append("|" +
-	       StringUtils.join(val.getSemanticTypeSet(), ",")).append("|");
-
-      Set<String> spanSet = new LinkedHashSet<String>();
-      Set<String> triggerInfoStringList = new LinkedHashSet<String>();
-      for (Map.Entry<String,Set<TriggerInfo>> entry: val.getMatchedTextTriggerInfoListMap().entrySet()) {
-	String matchedText = entry.getKey();
-	for (TriggerInfo triggerInfo: entry.getValue()) {
-	  triggerInfoStringList.add(triggerInfo.toString());
-	  spanSet.add(triggerInfo.getSpan().toString());
-	}
-      }
-      sb.append(StringUtils.join(triggerInfoStringList, ","))
-	.append("|" + StringUtils.join(spanSet, ","))
-	.append("\n");
-      seqno++;
+    for (Map.Entry<String,List<Entity>> entry: genDocidEntityMap(entityList).entrySet() ) {
+      renderEntityList(sb, entry.getKey(), entry.getValue());
     }
     return sb.toString();
   }
@@ -380,7 +390,7 @@ public class MMI implements ResultFormatter {
     for (Entity entity: entityList) {
       for (Ev ev: entity.getEvList()) {
 	String cui = ev.getConceptInfo().getCUI();
-	String conceptString = ev.getConceptString();
+	String conceptString = ev.getConceptInfo().getConceptString();
 	String tfKey = cui + "|" + conceptString;
 	if (termFreqMap.containsKey(tfKey)) {
 	  TermFrequency tf = termFreqMap.get(tfKey);
@@ -412,7 +422,7 @@ public class MMI implements ResultFormatter {
 				   posInfo); 
 	  tupleSet.add(tuple);
 	  termFreqMap.put(tfKey,
-			  new TermFrequency(conceptString,
+			  new TermFrequency(ev.getConceptInfo().getPreferredName(),
 					    new ArrayList<String>(ev.getConceptInfo().getSemanticTypeSet()),
 					    tupleSet, 
 					    (entity.getFieldId().equals("title") ||
