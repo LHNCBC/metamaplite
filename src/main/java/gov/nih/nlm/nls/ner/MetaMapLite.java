@@ -48,6 +48,7 @@ import gov.nih.nlm.nls.metamap.lite.EntityAnnotation;
 import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 import gov.nih.nlm.nls.metamap.lite.resultformats.CuiList;
+import gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate;
 import gov.nih.nlm.nls.metamap.lite.BioCUtilities;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
@@ -58,6 +59,7 @@ import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
 import gov.nih.nlm.nls.metamap.document.SingleLineInput;
 import gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoader;
+import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderImpl;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry;
 import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
 import gov.nih.nlm.nls.metamap.document.PubMedXMLDocument;
@@ -231,7 +233,7 @@ public class MetaMapLite {
     }
     BioCDocumentLoaderRegistry.register("bioc",
 					"For BioC XML documents.", 
-					new FreeText());
+					new BioCDocumentLoaderImpl());
     BioCDocumentLoaderRegistry.register("freetext",
 					"For freetext documents that are grammatically well behaved.", 
 					new FreeText());
@@ -256,6 +258,18 @@ public class MetaMapLite {
     BioCDocumentLoaderRegistry.register("pubmed",
     					"PubMed XML Abstract",
     					new PubMedXMLDocument());
+    ResultFormatterRegistry.register("bc",
+				     "BioCreative Evaluation Format",
+				     new BcEvaluate());
+    ResultFormatterRegistry.register("bc-evaluate",
+				     "BioCreative Evaluation Format",
+				     new BcEvaluate());
+    ResultFormatterRegistry.register("bioc",
+				     "BioCreative Evaluation Format",
+				     new BcEvaluate());
+    ResultFormatterRegistry.register("cdi",
+				     "BioCreative Evaluation Format",
+				     new BcEvaluate());
     ResultFormatterRegistry.register("brat",
 				     "BRAT Annotation format (.ann)",
 				     new Brat());
@@ -554,7 +568,7 @@ public class MetaMapLite {
       System.err.println("      " + name);
     }
     System.err.println("output options:");
-    System.err.println("  --bioc|cdi|bc|bc-evaluate");
+    System.err.println("  --cdi|bc|bc-evaluate");
     System.err.println("  --mmilike");
     System.err.println("  --mmi");
     System.err.println("  --brat");    
@@ -1002,6 +1016,15 @@ public class MetaMapLite {
 					     (outputExtensionMap.containsKey(fields[1]) ?
 					      outputExtensionMap.get(fields[1]) :
 					      ".out"));
+	  } else if (fields[0].equals("--bioc") || 
+		     fields[0].equals("--cdi") || 
+		     fields[0].equals("--bc") || 
+		     fields[0].equals("--bcevaluate")) {
+	    optionsConfiguration.setProperty("metamaplite.outputformat","bioc");
+	    optionsConfiguration.setProperty("metamaplite.outputextension",
+					     (outputExtensionMap.containsKey("cdi") ?
+					      outputExtensionMap.get("cdi") :
+					      ".ann"));
 	  } else if (fields[0].equals("--brat") || 
 		     fields[0].equals("--BRAT")) {
 	    optionsConfiguration.setProperty("metamaplite.outputformat","brat");
