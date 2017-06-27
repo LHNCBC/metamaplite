@@ -24,22 +24,30 @@ public class Example2 {
   /**
    * Main program
    * @param args - Arguments passed from the command line
+   * @throws Exception general exception
+   * @throws IOException IO Exception
+   * @throws ClassNotFoundException class not found exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception instantiating instance of class
+   * @throws InvocationTargetException exception while invoking target class 
+   * @throws NoSuchMethodException  no method in class
    */
   public static void main(String[] args)
     throws Exception, IOException, ClassNotFoundException, InstantiationException,
 	   NoSuchMethodException, IllegalAccessException,
 	   InvocationTargetException
   {
-
+    String dataRoot = "./data";
     // Initialization Section
     Properties myProperties = MetaMapLite.getDefaultConfiguration();
     myProperties.setProperty("opennlp.models.directory", 
-			     "/export/home/wjrogers/Projects/metamaplite/data/models");
+			     dataRoot + "/models");
     MetaMapLite.expandModelsDir(myProperties);
     myProperties.setProperty("metamaplite.index.directory",
-			     "/export/home/wjrogers/Projects/metamaplite/data/ivf/strict");
+			     dataRoot + "/ivf/strict");
     myProperties.setProperty("metamaplite.excluded.termsfile",
-			     "/export/home/wjrogers/Projects/metamaplite/data/specialterms.txt");
+			     dataRoot + "/specialterms.txt");
+    myProperties.setProperty("metamaplite.semanticgroup","phsu");
     MetaMapLite.expandIndexDir(myProperties);
     MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
 
@@ -52,7 +60,7 @@ public class Example2 {
     List<Entity> entityList = metaMapLiteInst.processDocumentList(documentList);
     for (Entity entity: entityList) {
       for (Ev ev: entity.getEvSet()) {
-	System.out.print(ev.getConceptInfo().getCUI() + "|" + entity.getMatchedText());
+	System.out.print(ev.getConceptInfo().getCUI() + "|" + ev.getConceptInfo().getSemanticTypeSet() + "|" + entity.getMatchedText());
 	System.out.println();
       }
     }
