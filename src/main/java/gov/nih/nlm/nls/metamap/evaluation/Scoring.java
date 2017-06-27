@@ -77,18 +77,16 @@ public class Scoring {
    * the phrase and the Metathesaurus string where the Metathesaurus string is
    * given twice the weight as the phrase.
    *
-   * @param sizeOfPhrase     Number of words in parent phrase.
-   * @param numPhraseSpan    position of phrase span
-   * @param numCandidateSpan position of candidate span
-   * @param numWords         Number of words in term
+   * @param phraseSpan        length phrase span
+   * @param nTokenPhraseWords Number of tokens in phrase
+   * @param metaSpan          length of metathesuarus term span in phrase
+   * @param nMetaWords        Number of tokens in metathesuarus term
    */ 
-  double computeCoverage(int sizeOfPhrase,
-			 int numPhraseSpan,
-			 int numCandidateSpan,
-			 int numWords) {
-    return 
-      (((numPhraseSpan * 1.0) / (sizeOfPhrase * 1.0)) + 
-       (2 * ((numCandidateSpan * 1.0) / (numWords * 1.0)))) / 3.0;
+  double computeCoverage(int phraseSpan,
+			 int nTokenPhraseWords,
+			 int metaSpan,
+			 int nMetaWords) {
+    return ((phraseSpan / nTokenPhraseWords) + (2 * (metaSpan / nMetaWords)))/3.0;
   }
 
   double computeInvolvement(int sizeOfPhrase,
@@ -112,18 +110,26 @@ public class Scoring {
    * and Metathesaurus string values where the Metathesaurus string is again
    * given twice the weight as the phrase.
    *
-   * taken from MMTx 
-   * @param sizeOfPhrase   Number of words in parent phrase.
-   * @param numWords         Number of words in term
+
+   * @param phraseSpan        length phrase span
+   * @param nTokenPhraseWords Number of tokens in phrase
+   * @param metaSpan          length of metathesuarus term span in phrase
+   * @param nMetaWords        Number of tokens in metathesuarus term
    */
-  double conputeCohesiveness(int sizeOfPhrase,
-			 int numWords) {
-
-
-
-    
-    return 0.0;
+  double conputeCohesiveness(int phraseSpan,
+			     int nTokenPhraseWords,
+			     int metaSpan,
+			     int nMetaWords) {
+    return (((phraseSpan*phraseSpan) / (nTokenPhraseWords*nTokenPhraseWords) +
+	     (2 * (metaSpan*metaSpan) / (nMetaWords*nMetaWords))))/3.0;
   }
 
+
+  public double combineValues(double centralityValue, 
+			      double variationValue, 
+			      double coverageValue, 
+			      double cohesivenessValue) {
+    return 1000*((int)(centralityValue + variationValue + (2.0 * (coverageValue + cohesivenessValue)))/6.0);
+  }
 
 }
