@@ -15,17 +15,17 @@ import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 public class Ranking {
 
   // processing_parameters
-  static double nc  =   0; // character normalization index
-  static double nf  =  -5; // frequency normalization index
-  static double nm  =   0; // MeSH normalization index
-  static double nmm = -10; // MetaMap normalization index
-  static double nw  =   0; // word normalization index
-  static double nz  =   0; // final normalization index
-  static double wc  =   0; // character count weight
-  static double wd  =   1; // default tree depth
-  static double wm  =  14; // MeSH tree depth weight
-  static double wmm =   1; // MetaMap weight
-  static double ww  =   0; // word count weight
+  static final double nc  =   0; // character normalization index
+  static final double nf  =  -5; // frequency normalization index
+  static final double nm  =   0; // MeSH normalization index
+  static final double nmm = -10; // MetaMap normalization index
+  static final double nw  =   0; // word normalization index
+  static final double nz  =   0; // final normalization index
+  static final double wc  =   0; // character count weight
+  static final double wd  =   1; // default tree depth
+  static final double wm  =  14; // MeSH tree depth weight
+  static final double wmm =   1; // MetaMap weight
+  static final double ww  =   0; // word count weight
 
   
   public static int computeTreeDepth(String treecode) {
