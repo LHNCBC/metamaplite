@@ -240,6 +240,15 @@ contains the start and end offsets (the extent) of each posting:
     |   ...   |  279  |   59  |
     |   ...   |    0  |   58  |
 
+Defined in irutils.MultiKeyIndex.Extent (irutils/MultiKeyIndex.java):
+
+    class Extent {
+      /** address of posting */
+      long start;
+      /** length of posting */
+      long end;
+    }
+
 The postings for all of the partitions reside in the file *postings*.
 
     address | data 
@@ -251,6 +260,16 @@ The postings for all of the partitions reside in the file *postings*.
 
 
 The postings file is shared among all of the partitions.
+
+## Dictionary and Postings File Construction
+
+for each partition:
+
+ + write temporary partition tables grouped by table column and term length.
+ + write postings storing extent(offset,length) keyed by checksum of postings content
+   and storing checksum list keyed by term.
+ + write dictionary and extents after postings are written.
+ + term to checksum map is discarded after partition is saved, checksum to extent map is preserved. 
 
 
 ## Feature Requests
@@ -425,6 +444,45 @@ is in current implementation.
 
 # Pipeline Definition
 
+YAML versus Java Properties versus XML
+
++ XMLis too verbose
++ Java Properties are name=value pairs which are too restrictive.
++ JSON is more versatile but not human readable.
++ YAML
+
+## Example YAML configuration file
+
+    tokenizesentence:
+       description: tokenize sentence
+       class: gov.nih.nlm.nls.metamap.lite.SentenceAnnotator.tokenizeSentence
+	   input parameters: bioc.BioCSentence
+  	   return output: bioc.BioCSentence
+
+    genentityset:
+       description: gind entities
+       class: gov.nih.nlm.nls.metamap.lite.EntityLookup1.addEntities
+	   input parameters: bioc.BioCSentence
+  	   return output: bioc.BioCSentence
+
+    applycontext:
+       description: hedging
+       class: gov.nih.nlm.nls.metamap.lite.context.ContextWrapper
+	   input parameters: bioc.BioCSentence
+  	   return output: bioc.BioCSentence
+
+    displayentityset:
+       description: display entities
+       class: gov.nih.nlm.nls.metamap.lite.EntityLookup1.displayEntitySet
+	   input parameters: bioc.BioCSentence
+  	   return output: void
+
+    simple.sentence.pipeline:
+       - tokenizesentence
+       - genentityset
+       - displayentityset
+
+
 # Pipeline Protocols
 
 object based
@@ -448,6 +506,23 @@ Should use OSGi or JPF (Java Plugin Framework)
 
 The term "Other" is ignored in MetaMapLite if it's the first token in
 candidate token list.  (It is a stop_phrase in MetaMap)
+
+# Java Interfaces
+
+## Current
+
+ChunkerMethod
+EntityLookup
+NegationDetector
+VariantLookup
+Phrase
+
+## Future
+
+Tokenization
+SentenceExtractor (SentenceBreaker?)
+FullParser
+
 
 # outputs
 
@@ -562,28 +637,67 @@ myProperties.setProperty("metamaplite.segmentation.method", methodname);
 
 Times for songs collection using various segmentation methods
 
- program        | method     | time1           | time2
----------------------------------------------------------------
-test.MMLtest    | SENTENCES  | real	0m50.637s  | real	0m49.971
-                |            | user	1m12.791s  | user	1m13.957s
-                |            | sys	0m2.068s   | sys	0m2.163s
-                |            |				   |
-                | BLANKLINES | real	0m52.322s  | real	0m49.817s
-                |            | user	1m15.008s  | user	1m16.559s
-                |            | sys	0m2.859s   | sys	0m4.176s
-                |            |				   |
-                | LINES      | real	0m51.343s  | real	0m48.730s
-                |            | user	1m19.078s  | user	1m8.178s
-                |            | sys	0m2.200s   | sys	0m2.313s
-                |            |				   |
-test.MMLtestAlt | SENTENCES  | real	0m58.387s  | real	0m55.934s
-                |            | user	1m22.942s  | user	1m18.993s
-                |            | sys	0m2.314s   | sys	0m3.644s
-                |            |				   |
-                | BLANKLINES | real	0m59.280s  | real	0m56.476s
-                |            | user	1m27.496s  | user	1m20.455s
-                |            | sys	0m4.482s   | sys	0m2.460s
-                |            |				   |
-                | LINES      | real	0m58.441s  | real	0m56.544s
-                |            | user	1m23.249s  | user	1m17.672s
-                |            | sys	0m3.539s   | sys	0m3.341s
+      program        | method     | time1           | time2
+     ---------------------------------------------------------------
+     test.MMLtest    | SENTENCES  | real	0m50.637s  | real	0m49.971
+                     |            | user	1m12.791s  | user	1m13.957s
+                     |            | sys 	0m2.068s   | sys	0m2.163s
+                     |            |				       |
+                     | BLANKLINES | real	0m52.322s  | real	0m49.817s
+                     |            | user	1m15.008s  | user	1m16.559s
+                     |            | sys 	0m2.859s   | sys	0m4.176s
+                     |            |				       |
+                     | LINES      | real	0m51.343s  | real	0m48.730s
+                     |            | user	1m19.078s  | user	1m8.178s
+                     |            | sys 	0m2.200s   | sys	0m2.313s
+                     |            |				       |
+     test.MMLtestAlt | SENTENCES  | real	0m58.387s  | real	0m55.934s
+                     |            | user	1m22.942s  | user	1m18.993s
+                     |            | sys 	0m2.314s   | sys	0m3.644s
+                     |            |		      		   |
+                     | BLANKLINES | real	0m59.280s  | real	0m56.476s
+                     |            | user	1m27.496s  | user	1m20.455s
+                     |            | sys	    0m4.482s   | sys	0m2.460s
+                     |            |			    	   |
+                     | LINES      | real	0m58.441s  | real	0m56.544s
+                     |            | user	1m23.249s  | user	1m17.672s
+                     |            | sys	    0m3.539s   | sys	0m3.341s
+
+
+# Scoring
+
+## MetaMap Scoring Components
+
+score = 1000*(1.0 + variation + coverage + cohesiveness)/6
+
+### Variation
+
+An estimation of how much the variant in the Metathesaurus string
+differ from the corresponding words in the phrase.
+
+    (defn lexical-variation-sum
+       "Sum of lexical variation of phrase to match the metastring"
+       [phrase metastring]
+       (map (fn [phrase-token metastring-token]
+               (lexical-variation phrase-token metastring-token))
+            (tokenize phrase) (tokenize metastring)))
+
+### Coverage
+
+   An indication of how much of the phrase string and the
+   Metathesaurus string are involved in the match.
+
+
+
+
+### Cohesiveness
+
+   
+
+### Involvement
+
+   
+
+## MetaMapLite Scoring Components?
+
+Dice or Jaro distance functions
