@@ -1,0 +1,5 @@
+cuist.txt|cuist|2|0|cui|st|TXT|TXT
+cuisourceinfo.txt|cuisourceinfo|6|0,1,3|cui|sui|i|str|src|tty|TXT|TXT|INT|TXT|TXT|TXT
+cuiconcept.txt|cuiconcept|2|0,1|cui|concept|TXT|TXT
+vars.txt|vars|7|0,2|word|wcat|var|vcat|dist|hist|roots|TXT|TXT|TXT|TXT|INT|TXT|TXT
+mesh_tc_relaxed.txt|meshtcrelaxed|2|0,1|mesh|tc|TXT|TXT
