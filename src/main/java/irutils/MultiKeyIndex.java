@@ -146,11 +146,6 @@ public class MultiKeyIndex {
     return resultList;
   }
 
-
-
-
-
-
   public static String sha1(String input) throws NoSuchAlgorithmException {
     MessageDigest mDigest = MessageDigest.getInstance("SHA1");
     byte[] result = mDigest.digest(input.getBytes());
@@ -167,18 +162,23 @@ public class MultiKeyIndex {
   public static class Record {
     /** input line*/
     String line;
-    /** line separated into fields */
-    String [] fields;
-    /** checksum digest of line (currently sha1) */
-    String digest;
-    Record(String line, String [] fields, String digest) {
-      this.line = line; this.fields = fields; this.digest = digest;
+    Record(String line) {
+      this.line = line;
     }
+    /** @return input line*/
     String getLine() { return this.line; }
-    String [] getFields() { return this.fields; }
-    String getDigest() { return this.digest; }
+    /** @return line separated into fields */
+    String [] getFields() { return this.line.split("\\|"); }
+    /** @return checksum digest of line (currently sha1) */
+    String getDigest()
+    {
+      try {
+	return sha1(this.line);
+      } catch (NoSuchAlgorithmException nsae) {
+	throw new RuntimeException(nsae);
+      }
+    }
   }
-
 
   /**
    * Load Table
@@ -194,16 +194,16 @@ public class MultiKeyIndex {
     BufferedReader br = new BufferedReader(new FileReader(tablefilename));
     String line;
     while ((line = br.readLine()) != null) {
-      String[] fields = line.split("\\|");
-      String digest = sha1(line);
-      newList.add(new Record(line, fields, digest));
+      newList.add(new Record(line));
     }
     return newList;
   }
 
   /** container for start offset and length of a posting. */
   public static class Extent {
+    /** address of posting */
     long start;
+    /** length of posting */
     long length;
     Extent(long start, long length) { this.start = start; this.length = length; }
     long getStart() { return this.start; }
