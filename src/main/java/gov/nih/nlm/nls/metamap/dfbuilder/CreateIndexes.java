@@ -35,6 +35,13 @@ import irutils.MultiKeyIndex.Extent;
  * <dt>cuist.txt</dt>
  * <dd> contains a cui to semantic type mapping. </dd>
  * </dl>
+ * Optional files
+ * <dl>
+ * <dt>mesh_tc_relaxed.txt</dt>
+ * <dd> term to MeSH treecode file. </dd>
+ * <dt>vars.txt</dt>
+ * <dd> term to term variants file. </dd>
+ * </dl>
  *
  */
 
@@ -44,6 +51,13 @@ public class CreateIndexes {
   String tablePath;
 
 
+  /**
+   * Create MetaMapLite Tables from MRCONSO.RRF and MRSTY.RRF UMLS files
+   *
+   * @param mrconsofilename MRCONSO filename
+   * @param mrstyfilename MRSTY filename
+   * @param ivfDir inverted file directory
+   */
   static void createTables(String mrconsofilename, String mrstyfilename, String ivfDir)
     throws Exception
   {
@@ -60,6 +74,12 @@ public class CreateIndexes {
 					  true, "RRF", null);
   }
 
+   /**
+   * Generate table configuration
+   *
+   * @param ivfDir inverted file directory
+   * @return map of dbname to associated configuration fields
+   */
   static Map<String,String[]> generateTableConfig(String ivfDir)
   {
     Map<String,String[]> tableConfig = new HashMap<String,String []>();
@@ -70,18 +90,34 @@ public class CreateIndexes {
 		    "cuisourceinfo.txt|cuisourceinfo|6|0,1,3|cui|sui|i|str|src|tty|TXT|TXT|INT|TXT|TXT|TXT".split("\\|"));
     tableConfig.put("cuist",
 		    "cuist.txt|cuist|2|0|cui|st|TXT|TXT".split("\\|"));
+    tableConfig.put("meshtcrelaxed",
+		    "mesh_tc_relaxed.txt|meshtcrelaxed|2|0,1|mesh|tc|TXT|TXT".split("\\|"));
+    tableConfig.put("vars",
+		    "vars.txt|vars|7|0,2|term|tcat|word|wcat|varlevel|history||TXT|TXT|TXT|TXT|TXT|TXT|TXT".split("\\|"));
     return tableConfig;
   }
 
-  static String join(String[] stringArray, String delimiter) {
+  /**
+   * Join elements of stringarray into string.
+   * @param stringArray string array
+   * @param joinstring string to separate components by in composed string.
+   * @return joined string representation of string array.
+   */
+  static String join(String[] stringArray, String joinstring) {
     StringBuilder sb = new StringBuilder();
     sb.append(stringArray[0]);
     for (int i=1; i<stringArray.length; i++) {
-      sb.append(delimiter).append(stringArray[i]);
+      sb.append(joinstring).append(stringArray[i]);
     }
     return sb.toString();
   }
-  
+
+   /**
+   * Save table configuration file
+   *
+   * @param configFilename name of configuration file
+   * @param tableConfig map of dbname to associated configuration fields
+   */
   static void saveTableConfig(String configFilename, Map<String,String[]> tableConfig)
     throws IOException
   {
@@ -91,6 +127,11 @@ public class CreateIndexes {
     }
     out.close();
   }
+
+  /**
+   * Prepare directories
+   * @param ivfdir inverted file directory
+   */
   static void prepareDirectories(String ivfdir)
   {
     File ivfDir = new File(ivfdir);
@@ -99,6 +140,8 @@ public class CreateIndexes {
     File cuiconceptDir = new File(ivfdir + "/indices/cuiconcept");
     File cuisourceinfoDir = new File(ivfdir + "/indices/cuisourceinfo");
     File cuistDir = new File(ivfdir + "/indices/cuist");
+    File meshtcrelaxedDir = new File(ivfdir + "/indices/meshtcrelaxed");
+    File varsDir = new File(ivfdir + "/indices/vars");
     System.out.println("Preparing directories\n workingDir: " + ivfDir +
 		       "\n tablesDir: " + tablesDir +
 		       "\n indicesDir: " + indicesDir + "\n");
@@ -111,27 +154,26 @@ public class CreateIndexes {
       // check if indices directories exist
       if (! indicesDir.exists()) {
 	indicesDir.mkdir();
-	cuiconceptDir.mkdir();
-	cuisourceinfoDir.mkdir();
-	cuistDir.mkdir();
-      } else {
-	if (! cuiconceptDir.exists()) {
-	  cuiconceptDir.mkdir();
-	  cuisourceinfoDir.mkdir();
-	  cuistDir.mkdir();
-	}
       }
+      cuiconceptDir.mkdir();
+      cuisourceinfoDir.mkdir();
+      cuistDir.mkdir();
+      meshtcrelaxedDir.mkdir();
+      varsDir.mkdir();
     } else {
       // create ivf directory and sub-directories
       ivfDir.mkdir();
       tablesDir.mkdir();
       indicesDir.mkdir();
-      cuiconceptDir.mkdir();
-      cuisourceinfoDir.mkdir();
-      cuistDir.mkdir();
     }
   }
 
+   /**
+   * Create Indices
+   *
+   * @param ivfDir inverted file directory
+   * @param tableConfig map of dbname to associated configuration fields
+   */
   static void createIndices(String ivfDir, Map<String,String[]> tableConfig)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
@@ -147,15 +189,20 @@ public class CreateIndexes {
 	columns[i] = Integer.parseInt(columnStrings[i]);
       }
       
-      System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-      List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
-      System.out.println("Generating index for " + indexName);
-      MultiKeyIndexGeneration instance = new MultiKeyIndexGeneration();
-      System.out.println("Generating maps for columns " +
-			 MultiKeyIndexGeneration.renderColumns(columns) ); 
-      instance.generateMaps(recordTable, columns);
-      Map<String,Extent> digestExtentMap = instance.writePostings(workingDir, indexName);
-      instance.writePartitions(workingDir, indexName, digestExtentMap);
+      String absTableFilename = workingDir + "/tables/" + tableFilename;
+      if (new File(absTableFilename).exists()) {
+	System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
+	List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(absTableFilename);
+	System.out.println("Generating index for " + indexName);
+	MultiKeyIndexGeneration instance = new MultiKeyIndexGeneration();
+	System.out.println("Generating maps for columns " +
+			   MultiKeyIndexGeneration.renderColumns(columns) ); 
+	instance.generateMaps(recordTable, columns);
+	Map<String,Extent> digestExtentMap = instance.writePostings(workingDir, indexName);
+	instance.writePartitions(workingDir, indexName, digestExtentMap);
+      } else {
+	System.out.println("warning: table for " + indexName + " from file: " + tableFilename + " is not present, skipping table.");
+      }
     }
   }
 
