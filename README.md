@@ -22,11 +22,12 @@ It has:
 + Restriction by UMLS source and semantic type
 + Part of Speech tagging (optional)
 + Abbreviation detection using Lynette Hirschman's algorithm.
++ Scoring approximating the original MetaMap's scoring
+* MMI Ranking similar to the original MetaMap
 
 What is missing:
 
 + No detection of disjoint entities
-+ No Scoring
 + No derivational variants
 + No word sense disambiguation (to be added later)
 + No overmatching
@@ -39,24 +40,26 @@ What is missing:
 
 ### For running
 
-* Java 1.7 JRE
+* Java 1.8 JRE
 
 ### For Development
 
-* Java 1.7 JDK
+* Java 1.8 JDK
 * Maven or Ant
 
 ## Command Line Usage
 
+Example of invocation using script:
+
     ./metamaplite.sh [options] [<input file>|--]
 
-Example of use:
+Example of invocation using Java VM directly:
 
-    $ java -cp public_mm_lite/target/metamaplite-2.0-SNAPSHOT.jar \
+    $ java -cp public_mm_lite/target/metamaplite-3.4-standalone.jar \
           gov.nih.nlm.nls.ner.MetaMapLite \
           --indexdir=public_mm_lite/data/ivf/strict \
           --modelsdir=public_mm_lite/data/models \
-          --specialtermsfile=public_mm_lite/data/specialterms.txt  <arguments>
+          --specialtermsfile=public_mm_lite/data/specialterms.txt  [options] [<input file>|--]
 
 Current options are:
 
@@ -211,13 +214,17 @@ Add each term as a single document:
 
 ## Adding MetaMapLite to a webapp (servlet).
 
-### Where to place indices and models files in Tomcat
-
 #### WebApp Local Configuration
 
-
+A extensive example of providing a servlet complete with data and
+configuration files in the war (web archive) file is available on the
+MetaMap website on the MetaMapLite web page
+(https://metamap.nlm.nih.gov/MetaMapLite.shtml).
 
 #### Alternate Configuration
+
+Below is an alternate configuration for users who don't want to place
+the configuration and data in webapp deployment archive file (war).
 
 Place the "metamaplite.properties" file in the tomcat "conf/"
 directory and specify that in servlet:
@@ -252,7 +259,6 @@ The absolute locations of indexes and model files can be specified in
 ### Using Maven
 
 #### Installing metamaplite and dependencies into local Maven repository
-
 From public\_mm\_lite directory install Context, BioC, and NLS NLP libraries
 
     $ mvn install:install-file \
@@ -279,8 +285,6 @@ From public\_mm\_lite directory install Context, BioC, and NLS NLP libraries
 Then install metamaplite into your local Maven repository:
 
     $ mvn install
-
-
 
 #### Add metamaplite dependency to POM file
 
