@@ -16,7 +16,7 @@ import gov.nih.nlm.nls.metamap.lite.types.PositionImpl;
  */
 public class Tuple7 implements Tuple {
   private String term;
-  private String field;
+  private String field = "";
   private int nSent;
   private String text;		
   private String lexCat;
