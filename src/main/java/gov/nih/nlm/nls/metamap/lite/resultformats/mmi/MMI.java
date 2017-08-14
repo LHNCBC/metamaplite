@@ -399,11 +399,11 @@ public class MMI implements ResultFormatter {
 	  int end = ev.getStart() + ev.getLength();
 	  posInfo.add(new PositionImpl(start, end));
 	  Tuple tuple = new Tuple7(ev.getConceptInfo().getConceptString(),
-				   entity.getFieldId(), // section/location field needs to be added to Entity or Ev (or both)
+				   entity.getFieldId() == null ? "text" : entity.getFieldId(), // section/location field needs to be added to Entity or Ev (or both)
 				   entity.getSentenceNumber(), // sentence number needs to be added to Entity or Ev (or both)
 				   ev.getMatchedText(), // text?
 				   entity.getLexicalCategory(), // lexical category needs to be added to Entity or Ev (or both)
-				   0, // neg?
+				   entity.isNegated() ? 1 : 0, // neg?
 				   posInfo);
 	  tf.getTupleSet().add(tuple);
 	  tf.setFrequencyCount(tf.getFrequencyCount() + 1);
@@ -414,11 +414,11 @@ public class MMI implements ResultFormatter {
 	  posInfo.add(new PositionImpl(start, end));
 	  Set<Tuple> tupleSet = new LinkedHashSet<Tuple>();
 	  Tuple tuple = new Tuple7(ev.getConceptInfo().getConceptString(),
-				   entity.getFieldId(), // section/location field needs to be added to Entity or Ev (or both)
+				   entity.getFieldId() == null ? "text" : entity.getFieldId(), // section/location field needs to be added to Entity or Ev (or both)
 				   entity.getSentenceNumber(), // sentence number needs to be added to Entity or Ev (or both)
 				   ev.getMatchedText(), // text?
 				   entity.getLexicalCategory(), // lexical category needs to be added to Entity or Ev (or both)
-				   0, // neg?
+				   entity.isNegated() ? 1 : 0, // neg?
 				   posInfo); 
 	  tupleSet.add(tuple);
 	  termFreqMap.put(tfKey,
