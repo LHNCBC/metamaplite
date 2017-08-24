@@ -67,7 +67,7 @@ public class EntityLookup5 implements EntityLookup {
 
   public MetaMapIvfIndexes mmIndexes;
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
-  ChunkerMethod chunkerMethod = new OpenNLPChunker();
+  ChunkerMethod chunkerMethod;
   
   /** string column for cuisourceinfo index*/
   int strColumn = 3;		
@@ -117,6 +117,8 @@ public class EntityLookup5 implements EntityLookup {
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     }
+
+    this.chunkerMethod = new OpenNLPChunker(properties);
 
     // Instantiate user-specified negation detector if present,
     // otherwise use ConText.

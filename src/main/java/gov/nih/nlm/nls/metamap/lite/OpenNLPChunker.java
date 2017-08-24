@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.List;
+import java.util.Properties;
 import opennlp.tools.chunker.Chunker;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.chunker.ChunkerME;
@@ -36,7 +37,34 @@ public class OpenNLPChunker implements ChunkerMethod {
     InputStream modelIn = null;
     ChunkerModel model = null;
     try {
-      modelIn = new FileInputStream("data/models/en-chunker.bin");
+      modelIn = new FileInputStream(System.getProperty("opennlp.en-chunker.bin.path", 
+						       "data/models/en-chunker.bin"));
+      model = new ChunkerModel(modelIn);
+    } catch (IOException e) {
+      // Model loading failed, handle the error
+      e.printStackTrace();
+    } finally {
+      if (modelIn != null) {
+	try {
+	  modelIn.close();
+	} catch (IOException e) {
+	}
+      }
+    }
+    this.chunker = new ChunkerME(model);
+  }
+
+
+  /**
+   * Creates a new <code>OpenNLPChunker</code> instance.
+   *
+   */
+  public OpenNLPChunker(Properties properties) {
+    InputStream modelIn = null;
+    ChunkerModel model = null;
+    try {
+      modelIn = new FileInputStream(properties.getProperty("opennlp.en-chunker.bin.path", 
+							   "data/models/en-chunker.bin"));
       model = new ChunkerModel(modelIn);
     } catch (IOException e) {
       // Model loading failed, handle the error
