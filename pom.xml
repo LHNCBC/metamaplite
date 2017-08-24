@@ -4,7 +4,7 @@
   <groupId>gov.nih.nlm.nls</groupId>
   <artifactId>metamaplite</artifactId>
   <packaging>jar</packaging>
-  <version>3.4</version>
+  <version>3.5</version>
   <name>metamaplite</name>
   <url>http://maven.apache.org</url>
   <build>
