@@ -73,6 +73,10 @@ Current options are:
     --configfile=<filename>        Use configuration file
     --set_property=name=value      set property "name" to value
 
+    --filelistfn=<filename>        file containing a list of files to processed, one line per file
+    --filelist=<file0,file1,...>   list of files to processed separated by commas
+
+
 Options that can be used to override configuration file or when
 configuration file is not present:
 
@@ -170,7 +174,13 @@ Creating properties for configuring MetaMapLite Instance:
     MetaMapLite.expandIndexDir(myProperties,
 			       "/home/piro/Projects/public_mm_lite/data/ivf/strict");
     myProperties.setProperty("metamaplite.excluded.termsfile",
-			       "/home/piro/Projects/public_mm_lite/data/specialterms.txt");
+ 				   "/home/piro/Projects/public_mm_lite/data/specialterms.txt");
+
+
+Loading properties file in "config":
+
+    myProperties.load(new FileReader("config/metamaplite.properties"));
+
 
 Creating a metamap lite instance:
 
