@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
+import java.io.FileReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,6 +50,9 @@ public class Example2 {
 			     dataRoot + "/specialterms.txt");
     myProperties.setProperty("metamaplite.semanticgroup","phsu");
     MetaMapLite.expandIndexDir(myProperties);
+    // Loading properties file in "config", overriding previously
+    // defined properties.
+    myProperties.load(new FileReader("config/metamaplite.properties"));
     MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
 
     // Processing Section

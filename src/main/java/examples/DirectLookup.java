@@ -1,6 +1,7 @@
 package examples;
 
 import java.io.IOException;
+import java.io.FileReader;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,12 +32,15 @@ public class DirectLookup {
     throws IOException
   {
     this.myProperties = MetaMapLite.getDefaultConfiguration();
-    MetaMapLite.expandModelsDir(myProperties, "data/models");
-    MetaMapLite.expandIndexDir(myProperties,
+    MetaMapLite.expandModelsDir(this.myProperties, "data/models");
+    MetaMapLite.expandIndexDir(this.myProperties,
 			       System.getProperty("metamaplite.index.directory",
 						  "data/ivf/2016AB/USAbase/strict"));
-    myProperties.setProperty("metamaplite.excluded.termsfile", "data/specialterms.txt");
-    this.mmIndexes = new MetaMapIvfIndexes(myProperties);
+    this.myProperties.setProperty("metamaplite.excluded.termsfile", "data/specialterms.txt");
+    // Loading properties file in "config", overriding previously
+    // defined properties.
+    this.myProperties.load(new FileReader("config/metamaplite.properties"));
+    this.mmIndexes = new MetaMapIvfIndexes(this.myProperties);
   }
 
   public List<String[]> lookup(String term)
