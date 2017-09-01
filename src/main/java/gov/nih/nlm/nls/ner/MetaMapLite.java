@@ -63,6 +63,8 @@ import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderImpl;
 import gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry;
 import gov.nih.nlm.nls.metamap.document.SemEvalDocument;
 import gov.nih.nlm.nls.metamap.document.PubMedXMLDocument;
+import gov.nih.nlm.nls.metamap.document.PubTator;
+import gov.nih.nlm.nls.metamap.document.MedlineDocument;
 
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatterRegistry;
@@ -258,6 +260,12 @@ public class MetaMapLite {
     BioCDocumentLoaderRegistry.register("pubmed",
     					"PubMed XML Abstract",
     					new PubMedXMLDocument());
+    BioCDocumentLoaderRegistry.register("pubtator",
+    					"PubTator formatt",
+    					new PubTator());
+    BioCDocumentLoaderRegistry.register("medline",
+    					"Medline formatt",
+    					new PubTator());
     ResultFormatterRegistry.register("bc",
 				     "BioCreative Evaluation Format",
 				     new BcEvaluate());
@@ -632,6 +640,13 @@ public class MetaMapLite {
     for (String name: properties.stringPropertyNames()) {
       System.out.println("   " + name + ": " + properties.getProperty(name));
     }
+  }
+
+  /** get current properties of MetaMapLite instance 
+   * @return properties instance.
+   */
+  public Properties getProperties() {
+    return this.properties;
   }
 
   public static Properties getDefaultConfiguration() {
