@@ -76,9 +76,9 @@ public class MedlineDocument
 	if (key.equals("PMID")) {
 	  documentId = content;
 	} else if (key.equals("TI")) {
-	  titleText.append(content);
+	  titleText.append(content).append(" ");
 	} else if (key.equals("AB")) {
-	  abstractText.append(content);
+	  abstractText.append(content).append(" ");
 	}
       }
     }
@@ -115,9 +115,9 @@ public class MedlineDocument
 	  if (key.equals("PMID")) {
 	    documentId = content;
 	  } else if (key.equals("TI")) {
-	    titleText.append(content);
+	    titleText.append(content).append(" ");
 	  } else if (key.equals("AB")) {
-	    abstractText.append(content);
+	    abstractText.append(content).append(" ");
 	  }
 	}
       }
@@ -156,9 +156,9 @@ public class MedlineDocument
 	  if (key.equals("PMID")) {
 	    documentId = content;
 	  } else if (key.equals("TI")) {
-	    titleText.append(content);
+	    titleText.append(content).append(" ");
 	  } else if (key.equals("AB")) {
-	    abstractText.append(content);
+	    abstractText.append(content).append(" ");
 	  }
 	}
       }
