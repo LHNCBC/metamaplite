@@ -45,7 +45,9 @@ public class ResultFormatterRegistry {
 	descriptionMap.put(name,description);
       }
     } else {
-      throw new RuntimeException("Class instance does not implement the BioCResultformatter interface.");
+      throw new RuntimeException("Class instance " + className +
+				 " for result formatter " + name +
+				 " does not implement the BioCResultformatter interface.");
     }
   }
 
