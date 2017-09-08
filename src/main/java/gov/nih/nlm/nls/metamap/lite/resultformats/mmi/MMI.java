@@ -425,6 +425,7 @@ public class MMI implements ResultFormatter {
 			  new TermFrequency(ev.getConceptInfo().getPreferredName(),
 					    new ArrayList<String>(ev.getConceptInfo().getSemanticTypeSet()),
 					    tupleSet, 
+					    entity.getFieldId() == null ? false :
 					    (entity.getFieldId().equals("title") ||
 					     entity.getFieldId().equals("TI") )
 					    , 
