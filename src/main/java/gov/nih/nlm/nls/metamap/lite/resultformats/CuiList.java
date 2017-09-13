@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Properties;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
@@ -20,26 +21,25 @@ import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 
 public class CuiList implements ResultFormatter {
 
-  public static String entityToString(Entity entity){
-    StringBuilder sb = new StringBuilder();
+  public static Set<String> entityToStringSet(Entity entity){
+    Set<String> cuiSet = new TreeSet<String>();
     for (Ev ev: entity.getEvSet()) {
-      sb.append(ev.getConceptInfo().getCUI()).append('\n');
+      cuiSet.add(ev.getConceptInfo().getCUI());
     }
-    return sb.toString();
+    return cuiSet;
   }
 
   public static void displayEntityList(PrintWriter pw, List<Entity> entityList) 
   {
     Collections.reverse(entityList);
-    Set<String> stringSet = new HashSet<String>();
+    Set<String> stringSet = new TreeSet<String>();
     for (Entity entity: entityList) {
       if (entity.getEvSet().size() > 0) {
-	stringSet.add(entityToString(entity));
+	stringSet.addAll(entityToStringSet(entity));
       }
     }
-    StringBuilder sb = new StringBuilder();
     for (String resultString: stringSet) {
-      pw.print(resultString);
+      pw.print(resultString + "\n");
     }
   }
 
@@ -49,7 +49,18 @@ public class CuiList implements ResultFormatter {
   }
 
   public String entityListFormatToString(List<Entity> entityList) {
-    return null;
+    StringBuilder sb = new StringBuilder();
+    Collections.reverse(entityList);
+    Set<String> stringSet = new TreeSet<String>();
+    for (Entity entity: entityList) {
+      if (entity.getEvSet().size() > 0) {
+	stringSet.addAll(entityToStringSet(entity));
+      }
+    }
+    for (String resultString: stringSet) {
+      sb.append(resultString).append("\n");
+    }
+    return sb.toString();
   }
 
   public void initProperties(Properties properties) {
