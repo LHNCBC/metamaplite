@@ -994,130 +994,134 @@ public class MetaMapLite {
       Properties optionsConfiguration = new Properties();
       int i = 0;
       while (i < args.length) {
-        if (args[i].substring(0,2).equals("--")) {
-	  String[] fields = args[i].split("=");
-	  if (fields[0].equals("--") ||
-	      fields[0].equals("--pipe")) {
-	    inputFromStdin = true;
-	  } else if (fields[0].equals("--configfile") ||
-	      fields[0].equals("--propertiesfile")) {
-	    propertiesFilename = fields[1];
-	  } else if (fields[0].equals("--log4jconfig")) {
-	    optionsConfiguration.setProperty ("metamaplite.log4jconfig",fields[1]);
-	  } else if (fields[0].equals("--indexdir")) {
-	    optionsConfiguration.setProperty ("metamaplite.index.directory",fields[1]);
-	  } else if (fields[0].equals("--modelsdir")) {
-	    optionsConfiguration.setProperty ("opennlp.models.directory",fields[1]);
-	  } else if (fields[0].equals("--specialtermsfile")) {
-	    optionsConfiguration.setProperty ("metamaplite.excluded.termsfile",fields[1]);
-	  } else if (fields[0].equals("--inputdocformat") ||
-		     fields[0].equals("--inputformat")) {
-	    optionsConfiguration.setProperty ("metamaplite.document.inputtype",fields[1]);
-	  } else if (fields[0].equals("--segmentation_method")) {
-	    optionsConfiguration.setProperty ("metamaplite.segmentation.method",fields[1]);
-	  } else if (fields[0].equals("--segment_sentences")) {
+	if (args[i].length() > 1) {
+	  if (args[i].substring(0,2).equals("--")) {
+	    String[] fields = args[i].split("=");
+	    if (fields[0].equals("--") ||
+		fields[0].equals("--pipe")) {
+	      inputFromStdin = true;
+	    } else if (fields[0].equals("--configfile") ||
+		       fields[0].equals("--propertiesfile")) {
+	      propertiesFilename = fields[1];
+	    } else if (fields[0].equals("--log4jconfig")) {
+	      optionsConfiguration.setProperty ("metamaplite.log4jconfig",fields[1]);
+	    } else if (fields[0].equals("--indexdir")) {
+	      optionsConfiguration.setProperty ("metamaplite.index.directory",fields[1]);
+	    } else if (fields[0].equals("--modelsdir")) {
+	      optionsConfiguration.setProperty ("opennlp.models.directory",fields[1]);
+	    } else if (fields[0].equals("--specialtermsfile")) {
+	      optionsConfiguration.setProperty ("metamaplite.excluded.termsfile",fields[1]);
+	    } else if (fields[0].equals("--inputdocformat") ||
+		       fields[0].equals("--inputformat")) {
+	      optionsConfiguration.setProperty ("metamaplite.document.inputtype",fields[1]);
+	    } else if (fields[0].equals("--segmentation_method")) {
+	      optionsConfiguration.setProperty ("metamaplite.segmentation.method",fields[1]);
+	    } else if (fields[0].equals("--segment_sentences")) {
 	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","SENTENCES");
-	  } else if (fields[0].equals("--segment_blanklines")) {
+	    } else if (fields[0].equals("--segment_blanklines")) {
 	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","BLANKLINES");
-	  } else if (fields[0].equals("--segment_lines")) {
+	    } else if (fields[0].equals("--segment_lines")) {
 	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","LINES");
-	  } else if (fields[0].equals("--enable_scoring")) {
+	    } else if (fields[0].equals("--enable_scoring")) {
 	      optionsConfiguration.setProperty ("metamaplite.enable.scoring","true");
-	  } else if (fields[0].equals("--freetext")) {
-	    optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
-	  } else if (fields[0].equals("--outputformat")) {
-	    optionsConfiguration.setProperty("metamaplite.outputformat",fields[1]);
-	    optionsConfiguration.setProperty("metamaplite.outputextension",
-					     (outputExtensionMap.containsKey(fields[1]) ?
-					      outputExtensionMap.get(fields[1]) :
-					      ".out"));
-	  } else if (fields[0].equals("--bioc") || 
-		     fields[0].equals("--cdi") || 
-		     fields[0].equals("--bc") || 
-		     fields[0].equals("--bcevaluate")) {
-	    optionsConfiguration.setProperty("metamaplite.outputformat","bioc");
-	    optionsConfiguration.setProperty("metamaplite.outputextension",
-					     (outputExtensionMap.containsKey("cdi") ?
-					      outputExtensionMap.get("cdi") :
-					      ".ann"));
-	  } else if (fields[0].equals("--brat") || 
-		     fields[0].equals("--BRAT")) {
-	    optionsConfiguration.setProperty("metamaplite.outputformat","brat");
-	    optionsConfiguration.setProperty("metamaplite.outputextension",
-					     (outputExtensionMap.containsKey("brat") ?
-					      outputExtensionMap.get("brat") :
-					      ".ann"));
-	  } else if (fields[0].equals("--mmi") || 
-		     fields[0].equals("--mmilike")) {
-	    optionsConfiguration.setProperty("metamaplite.outputformat","mmi");
-	    optionsConfiguration.setProperty("metamaplite.outputextension",
-					     (outputExtensionMap.containsKey("mmi") ?
-					      outputExtensionMap.get("mmi") :
-					      ".mmi"));
-	  } else if (fields[0].equals("--restrict-to-semantic-types") ||
-		     fields[0].equals("--restrict-to-sts") ||
-		     fields[0].equals("--restrict_to_semantic_types") ||
-		     fields[0].equals("--restrict_to_sts")) {
-	    optionsConfiguration.setProperty("metamaplite.semanticgroup", fields[1]);
-	  } else if (fields[0].equals("--restrict-to-sources") ||
-		     fields[0].equals("--restrict-to-src") ||
-		     fields[0].equals("--restrict_to_sources") ||
-		     fields[0].equals("--restrict_to_src")) {
-	    optionsConfiguration.setProperty("metamaplite.sourceset", fields[1]);
-	  } else if (fields[0].equals("--negationDetectorClass")) {
-	    optionsConfiguration.setProperty("metamaplite.negation.detector", fields[1]);
-	  } else if (fields[0].equals("--usecontext")) {
-	    optionsConfiguration.setProperty("metamaplite.negation.detector",
-					     "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper");
-	  } else if (fields[0].equals("--enable_postagging")) {
-	    optionsConfiguration.setProperty("metamaplite.enable.postagging",fields[1]);
-	  } else if (fields[0].equals("--brat_type_name")) {
-	    optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
-	  } else if (args[i].equals("--filelist")) {
-	    if (fields.length < 2) {
-	      System.err.println("missing argument in \"" + args[i] + "\" option");
+	    } else if (fields[0].equals("--freetext")) {
+	      optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
+	    } else if (fields[0].equals("--outputformat")) {
+	      optionsConfiguration.setProperty("metamaplite.outputformat",fields[1]);
+	      optionsConfiguration.setProperty("metamaplite.outputextension",
+					       (outputExtensionMap.containsKey(fields[1]) ?
+						outputExtensionMap.get(fields[1]) :
+						".out"));
+	    } else if (fields[0].equals("--bioc") || 
+		       fields[0].equals("--cdi") || 
+		       fields[0].equals("--bc") || 
+		       fields[0].equals("--bcevaluate")) {
+	      optionsConfiguration.setProperty("metamaplite.outputformat","bioc");
+	      optionsConfiguration.setProperty("metamaplite.outputextension",
+					       (outputExtensionMap.containsKey("cdi") ?
+						outputExtensionMap.get("cdi") :
+						".ann"));
+	    } else if (fields[0].equals("--brat") || 
+		       fields[0].equals("--BRAT")) {
+	      optionsConfiguration.setProperty("metamaplite.outputformat","brat");
+	      optionsConfiguration.setProperty("metamaplite.outputextension",
+					       (outputExtensionMap.containsKey("brat") ?
+						outputExtensionMap.get("brat") :
+						".ann"));
+	    } else if (fields[0].equals("--mmi") || 
+		       fields[0].equals("--mmilike")) {
+	      optionsConfiguration.setProperty("metamaplite.outputformat","mmi");
+	      optionsConfiguration.setProperty("metamaplite.outputextension",
+					       (outputExtensionMap.containsKey("mmi") ?
+						outputExtensionMap.get("mmi") :
+						".mmi"));
+	    } else if (fields[0].equals("--restrict-to-semantic-types") ||
+		       fields[0].equals("--restrict-to-sts") ||
+		       fields[0].equals("--restrict_to_semantic_types") ||
+		       fields[0].equals("--restrict_to_sts")) {
+	      optionsConfiguration.setProperty("metamaplite.semanticgroup", fields[1]);
+	    } else if (fields[0].equals("--restrict-to-sources") ||
+		       fields[0].equals("--restrict-to-src") ||
+		       fields[0].equals("--restrict_to_sources") ||
+		       fields[0].equals("--restrict_to_src")) {
+	      optionsConfiguration.setProperty("metamaplite.sourceset", fields[1]);
+	    } else if (fields[0].equals("--negationDetectorClass")) {
+	      optionsConfiguration.setProperty("metamaplite.negation.detector", fields[1]);
+	    } else if (fields[0].equals("--usecontext")) {
+	      optionsConfiguration.setProperty("metamaplite.negation.detector",
+					       "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper");
+	    } else if (fields[0].equals("--enable_postagging")) {
+	      optionsConfiguration.setProperty("metamaplite.enable.postagging",fields[1]);
+	    } else if (fields[0].equals("--brat_type_name")) {
+	      optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
+	    } else if (args[i].equals("--filelist")) {
+	      if (fields.length < 2) {
+		System.err.println("missing argument in \"" + args[i] + "\" option");
+	      } else {
+		optionsConfiguration.setProperty("metamaplite.inputfilelist", fields[1]);
+	      }
+	    } else if (fields[0].equals("--filelistfn") ||
+		       fields[0].equals("--filelistfilename")) {
+	      if (fields.length < 2) {
+		System.err.println("missing argument in \"" + args[i] + "\" option");
+	      } else {
+		optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
+	      }
+	    } else if (fields[0].equals("--list_sentences")) {
+	      optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
+	    } else if (fields[0].equals("--list_acronyms")) {
+	      optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
+	    } else if (fields[0].equals("--list_sentences_postags")) {
+	      optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
+	    } else if (fields[0].equals("--output_extension")) {
+	      optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);
+	    } else if (fields[0].equals("--set_property")) {
+	      optionsConfiguration.setProperty(fields[1],fields[2]);
+	    } else if (args[i].equals("--verbose")) {
+	      verbose = true;
+	    } else if (args[i].equals("--help")) {
+	      Properties properties = setConfiguration(propertiesFilename,
+						       defaultConfiguration,
+						       System.getProperties(),
+						       optionsConfiguration,
+						       verbose);
+	      BioCDocumentLoaderRegistry.register(properties);
+	      ResultFormatterRegistry.register(properties);
+	      displayHelp();
+	      System.exit(1);
 	    } else {
-	      optionsConfiguration.setProperty("metamaplite.inputfilelist", fields[1]);
+	      System.err.println("unknown option: " + args[i]);
+	      System.exit(1);
 	    }
-	  } else if (fields[0].equals("--filelistfn") ||
-		     fields[0].equals("--filelistfilename")) {
-	    if (fields.length < 2) {
-	      System.err.println("missing argument in \"" + args[i] + "\" option");
-	    } else {
-	      optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
-	    }
-	  } else if (fields[0].equals("--list_sentences")) {
-	    optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
-	  } else if (fields[0].equals("--list_acronyms")) {
-	    optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
-	  } else if (fields[0].equals("--list_sentences_postags")) {
-	    optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
-	  } else if (fields[0].equals("--output_extension")) {
-	    optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);
-	  } else if (fields[0].equals("--set_property")) {
-	    optionsConfiguration.setProperty(fields[1],fields[2]);
-	  } else if (args[i].equals("--verbose")) {
-	    verbose = true;
-	  } else if (args[i].equals("--help")) {
-	    Properties properties = setConfiguration(propertiesFilename,
-						     defaultConfiguration,
-						     System.getProperties(),
-						     optionsConfiguration,
-						     verbose);
-	    BioCDocumentLoaderRegistry.register(properties);
-	    ResultFormatterRegistry.register(properties);
-	    displayHelp();
-	    System.exit(1);
 	  } else {
-	    System.err.println("unknown option: " + args[i]);
-	    System.exit(1);
+	    if (inputFromStdin) {
+	      System.err.println("unexpected filename in command line argument list: " + args[i]);
+	    } else {
+	      filenameList.add(args[i]);
+	    }
 	  }
 	} else {
-	  if (inputFromStdin) {
-	    System.err.println("unexpected filename in command line argument list: " + args[i]);
-	  } else {
-	    filenameList.add(args[i]);
-	  }
+	  filenameList.add(args[i]);
 	}
 	i++;
       }
