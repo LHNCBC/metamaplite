@@ -108,8 +108,12 @@ public class MarkAbbreviations {
 	      // verify if abbreviation is in original text at specified offset 
 	      if ((location.getOffset() > 0) && (abbrAnnot.getText().length() > 0)) {
 		logger.debug("abbrev annotation: " + abbrAnnot.getText() ); 
-		logger.debug("location offset: " + location.getOffset()); 
-		if (passage.getText().substring(location.getOffset(), location.getOffset() + abbrAnnot.getText().length()).equals(abbrAnnot.getText())) {
+		logger.debug("location offset: " + location.getOffset());
+		String passageText = passage.getText();
+		int begin = Math.min(0, location.getOffset());
+		int end = Math.max(begin + abbrAnnot.getText().length(), passageText.length());
+		String passageSubstring = passageText.substring(begin, end);
+		if (passageSubstring.equals(abbrAnnot.getText())) {
 		  logger.info("adding " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
 		  Entity newEntity = new Entity(entity);
 		  newEntity.setText(abbrAnnot.getText());
