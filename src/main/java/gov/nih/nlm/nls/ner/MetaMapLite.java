@@ -90,6 +90,8 @@ import gov.nih.nlm.nls.utils.Configuration;
 import gov.nih.nlm.nls.metamap.mmi.TermFrequency;
 import gov.nih.nlm.nls.metamap.mmi.Ranking;
 
+import gov.nih.nlm.nls.metamap.lite.Disambiguation;
+
 /**
  * Using MetaMapLite from a Java program:
  * <pre>
@@ -196,6 +198,8 @@ public class MetaMapLite {
   AbbrConverter abbrConverter = new AbbrConverter();
   static ExtractAbbrev extractAbbr = new ExtractAbbrev();
   Properties properties;
+  /** WSD wrapper */
+  Disambiguation disambiguation;
 
   boolean detectNegationsFlag = false;
   SentenceAnnotator sentenceAnnotator;
@@ -217,6 +221,9 @@ public class MetaMapLite {
     this.properties = properties;
     this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    if (Boolean.parseBoolean(this.properties.getProperty("metamaplite.usewsd","false"))) {
+      this.disambiguation = new Disambiguation();
+    }
     boolean enableScoring = false;
     if (properties.containsKey("metamaplite.outputformat")) {
       if (properties.get("metamaplite.outputformat").equals("mmi")) {
@@ -492,12 +499,25 @@ public class MetaMapLite {
     logger.info("passage relations: " + passageWithSentsAndAbbrevs.getRelations());
     logger.info("passage annotations: " + passageWithSentsAndAbbrevs.getAnnotations());
     // BioCPassage newPassage = processSentences(passageWithSentsAndAbbrevs);
-    List<Entity> entityList =
-      MarkAbbreviations.markAbbreviations
-      (passageWithSentsAndAbbrevs,
-       this.entityLookup.processPassage
-       ((passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000",
-	passageWithSentsAndAbbrevs, this.detectNegationsFlag, this.semanticGroup, this.sourceSet));
+    List<Entity> entityList;
+    boolean wsd = Boolean.parseBoolean(this.properties.getProperty("metamaplite.usewsd","false"));
+    if (wsd) {
+      entityList =
+	this.disambiguation.disambiguateEntityList
+	(MarkAbbreviations.markAbbreviations
+	 (passageWithSentsAndAbbrevs,
+	  this.entityLookup.processPassage
+	  ((passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000",
+	   passageWithSentsAndAbbrevs, this.detectNegationsFlag, this.semanticGroup, this.sourceSet)),
+	 passageWithSentsAndAbbrevs.getText());
+    } else {
+      entityList =
+	MarkAbbreviations.markAbbreviations
+	(passageWithSentsAndAbbrevs,
+	 this.entityLookup.processPassage
+	 ((passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000",
+	  passageWithSentsAndAbbrevs, this.detectNegationsFlag, this.semanticGroup, this.sourceSet));
+    }
     logger.debug("exit processPassage");
     return entityList;
   }
