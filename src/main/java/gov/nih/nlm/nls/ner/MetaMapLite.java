@@ -614,6 +614,7 @@ public class MetaMapLite {
       properties.setProperty("opennlp.en-sent.bin.path", modelsDir + "/en-sent.bin");
       properties.setProperty("opennlp.en-token.bin.path", modelsDir + "/en-token.bin");
       properties.setProperty("opennlp.en-pos.bin.path", modelsDir + "/en-pos-maxent.bin");
+      properties.setProperty("opennlp.en-chunker.bin.path", modelsDir + "/en-chunker.bin");
     }
   }
   public static void expandModelsDir(Properties properties) {
