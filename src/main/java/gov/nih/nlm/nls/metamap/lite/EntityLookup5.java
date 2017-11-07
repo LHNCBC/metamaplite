@@ -92,7 +92,9 @@ public class EntityLookup5 implements EntityLookup {
   NegationDetector negationDetector;
   boolean addPartOfSpeechTagsFlag =
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
-
+  boolean disableChunker = 
+    Boolean.parseBoolean(System.getProperty("metamaplite.disable.chunker","false"));
+  
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
     this.allowedPartOfSpeechSet.add("NN");
@@ -113,6 +115,8 @@ public class EntityLookup5 implements EntityLookup {
     this.addPartOfSpeechTagsFlag =
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
+    this.disableChunker = 
+      Boolean.parseBoolean(properties.getProperty("metamaplite.disable.chunker","false"));
 
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
@@ -573,7 +577,7 @@ public class EntityLookup5 implements EntityLookup {
     double sum = 0;
     double centrality =
       isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, matchedTermOffset) ? 1.0 : 0.0;
-    int variation = 4/(variantLookup.lookupVariant(matchedText, metaTerm) + 4 );
+    double variation = 4.0/(variantLookup.lookupVariant(matchedText, metaTerm) + 4.0 );
     // coverage steps:
     //  1. extract components
     // extractComponents();
@@ -636,6 +640,35 @@ public class EntityLookup5 implements EntityLookup {
     }
   }
 
+  class PhraseImpl implements Phrase {
+    List<ERToken> tokenlist;
+    String tag;
+    PhraseImpl(List<ERToken> tokenlist, String tag) {
+      this.tokenlist = tokenlist;
+      this.tag = tag;
+    }
+    public List<ERToken> getPhrase() { return this.tokenlist; }
+    public String getTag() { return this.tag; }
+    // public String toString() { 
+    //   return this.tokenlist.stream().map(i -> i.toString()).collect(Collectors.joining(", ")) + "/" + this.tag;
+    // }
+  }
+
+  /**
+   * Glom Noun Phrase + Prepositional Phrase into a single composite
+   * phrase.
+   *
+   * @param phraseList list of phrases to be modified.
+   * @return modified list of phrases
+   */
+  public List<Phrase> glomNounPhrasePrepPhrase(List<Phrase> phraseList) {
+    List<Phrase> newPhraseList = new ArrayList<Phrase>();
+    Phrase first = phraseList.get(0);
+    for (Phrase phrase: phraseList.subList(1, phraseList.size())) {
+      
+    }
+    return phraseList;
+  }
 
   /**
    * Given a sentence, tokenize it then lookup any concepts that match
@@ -691,9 +724,16 @@ public class EntityLookup5 implements EntityLookup {
     if (this.addPartOfSpeechTagsFlag) {
       sentenceAnnotator.addPartOfSpeech(minimalSentenceTokenList);
     }
+    List<Phrase> phraseList;
+    if (this.disableChunker) {
+      phraseList = new ArrayList<Phrase>();
+      phraseList.add(new PhraseImpl(minimalSentenceTokenList, "NP")); // not really a noun phrase
+    } else {
     // chunk first, then find entities in the chunks
-    List<Phrase> phraseList = this.chunkerMethod.applyChunker(minimalSentenceTokenList);
-    for (Phrase phrase: phraseList) {
+      phraseList = this.chunkerMethod.applyChunker(minimalSentenceTokenList);
+    }
+    List<Phrase> newPhraseList = glomNounPhrasePrepPhrase(phraseList);
+    for (Phrase phrase: newPhraseList) {
       logger.debug("phrase: " + phrase);
       logger.info("phrase: " + phrase);
       List<ERToken> phraseTokenList = mapToTokenList(sentenceTokenList, phrase.getPhrase());
@@ -722,38 +762,39 @@ public class EntityLookup5 implements EntityLookup {
   }
 
   // static methods
-  public static Set<Entity> removeSubsumingEntities(Set<Entity> entitySet) {
-    Map <Integer,Entity> startMap = new HashMap<Integer,Entity>();
-    logger.debug("-input entity set spans-");
-    for (Entity entity: entitySet) {
-      Integer key = new Integer(entity.getStart());
-      if (startMap.containsKey(key)) {
-	if (startMap.get(key).getLength() < entity.getLength()) {
-	  // replace entity with larger span
-	  startMap.put(key,entity);
-	}
-      } else {
-	startMap.put(key, entity);
+    /** 
+   * Is entity subsumed?
+   *
+   * If any entity in supplied entitylist subsumes target entity then
+   * the method returns true.
+   *
+   * @param entity target entity
+   * @param entityColl collection of entities to test for subsumption.
+   * @return true if entity is subsumed by at least one entity.
+   */
+  public static boolean isEntitySubsumed(Entity entity, Collection<Entity> entityColl) {
+    List<Entity> subsumingEntityList = new ArrayList<Entity>();
+    for (Entity otherEntity: entityColl) {
+      if ((entity.getStart() >= otherEntity.getStart()) &&
+	  (entity.getLength() < otherEntity.getLength())) {
+	subsumingEntityList.add(otherEntity);
       }
     }
-    logger.debug("-shorter entities with same start have been removed-");
-    Map <Integer,Entity> endMap = new HashMap<Integer,Entity>();
-    for (Entity entity: startMap.values()) {
-      Integer key = new Integer(entity.getStart() + entity.getLength());
-      if (endMap.containsKey(key)) {
-	if (endMap.get(key).getStart() > entity.getStart()) {
-	  // replace entity with larger span
-	  endMap.put(key,entity);
-	}
-      } else {
-	endMap.put(key, entity);
-      }
-    }
+    return subsumingEntityList.size() > 0;
+  }
 
-    logger.debug("-final entity set spans-");
+  /**
+   * Remove any entities subsumed by any other entity.
+   *
+   * @param entitySet list of entities to test for subsumption.
+   * @return entitySet with any subsumed entities removed.
+   */
+  public static Set<Entity> removeSubsumedEntities(Set<Entity> entitySet) {
     Set<Entity> newEntitySet = new HashSet<Entity>();
-    for (Entity entity: endMap.values()) {
-      newEntitySet.add(entity);
+    for (Entity entity: entitySet) {
+      if (! isEntitySubsumed(entity, entitySet)) {
+	newEntitySet.add(entity);
+      }
     }
     return newEntitySet;
   }
@@ -824,7 +865,7 @@ public class EntityLookup5 implements EntityLookup {
 	}
 	i++;
       }
-      Set<Entity> entitySet1 = removeSubsumingEntities(entitySet0);
+      Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
 	filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
@@ -870,7 +911,7 @@ public class EntityLookup5 implements EntityLookup {
       }
       i++;
     }
-    Set<Entity> entitySet = removeSubsumingEntities(entitySet0);
+    Set<Entity> entitySet = removeSubsumedEntities(entitySet0);
     List<Entity> resultList = new ArrayList<Entity>(entitySet);
     Collections.sort(resultList, entityComparator);
     return resultList;
@@ -883,7 +924,7 @@ public class EntityLookup5 implements EntityLookup {
     try {
       Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
       Set<Entity> entitySet = 
-	removeSubsumingEntities
+	removeSubsumedEntities
 	(this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
 				       new HashSet<String>(),
 				       new HashSet<String>()));

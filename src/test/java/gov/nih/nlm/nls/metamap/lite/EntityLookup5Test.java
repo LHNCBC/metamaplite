@@ -33,18 +33,28 @@ public class EntityLookup5Test {
    *
    */
   public EntityLookup5Test() {
-    this.initialEntitySet.add(new Entity("00", "Sleep", 12, 5, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "Sleep Apnea", 12, 11, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "Obstructive Sleep Apnea", 0, 23, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "Obstructive", 0, 11, 0.0, new HashSet<Ev>()));
+    // initial entity set
+    this.initialEntitySet.add(new Entity("00", "Sleep",                   12, 5, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "Sleep Apnea",             12, 11, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "Obstructive Sleep Apnea",  0, 23, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "Obstructive",              0, 11, 0.0, new HashSet<Ev>()));
+    
+    this.initialEntitySet.add(new Entity("00", "BLOOD",              0, 5, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "blood sugar",        0, 11, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "blood sugar level",  0, 17, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "level",             12, 5, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00", "sugar",              6, 5, 0.0, new HashSet<Ev>()));
+    
+    // expected entity set
     this.expectedEntitySet.add(new Entity("00", "Obstructive Sleep Apnea", 0, 23, 0.0, new HashSet<Ev>()));
+    this.expectedEntitySet.add(new Entity("00", "blood sugar level", 0, 23, 0.0, new HashSet<Ev>()));
   }
 
   @org.junit.Before public void setup() {
   }
 
-  @org.junit.Test public void testRemoveSubSumingEntities() {
-    Set<Entity> newEntitySet = EntityLookup5.removeSubsumingEntities(this.initialEntitySet);
+  @org.junit.Test public void testRemoveSubsumedEntities() {
+    Set<Entity> newEntitySet = EntityLookup5.removeSubsumedEntities(this.initialEntitySet);
     org.junit.Assert.assertTrue(newEntitySet.equals(this.expectedEntitySet));
   }
 }

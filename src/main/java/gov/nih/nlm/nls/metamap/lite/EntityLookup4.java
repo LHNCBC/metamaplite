@@ -489,38 +489,39 @@ public class EntityLookup4 implements EntityLookup {
   }
 
   // static methods
-  public static Set<Entity> removeSubsumingEntities(Set<Entity> entitySet) {
-    Map <Integer,Entity> startMap = new HashMap<Integer,Entity>();
-    logger.debug("-input entity set spans-");
-    for (Entity entity: entitySet) {
-      Integer key = new Integer(entity.getStart());
-      if (startMap.containsKey(key)) {
-	if (startMap.get(key).getLength() < entity.getLength()) {
-	  // replace entity with larger span
-	  startMap.put(key,entity);
-	}
-      } else {
-	startMap.put(key, entity);
+  /** 
+   * Is entity subsumed?
+   *
+   * If any entity in supplied entitylist subsumes target entity then
+   * the method returns true.
+   *
+   * @param entity target entity
+   * @param entityColl collection of entities to test for subsumption.
+   * @return true if entity is subsumed by at least one entity.
+   */
+  public static boolean isEntitySubsumed(Entity entity, Collection<Entity> entityColl) {
+    List<Entity> subsumingEntityList = new ArrayList<Entity>();
+    for (Entity otherEntity: entityColl) {
+      if ((entity.getStart() >= otherEntity.getStart()) &&
+	  (entity.getLength() < otherEntity.getLength())) {
+	subsumingEntityList.add(otherEntity);
       }
     }
-    logger.debug("-shorter entities with same start have been removed-");
-    Map <Integer,Entity> endMap = new HashMap<Integer,Entity>();
-    for (Entity entity: startMap.values()) {
-      Integer key = new Integer(entity.getStart() + entity.getLength());
-      if (endMap.containsKey(key)) {
-	if (endMap.get(key).getStart() > entity.getStart()) {
-	  // replace entity with larger span
-	  endMap.put(key,entity);
-	}
-      } else {
-	endMap.put(key, entity);
-      }
-    }
+    return subsumingEntityList.size() > 0;
+  }
 
-    logger.debug("-final entity set spans-");
+  /**
+   * Remove any entities subsumed by any other entity.
+   *
+   * @param entitySet list of entities to test for subsumption.
+   * @return entitySet with any subsumed entities removed.
+   */
+  public static Set<Entity> removeSubsumedEntities(Set<Entity> entitySet) {
     Set<Entity> newEntitySet = new HashSet<Entity>();
-    for (Entity entity: endMap.values()) {
-      newEntitySet.add(entity);
+    for (Entity entity: entitySet) {
+      if (! isEntitySubsumed(entity, entitySet)) {
+	newEntitySet.add(entity);
+      }
     }
     return newEntitySet;
   }
@@ -591,7 +592,7 @@ public class EntityLookup4 implements EntityLookup {
 	}
 	i++;
       }
-      Set<Entity> entitySet1 = removeSubsumingEntities(entitySet0);
+      Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
 	filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
@@ -640,7 +641,7 @@ public class EntityLookup4 implements EntityLookup {
       }
       i++;
     }
-    Set<Entity> entitySet = removeSubsumingEntities(entitySet0);
+    Set<Entity> entitySet = removeSubsumedEntities(entitySet0);
     List<Entity> resultList = new ArrayList<Entity>(entitySet);
     Collections.sort(resultList, entityComparator);
     return resultList;
@@ -653,7 +654,7 @@ public class EntityLookup4 implements EntityLookup {
     try {
       Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
       Set<Entity> entitySet = 
-	removeSubsumingEntities
+	removeSubsumedEntities
 	(this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
 				       new HashSet<String>(),
 				       new HashSet<String>()));
