@@ -1,0 +1,41 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'gov.nih.nlm.nls'
+version = '3.6'
+
+description = """metamaplite"""
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+     mavenLocal()
+     maven { url "http://svn.code.sf.net/p/bionlp/code/repo" }
+     maven { url "http://central.maven.org/maven2/" }
+     maven { url "https://metamap.nlm.nih.gov/maven2/" }
+}
+dependencies {
+    compile group: 'org.apache.opennlp', name: 'opennlp-tools', version:'1.5.3'
+    compile group: 'org.apache.opennlp', name: 'opennlp-maxent', version:'3.0.3'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version:'3.3.1'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version:'3.3.1', classifier:'models'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version:'2.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version:'2.1'
+    compile group: 'context', name: 'context', version:'2012'
+    // https://mvnrepository.com/artifact/com.pengyifan.bioc/pengyifan-bioc
+    //     compile group: 'com.pengyifan.bioc', name: 'pengyifan-bioc', version: '1.0.1'
+    compile group: 'bioc', name: 'bioc', version:'1.0.1'
+    compile group: 'gov.nih.nlm.nls', name: 'nlp', version:'2.4.C'
+    compile group: 'gov.nih.nlm.nls', name: 'aec_mrd_wsd', version:'1.0-SNAPSHOT'
+    compile group: 'net.sf.opencsv', name: 'opencsv', version:'2.3'
+    compile group: 'org.codehaus.woodstox', name: 'stax2-api', version:'4.0.0'
+    compile group: 'net.java.dev.stax-utils', name: 'stax-utils', version:'20070216'
+    compile group: 'org.codehaus.woodstox', name: 'woodstox-core-asl', version:'4.1.4'
+    compile group: 'xmlunit', name: 'xmlunit', version:'1.4'
+    compile group: 'org.apache.uima', name: 'uimaj-core', version:'2.3.1'
+    compile group: 'info.debatty', name: 'java-string-similarity', version:'0.23'
+    // https://mvnrepository.com/artifact/javax.xml/jsr173
+    compile group: 'javax.xml', name: 'jsr173', version: '1.0'
+    testCompile group: 'junit', name: 'junit', version:'4.11'
+}

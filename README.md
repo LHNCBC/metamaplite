@@ -34,8 +34,6 @@ What is missing:
 + No term processing
 + No dynamic variant generation
 
-
-
 ## Prerequisites
 
 ### For running
@@ -45,7 +43,7 @@ What is missing:
 ### For Development
 
 * Java 1.8 JDK
-* Maven or Ant
+* Maven or Ant or Gradle
 
 ## Command Line Usage
 
@@ -354,12 +352,12 @@ You can use the class irutils.MappedMultiKeyIndexLookup to check the
 new indexes:
 
      java -Xmx20g -cp target/metamaplite-<version>-standalone.jar \
-      irutils.MappedMultiKeyIndexLookup lookup workingdir indexname column
+      irutils.MappedMultiKeyIndexLookup lookup workingdir indexname column query
 
 For example:
 
      java -Xmx20g -cp target/metamaplite-<version>-standalone.jar \
-      irutils.MappedMultiKeyIndexLookup lookup data/ivf/2016AB/USAbase/strict cuisourceinfo 0
+      irutils.MappedMultiKeyIndexLookup lookup data/ivf/2016AB/USAbase/strict cuisourceinfo 3 heart
 
 ## Using newly generated indexes with MetaMapLite
 
