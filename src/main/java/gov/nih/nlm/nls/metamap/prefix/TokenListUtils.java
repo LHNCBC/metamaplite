@@ -48,7 +48,7 @@ public class TokenListUtils {
   /** 
    * Create sequence of sublists of tokenlist always starting from
    * the head each sublist smaller than the previous.
-   * @param listOftokenlists unpopulated list to contain token sublists.
+   * @param listOfTokenLists unpopulated list to contain token sublists.
    * @param tokenList original token list.
    */
   public static void applyHeadSubTokenListsOpt
