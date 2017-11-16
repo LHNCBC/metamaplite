@@ -50,6 +50,9 @@ import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 import gov.nih.nlm.nls.metamap.lite.resultformats.CuiList;
 import gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate;
 import gov.nih.nlm.nls.metamap.lite.BioCUtilities;
+import gov.nih.nlm.nls.metamap.lite.Phrase;
+import gov.nih.nlm.nls.metamap.lite.OpenNLPChunker;
+import gov.nih.nlm.nls.metamap.lite.ChunkerMethod;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 import gov.nih.nlm.nls.metamap.document.ChemDNER;
@@ -209,6 +212,10 @@ public class MetaMapLite {
 
   SegmentatonType segmentationMethod = SegmentatonType.SENTENCES;
 
+  /** did user specify part-of-speech tagging? */
+  boolean addPartOfSpeechTagsFlag;
+  ChunkerMethod chunkerMethod;
+  
   public MetaMapLite(Properties properties)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException,
@@ -217,6 +224,12 @@ public class MetaMapLite {
     this.properties = properties;
     this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    this.chunkerMethod = new OpenNLPChunker(properties);
+
+    this.addPartOfSpeechTagsFlag =
+      Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
+						  Boolean.toString(addPartOfSpeechTagsFlag)));
+
     boolean enableScoring = false;
     if (properties.containsKey("metamaplite.outputformat")) {
       if (properties.get("metamaplite.outputformat").equals("mmi")) {
@@ -594,12 +607,14 @@ public class MetaMapLite {
     System.err.println("  --segment_blanklines   Set method for text segmentation to each blanklines");
     System.err.println("  --segment_lines        Set method for text segmentation to each line");
     System.err.println("  --usecontext           Use ConText negation algorithm.");
+    System.err.println("  --disable_chunker");
     System.err.println("  --enable_postagging=[true|false]  Use part-of-speech tagging (default: true).");
     // System.err.println("performance/effectiveness options:");
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
     System.err.println("  --list_sentences");
     System.err.println("  --list_acronyms");
+    System.err.println("  --list_chunks");
     System.err.println("configuration options:");
     System.err.println("  --configfile=<filename>");
     System.err.println("  --indexdir=<directory>");
@@ -672,6 +687,8 @@ public class MetaMapLite {
 				     modelsDirectory + "/en-token.bin");
     defaultConfiguration.setProperty("opennlp.en-pos.bin.path",
 				     modelsDirectory + "/en-pos-maxent.bin");
+    defaultConfiguration.setProperty("opennlp.en-chunker.bin.path",
+				     modelsDirectory + "/en-chunker.bin");
 
     defaultConfiguration.setProperty("metamaplite.ivf.cuiconceptindex", 
 				     indexDirectory + "/strict/indices/cuiconcept");
@@ -807,6 +824,15 @@ public class MetaMapLite {
     pw.close();
   }
 
+  void listChunks(List<BioCDocument> documentList)
+    throws IOException
+  {
+    logger.info("outputing results to Standard Output");
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    listChunks(pw, documentList);
+    pw.close();
+  }
+
   void listEntities(List<BioCDocument> documentList, String outputFormatOption)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
@@ -829,6 +855,10 @@ public class MetaMapLite {
     pw.close();
   }
 
+  /** list entities using document list from stdin 
+   * @param filename filename
+   * @param documentList list of BioC documents
+   */
   void listSentences(String filename, 
 		     List<BioCDocument> documentList)
     throws IOException
@@ -880,6 +910,52 @@ public class MetaMapLite {
       }
       pw.println();
     }
+    pw.close();
+  }
+
+  void listChunks(PrintWriter pw,
+		  List<BioCDocument> documentList)
+    throws IOException
+  {
+    for (Sentence sent: this.getSentenceList(documentList)) {
+      List<ERToken> sentenceTokenList = sentenceAnnotator.addPartOfSpeech(sent);
+      pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
+      pw.println("--tokenlist--");
+      List<ERToken> minimalSentenceTokenList = new ArrayList<ERToken>();
+      for (ERToken token: sentenceTokenList) {
+	if (! token.getTokenClass().equals("ws")) { // only keep non-ws tokens
+	  minimalSentenceTokenList.add(token);
+	}
+      }
+      sentenceAnnotator.addPartOfSpeech(minimalSentenceTokenList);
+      for (ERToken token: minimalSentenceTokenList) {
+	pw.print(token.getText() + "(" + token.getPartOfSpeech() + "),");
+      }
+      pw.println("--");
+      pw.println("--phraselist--");
+      logger.debug("minimalSentenceTokenList: " + minimalSentenceTokenList);
+      List<Phrase> phraseList = this.chunkerMethod.applyChunker(minimalSentenceTokenList);
+      for (Phrase phrase: phraseList) {
+	pw.println("phrase: " + phrase.toString());
+      }
+      pw.println("-----------");
+      pw.println();
+    }
+  }    
+
+  void listChunks(String filename,
+		  List<BioCDocument> documentList)
+    throws IOException
+  {
+    
+    // output results for file
+    // create output filename
+    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String outputFilename = basename + ".chunks";
+    logger.info("outputing results to " + outputFilename);
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    listChunks(pw, documentList);
     pw.close();
   }
   
@@ -978,7 +1054,7 @@ public class MetaMapLite {
    * @throws InstantiationException exception instantiating instance of class
    * @throws InvocationTargetException exception while invoking target class 
    * @throws NoSuchMethodException  no method in class
- */
+   */
   public static void main(String[] args)
     throws IOException, FileNotFoundException,
 	   ClassNotFoundException, InstantiationException,
@@ -1073,8 +1149,10 @@ public class MetaMapLite {
 					       "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper");
 	    } else if (fields[0].equals("--enable_postagging")) {
 	      optionsConfiguration.setProperty("metamaplite.enable.postagging",fields[1]);
+	    } else if (fields[0].equals("--disable_chunker")) {
+	      optionsConfiguration.setProperty("metamaplite.disable.chunker","true");
 	    } else if (fields[0].equals("--brat_type_name")) {
-	      optionsConfiguration.setProperty("metamaplite.result.formatter.property.brat.typename", fields[1]);
+	      optionsConfiguration.setProperty("metamaplite.brat.typename", fields[1]);
 	    } else if (args[i].equals("--filelist")) {
 	      if (fields.length < 2) {
 		System.err.println("missing argument in \"" + args[i] + "\" option");
@@ -1094,6 +1172,8 @@ public class MetaMapLite {
 	      optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
 	    } else if (fields[0].equals("--list_sentences_postags")) {
 	      optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
+	    } else if (fields[0].equals("--list_chunks")) {
+	      optionsConfiguration.setProperty("metamaplite.list.chunks", "true");
 	    } else if (fields[0].equals("--output_extension")) {
 	      optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);
 	    } else if (fields[0].equals("--set_property")) {
@@ -1154,6 +1234,8 @@ public class MetaMapLite {
       boolean listSentencesWithPosTags =
 	Boolean.parseBoolean(properties.getProperty
 			     ("metamaplite.list.sentences.with.postags", "false"));
+      boolean listChunks = 
+	Boolean.parseBoolean(properties.getProperty("metamaplite.list.chunks", "false"));
       
       String inputfileListPropValue = properties.getProperty("metamaplite.inputfilelist");
       if (inputfileListPropValue != null) {
@@ -1200,6 +1282,8 @@ public class MetaMapLite {
 	  metaMapLiteInst.listAcronyms(documentList);
 	} else if (listSentencesWithPosTags) {
 	  metaMapLiteInst.listSentencesWithPosTags(documentList);
+	} else if (listChunks) {
+	  metaMapLiteInst.listChunks(documentList);
 	} else {
 	  metaMapLiteInst.listEntities(documentList,outputFormatOption);
 	}
@@ -1217,6 +1301,8 @@ public class MetaMapLite {
 	    metaMapLiteInst.listAcronyms(filename, documentList);
 	  } else if (listSentencesWithPosTags) {
 	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList);
+	  } if (listChunks) {
+	    metaMapLiteInst.listChunks(filename, documentList);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
 					 outputExtension, outputFormatOption);
