@@ -229,6 +229,7 @@ public class Entity implements Annotation, Comparable<Entity>
     for (Ev ev: this.evSet) {
       sb.append(ev).append("|");
     }
+    sb.append(this.negationStatus ? "negated" : "affirmed");
     return sb.toString();
   }
 
