@@ -2,29 +2,44 @@
 
 PROJECTDIR=$PWD
 
-ANALYZERS=$HOME/.m2/repository/org/apache/lucene/lucene-analyzers-common/4.10.0/lucene-analyzers-common-4.10.0.jar
-CORE=$HOME/.m2/repository/org/apache/lucene/lucene-core/4.10.0/lucene-core-4.10.0.jar
-QUERYPARSER=$HOME/.m2/repository/org/apache/lucene/lucene-queryparser/4.10.0/lucene-queryparser-4.10.0.jar
-OPENNLPTOOLS=$HOME/.m2/repository/org/apache/opennlp/opennlp-tools/1.5.3/opennlp-tools-1.5.3.jar
-OPENNLPMAXENT=$HOME/.m2/repository/org/apache/opennlp/opennlp-maxent/3.0.3/opennlp-maxent-3.0.3.jar
-LOG4JAPI=$HOME/.m2/repository/org/apache/logging/log4j/log4j-api/2.1/log4j-api-2.1.jar
-LOG4JCORE=$HOME/.m2/repository/org/apache/logging/log4j/log4j-core/2.1/log4j-core-2.1.jar
-BIOC=$HOME/.m2/repository/bioc/bioc/1.0.1/bioc-1.0.1.jar
-NLP=$HOME/.m2/repository/gov/nih/nlm/nls/nlp/2.4.C/nlp-2.4.C.jar
-CONTEXT=$HOME/.m2/repository/context/context/2012/context-2012.jar
-OPENCSV=$HOME/.m2/repository//net/sf/opencsv/opencsv/2.3/opencsv-2.3.jar
+PROJECTDIR=$(dirname $0)
 
-JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV
+BIOC=$PROJECTDIR/lib/bioc-1.0.1.jar
+LOG4JAPI=$PROJECTDIR/lib/log4j-api-2.1.jar
+ANALYZERS=$PROJECTDIR/lib/lucene-analyzers-common-4.10.0.jar
+QUERYIES=$PROJECTDIR/lib/lucene-queries-4.10.0.jar
+NLP=$PROJECTDIR/lib/nlp-2.4.C.jar
+OPENNLPTOOLS=$PROJECTDIR/lib/opennlp-tools-1.5.3.jar
+CONTEXT=$PROJECTDIR/lib/context-2012.jar
+LOG4JCORE=$PROJECTDIR/lib/log4j-core-2.1.jar
+CORE=$PROJECTDIR/lib/lucene-core-4.10.0.jar
+QUERYPARSER=$PROJECTDIR/lib/lucene-queryparser-4.10.0.jar
+OPENNLPMAXENT=$PROJECTDIR/lib/opennlp-maxent-3.0.3.jar
+OPENCSV=$PROJECTDIR/lib/opencsv-2.3.jar
+IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
+STRINGSIM=$HOME/.m2/repository/info/debatty/java-string-similarity/0.23/java-string-similarity-0.23.jar
+METAMAPLITE=$PROJECTDIR/target/metamaplite-3.4.jar
+JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS:$STRINGSIM:$METAMAPLITE
 
 # OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models
 OPENNLP_MODELS=$PROJECTDIR/data/models
 
-JVMOPTS="-Xmx4g -Den-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
-    -Den-token.bin.path=$OPENNLP_MODELS/en-token.bin \
-    -Den-pos-maxent.bin.path=$OPENNLP_MODELS/en-pos-maxent.bin \
+# metamaplite properties
+MML_OPTS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
+    -Dopennlp.en-token.bin.path=$OPENNLP_MODELS/en-token.bin \
+    -Dopennlp.en-pos.bin.path=$OPENNLP_MODELS/en-pos-perceptron.bin \
     -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
-    -Dmetamaplite.property.file=$PROJECTDIR/config/metamaplite.properties \
-    -Dmetamaplite.entitylookup.resultlength=1500"
-DEBUGOPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n"
+    -Dmetamaplite.entitylookup.resultlength=1500 \
+    -Dmetamaplite.index.directory=$PROJECTDIR/data/ivf/2017AA/USAbase/strict
+    -Dmetamaplite.ivf.cuiconceptindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/cuiconcept \
+    -Dmetamaplite.ivf.firstwordsofonewideindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/first_words_of_one_WIDE \
+    -Dmetamaplite.ivf.cuisourceinfoindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/cuisourceinfo \
+    -Dmetamaplite.ivf.cuisemantictypeindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/cuist \
+    -Dmetamaplite.ivf.varsindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/vars \
+    -Dmetamaplite.ivf.meshtcrelaxedindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/meshtcrelaxed \
+    -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
 
-java -cp $PROJECTDIR/target/classes:$JARSPATH $JVMOPTS $* 
+java $MML_JVM_OPTS -cp $PROJECTDIR/target/classes:$PROJECTDIR/build/classes:$PROJECTDIR/classes:$JARSPATH:$CONFIGDIR $MML_OPTS $*
+
+
+
