@@ -53,7 +53,7 @@ Example of invocation using script:
 
 Example of invocation using Java VM directly:
 
-    $ java -cp public_mm_lite/target/metamaplite-3.4-standalone.jar \
+    $ java -cp public_mm_lite/target/metamaplite-3.6-standalone.jar \
           gov.nih.nlm.nls.ner.MetaMapLite \
           --indexdir=public_mm_lite/data/ivf/strict \
           --modelsdir=public_mm_lite/data/models \
@@ -406,13 +406,17 @@ Set as system property:
 
     -Dmetamaplite.result.formatter.<name>=<fully-specified class name>
 
-For example creating a formatter with the name "brat":
+For example creating a formatter with the name "bratsemtype":
 
-    -Dmetamaplite.result.formatter.brat=gov.nih.nlm.nls.metamap.lite.resultformats.Brat
+    -Dmetamaplite.result.formatter.brat=examples.BratSemType
 
 Or add it to config/metamaplite.properties:
 
-    metamaplite.result.formatter.brat: gov.nih.nlm.nls.metamap.lite.resultformats.Brat
+     metamaplite.result.formatter.brat: examples.BratSemType
+
+Source code for the BratSemType result formatter is provided in the directory
+public\_mm_lite/src/main/java/examples/BratSemType.java.
+
 
 ## A BioC XML to A BioC XML implementation of MetaMapLite
 
