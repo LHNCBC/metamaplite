@@ -23,6 +23,7 @@ metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
 opennlp.en-sent.bin.path: @@basedir@@/data/models/en-sent.bin
 opennlp.en-token.bin.path: @@basedir@@/data/models/en-token.bin
 opennlp.en-pos-maxent.bin.path: @@basedir@@/data/models/en-pos-maxent.bin
+opennlp.en-chunker.bin.path: @@basedir@@/data/models/en-chunker.bin
 
 # What should a pipeline look-like?
 #
