@@ -291,6 +291,8 @@ public class EntityLookup4 implements EntityLookup {
    *             "Thyroid"
    *    ...
    * @param docid document id
+   * @param fieldid field id
+   * @param sentenceNumber numeric index of sentence 
    * @param tokenList tokenlist of document
    * @return Span to entity map + token length map instance
    * @throws FileNotFoundException file not found exception
@@ -502,9 +504,10 @@ public class EntityLookup4 implements EntityLookup {
   public static boolean isEntitySubsumed(Entity entity, Collection<Entity> entityColl) {
     List<Entity> subsumingEntityList = new ArrayList<Entity>();
     for (Entity otherEntity: entityColl) {
-      if ((entity.getStart() >= otherEntity.getStart()) &&
-	  (entity.getLength() < otherEntity.getLength())) {
-	subsumingEntityList.add(otherEntity);
+      if ((entity.getText() != otherEntity.getText()) &&
+	  (entity.getStart() >= otherEntity.getStart()) &&
+	  (entity.getStart()+entity.getLength() <= otherEntity.getStart()+otherEntity.getLength())) {
+	  subsumingEntityList.add(otherEntity);
       }
     }
     return subsumingEntityList.size() > 0;

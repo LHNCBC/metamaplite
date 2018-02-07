@@ -305,7 +305,8 @@ public class EntityLookup5 implements EntityLookup {
    * @param fieldid id of field in document
    * @param sentenceNumber number of sentence in field
    * @param tokenList tokenlist of document
-   * @param phraseTokenList 
+   * @param phraseTokenList list of tokens in phrase
+   * @param phraseType   type of phrase (noun, verb, prep, etc.) 
    * @return Span to entity map + token length map instance
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
@@ -522,6 +523,7 @@ public class EntityLookup5 implements EntityLookup {
    * @param matchTokenList entity matched text tokenlist
    * @param headPos position of head of phrase
    * @param targetOffset offset of target entity.
+   * @return true if head of phrase in matched token list.
    */
   public boolean isHeadInMatchedTokenList(List<ERToken> phraseTokenList, List<ERToken> matchTokenList, int headPos, int targetOffset) {
     if (phraseTokenList.get(headPos).getOffset() == targetOffset) {
@@ -577,7 +579,9 @@ public class EntityLookup5 implements EntityLookup {
     double sum = 0;
     double centrality =
       isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, matchedTermOffset) ? 1.0 : 0.0;
-    double variation = 4.0/(variantLookup.lookupVariant(matchedText, metaTerm) + 4.0 );
+    // double variation = 4.0/(variantLookup.lookupVariant(matchedText, metaTerm) + 4.0 );
+    double variation = Scoring.computeVariation(matchedText, metaTerm,
+						matchTokenList, variantLookup);
     // coverage steps:
     //  1. extract components
     // extractComponents();
@@ -701,6 +705,7 @@ public class EntityLookup5 implements EntityLookup {
    *  http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/nls/tree/mmtx/sources/gov/nih/nlm/nls/mmtx/dfbuilder/ExtractMrconsoSources.java
    *
    * @param docid document id
+   * @param fieldid field id
    * @param sentenceTokenList sentence to be examined.
    * @param semTypeRestrictSet semantic type 
    * @param sourceRestrictSet source list to restrict to
@@ -775,9 +780,10 @@ public class EntityLookup5 implements EntityLookup {
   public static boolean isEntitySubsumed(Entity entity, Collection<Entity> entityColl) {
     List<Entity> subsumingEntityList = new ArrayList<Entity>();
     for (Entity otherEntity: entityColl) {
-      if ((entity.getStart() >= otherEntity.getStart()) &&
-	  (entity.getLength() < otherEntity.getLength())) {
-	subsumingEntityList.add(otherEntity);
+      if ((entity.getText() != otherEntity.getText()) &&
+	  (entity.getStart() >= otherEntity.getStart()) &&
+	  (entity.getStart()+entity.getLength() <= otherEntity.getStart()+otherEntity.getLength())) {
+	  subsumingEntityList.add(otherEntity);
       }
     }
     return subsumingEntityList.size() > 0;
