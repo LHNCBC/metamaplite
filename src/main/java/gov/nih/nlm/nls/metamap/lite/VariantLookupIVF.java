@@ -40,7 +40,8 @@ public class VariantLookupIVF implements VariantLookup {
   /**
    * Get variant records for term
    * @param term user supplied term
-   * @param list of variant records with matching term
+   * @return list of variant records with matching term
+   * @throws IOException i/o exception
    */
   public List<String[]> getVariantsForTerm(String term)
     throws IOException {
@@ -58,7 +59,8 @@ public class VariantLookupIVF implements VariantLookup {
   /**
    * Get variant records for word
    * @param word user supplied word
-   * @param list of variant records with matching word
+   * @return list of variant records with matching word
+   * @throws IOException i/o exception
    */
   public List<String[]> getVariantsForWord(String word)
     throws IOException {
@@ -95,5 +97,24 @@ public class VariantLookupIVF implements VariantLookup {
     }
     return variance;
   }
+
+  public int lookupVariant(String term) {
+     int variance = 9;		// maximum variance (should this value be larger?)
+    try {
+      logger.debug("term: " + term);
+      for (String[] varFields: this.getVariantsForTerm(term.toLowerCase())) {
+	if ((varFields[2].toLowerCase().equals(term.toLowerCase()))) {
+	  variance = Integer.parseInt(varFields[4]); // use varlevel field
+	  logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+	} else {
+	  logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+	}
+      }
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+    return variance;
+  }
+  
 }
 

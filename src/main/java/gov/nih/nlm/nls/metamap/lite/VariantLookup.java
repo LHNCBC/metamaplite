@@ -11,4 +11,5 @@ package gov.nih.nlm.nls.metamap.lite;
  */
 public interface VariantLookup {
   int lookupVariant(String term, String word);
+  int lookupVariant(String term);
 }
