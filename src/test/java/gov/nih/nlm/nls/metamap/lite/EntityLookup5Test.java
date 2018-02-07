@@ -27,6 +27,9 @@ public class EntityLookup5Test {
 
   Set<Entity> initialEntitySet = new HashSet<Entity>();
   Set<Entity> expectedEntitySet = new HashSet<Entity>();
+  Set<Entity> initialEntitySet1 = new HashSet<Entity>();
+  Set<Entity> expectedEntitySet1 = new HashSet<Entity>();
+
   
   /**
    * Creates a new <code>EntityLookup5Test</code> instance.
@@ -34,20 +37,18 @@ public class EntityLookup5Test {
    */
   public EntityLookup5Test() {
     // initial entity set
-    this.initialEntitySet.add(new Entity("00", "Sleep",                   12, 5, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "Sleep Apnea",             12, 11, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet.add(new Entity("00",             "Sleep Apnea", 12, 11, 0.0, new HashSet<Ev>()));
     this.initialEntitySet.add(new Entity("00", "Obstructive Sleep Apnea",  0, 23, 0.0, new HashSet<Ev>()));
     this.initialEntitySet.add(new Entity("00", "Obstructive",              0, 11, 0.0, new HashSet<Ev>()));
-    
-    this.initialEntitySet.add(new Entity("00", "BLOOD",              0, 5, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "blood sugar",        0, 11, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "blood sugar level",  0, 17, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "level",             12, 5, 0.0, new HashSet<Ev>()));
-    this.initialEntitySet.add(new Entity("00", "sugar",              6, 5, 0.0, new HashSet<Ev>()));
-    
     // expected entity set
     this.expectedEntitySet.add(new Entity("00", "Obstructive Sleep Apnea", 0, 23, 0.0, new HashSet<Ev>()));
-    this.expectedEntitySet.add(new Entity("00", "blood sugar level", 0, 23, 0.0, new HashSet<Ev>()));
+    
+    this.initialEntitySet1.add(new Entity("00", "blood sugar",              0, 11, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet1.add(new Entity("00", "blood sugar level",        0, 17, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet1.add(new Entity("00",             "level",       12,  5, 0.0, new HashSet<Ev>()));
+    this.initialEntitySet1.add(new Entity("00",       "sugar",              6,  5, 0.0, new HashSet<Ev>()));
+    // expected entity set
+    this.expectedEntitySet1.add(new Entity("00", "blood sugar level",       0, 17, 0.0, new HashSet<Ev>()));
   }
 
   @org.junit.Before public void setup() {
@@ -55,6 +56,16 @@ public class EntityLookup5Test {
 
   @org.junit.Test public void testRemoveSubsumedEntities() {
     Set<Entity> newEntitySet = EntityLookup5.removeSubsumedEntities(this.initialEntitySet);
+    System.out.println("expectedEntitySet: " + this.expectedEntitySet);
+    System.out.println("newEntitySet: " + newEntitySet);
     org.junit.Assert.assertTrue(newEntitySet.equals(this.expectedEntitySet));
+
+    Set<Entity> newEntitySet1 = EntityLookup5.removeSubsumedEntities(this.initialEntitySet1);
+    System.out.println("expectedEntitySet: " + this.expectedEntitySet1);
+    System.out.println("newEntitySet: " + newEntitySet1);
+    org.junit.Assert.assertTrue(newEntitySet1.equals(this.expectedEntitySet1));
   }
+
+
+
 }
