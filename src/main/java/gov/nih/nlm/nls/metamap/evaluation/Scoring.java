@@ -33,9 +33,10 @@ public class Scoring {
    * @param isHead does string involve head of phrase.
    * @return 1 if the string involves the head of the
    */
- int computeCentrality(boolean isHead) {
+  public static int computeCentrality(boolean isHead) {
    // The system currently does not use a parser of any kind so doesn't
    // have a concept of phrases.
+    // fix this
    return isHead ? 1 : 0;
   }
 
@@ -47,21 +48,39 @@ public class Scoring {
    * for each step taken during variant generation.  V=4/(D+4)  The final
    * variation value for the candidate is the average fo the values for each
    * of the variants.
+   *
+   * |     variant type     | distance |
+   * |                      |  value   |
+   * |----------------------+----------|
+   * |             spelling |    0     |
+   * |         inflectional |    1     |
+   * |           synonym or |    2     |
+   * | acronym/abbreviation |          |
+   * |             spelling |    3     |
+   * 
+   * 
+   * 
+   * 
+   * 
    * @param term target term
    * @param mstring metathesaurus string
    * @param tokenList tokenlist of target term
    * @param lookupInstance 
+   * @return amount of variation between term and metathesaurus string
    */
-  double computeVariation(String term,
+  public static double computeVariation(String term,
 			  String mstring,
 			  List<ERToken> tokenList,
 			  VariantLookup lookupInstance) {
-    int varlevel = lookupInstance.lookupVariant(term, mstring);
+    // int varlevel = lookupInstance.lookupVariant(term, mstring);
+    int n = 0;
+    int sum = 0;
     for (ERToken token: tokenList) {
-      
+      int D = lookupInstance.lookupVariant(token.getText());
+      sum = sum + (4/(D+4));
+      n++;
     }
-    
-    return 0.0;
+    return sum/n;
   }
 
   /**
@@ -81,15 +100,16 @@ public class Scoring {
    * @param nTokenPhraseWords Number of tokens in phrase
    * @param metaSpan          length of metathesuarus term span in phrase
    * @param nMetaWords        Number of tokens in metathesuarus term
+   * @return coverage value
    */ 
-  double computeCoverage(int phraseSpan,
+  public static double computeCoverage(int phraseSpan,
 			 int nTokenPhraseWords,
 			 int metaSpan,
 			 int nMetaWords) {
     return ((phraseSpan / nTokenPhraseWords) + (2 * (metaSpan / nMetaWords)))/3.0;
   }
 
-  double computeInvolvement(int sizeOfPhrase,
+  public static double computeInvolvement(int sizeOfPhrase,
 			    int numPhraseSpan,
 			    int numCandidateSpan,
 			    int numWords) {
@@ -115,8 +135,9 @@ public class Scoring {
    * @param nTokenPhraseWords Number of tokens in phrase
    * @param metaSpan          length of metathesuarus term span in phrase
    * @param nMetaWords        Number of tokens in metathesuarus term
+   * @return measured cohesiveness value
    */
-  double conputeCohesiveness(int phraseSpan,
+  public static double computeCohesiveness(int phraseSpan,
 			     int nTokenPhraseWords,
 			     int metaSpan,
 			     int nMetaWords) {
@@ -125,7 +146,7 @@ public class Scoring {
   }
 
 
-  public double combineValues(double centralityValue, 
+  public static double combineValues(double centralityValue, 
 			      double variationValue, 
 			      double coverageValue, 
 			      double cohesivenessValue) {
