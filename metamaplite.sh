@@ -28,6 +28,7 @@ MML_JVM_OPTS=-Xmx12g
 MMLPROPS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dopennlp.en-token.bin.path=$OPENNLP_MODELS/en-token.bin \
     -Dopennlp.en-pos.bin.path=$OPENNLP_MODELS/en-pos-perceptron.bin \
+    -Dopennlp.en-chunker.bin.path=$OPENNLP_MODELS/en-chunker.bin \
     -Dlog4j.configurationFile=$PROJECTDIR/config/log4j2.xml \
     -Dmetamaplite.entitylookup.resultlength=1500 \
     -Dmetamaplite.ivf.cuiconceptindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/cuiconcept \
