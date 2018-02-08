@@ -15,7 +15,7 @@ set OPENNLPMAXENT=%projectdir%/lib/opennlp-maxent-3.0.3.jar
 set OPENCSV=%projectdir%/lib/opencsv-2.3.jar
 set IRUTILS=%projectdir%/lib/irutils-2.0-SNAPSHOT.jar
 set STRINGSIM=%projectdir%/lib/java-string-similarity-0.23.jar
-set METAMAPLITE=%projectdir%/target/metamaplite-3.4.jar
+set METAMAPLITE=%projectdir%/target/metamaplite-3.6.1.jar
 set JARSPATH=%ANALYZERS%;%CORE%;%QUERYPARSER%;%OPENNLPTOOLS%;%OPENNLPMAXENT%;%BIOC%;%NLP%;%LOG4JAPI%;%LOG4JCORE%;%CONTEXT%;%STRINGSIM%;%METAMAPLITE%
 
 set OPENNLP_MODELS=%projectdir%/data/models
