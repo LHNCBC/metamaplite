@@ -14,14 +14,14 @@ set QUERYPARSER=%projectdir%/lib/lucene-queryparser-4.10.0.jar
 set OPENNLPMAXENT=%projectdir%/lib/opennlp-maxent-3.0.3.jar
 set OPENCSV=%projectdir%/lib/opencsv-2.3.jar
 set IRUTILS=%projectdir%/lib/irutils-2.0-SNAPSHOT.jar
-set METAMAPLITE=%projectdir%/lib/target/metamaplite-3.6.1.jar
+set METAMAPLITE=%projectdir%/target/metamaplite-3.6.1.jar
 
 set JARSPATH=%ANALYZERS%;%CORE%;%QUERYPARSER%;%OPENNLPTOOLS%;%OPENNLPMAXENT%;%BIOC%;%NLP%;%LOG4JAPI%;%LOG4JCORE%;%CONTEXT%;%OPENCSV%;%IRUTILS%;%METAMAPLITE%
 
 set OPENNLP_MODELS=%projectdir%/data/models
 set CONFIGDIR=%projectdir%/config
 
-set JVMOPTS=-Den-sent.bin.path=%OPENNLP_MODELS%/en-sent.bin -Den-token.bin.path=%OPENNLP_MODELS%/en-token.bin -Den-pos-maxent.bin.path=%OPENNLP_MODELS%/en-pos-maxent.bin -Dopennlp.en-chunker.bin.path=%OPENNLP_MODELS%/en-chunker.bin -Dlog4j.configurationFile=file://%projectdir%/config/log4j2.xml -Dmetamaplite.property.file=%CONFIGDIR%/metamaplite.properties -Dmetamaplite.entitylookup.resultlength=1500 -Dmetamaplite.cuiconceptindex=%projectdir%/data/lucenedb/strict/cuiconcept -Dmetamaplite.firstwordsofonewideindex=%projectdir%/data/lucenedb/strict/first_words_of_one_WIDE -Dmetamaplite.cuisourceinfoindex=%projectdir%/data/lucenedb/strict/cui_sourceinfo -Dmetamaplite.cuisemantictypeindex=%projectdir%/data/lucenedb/strict/cui_st -Dmetamaplite.varsindex=%projectdir%/data/lucenedb/strict/vars
+set JVMOPTS=-Den-sent.bin.path=%OPENNLP_MODELS%/en-sent.bin -Den-token.bin.path=%OPENNLP_MODELS%/en-token.bin -Den-pos-maxent.bin.path=%OPENNLP_MODELS%/en-pos-maxent.bin -Dopennlp.en-chunker.bin.path=%OPENNLP_MODELS%/en-chunker.bin -Dlog4j.configurationFile=file://%projectdir%/config/log4j2.xml -Dmetamaplite.property.file=%CONFIGDIR%/metamaplite.properties -Dmetamaplite.entitylookup.resultlength=1500 -Dmetamaplite.ivf.cuiconceptindex=%projectdir%/data/ivf/2017AA/USAbase/strict/cuiconcept -Dmetamaplite.ivf.firstwordsofonewideindex=%projectdir%/data/ivf/2017AA/USAbase/strict/first_words_of_one_WIDE -Dmetamaplite.ivf.cuisourceinfoindex=%projectdir%/data/ivf/2017AA/USAbase/strict/cuisourceinfo -Dmetamaplite.ivf.cuisemantictypeindex=%projectdir%/data/ivf/2017AA/USAbase/strict/cuist -Dmetamaplite.ivf.varsindex=%projectdir%/data/ivf/2017AA/USAbase/strict/vars -Dmetamaplite.ivf.meshtcrelaxedindex=$PROJECTDIR/data/ivf/2017AA/USAbase/strict/indices/meshtcrelaxed
 
 java -cp %projectdir%/target/classes;%projectdir%/build/classes;%projectdir%/classes;%JARSPATH%;%CONFIGDIR% %JVMOPTS% gov.nih.nlm.nls.ner.MetaMapLite %* 
 
