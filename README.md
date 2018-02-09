@@ -485,13 +485,12 @@ abbreviation detector or the negation detector.   This should be
 relatively simple to add (particularly the abbreviation detector) and
 will probably be added in the next release.
 
-## Future
+## Future Work
 
-+ add optional scoring
-+ Use |vars| files to add lexical distance for optional scoring
++ Add support for composite phrases from chunked phrases
 + Create a ReSTful interface for MetaMapLite.
-+ Create a pipeline using a chunker.
 + Create a pipeline using a full parser.
 + Add a mechanism to use custom user-supplied segmenters.
+
 
 
