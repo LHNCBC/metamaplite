@@ -1,4 +1,4 @@
-(defproject gov.nih.nlm.nls/metamaplite "3.4"
+(defproject gov.nih.nlm.nls/metamaplite "3.6.1"
   :description "Clojure code for exploring MetaMapLite in lieu of a debugger."
   :url "http://usa.gov/"
   :min-lein-version "2.0.0"
@@ -25,6 +25,7 @@
                  [io.forward/yaml "1.0.5"]
                  [context "2012"] ;; see context/* under src/main/java/
                  [bioc "1.0.1"]
+                 ;; [gov.nih.nlm.nls/aec_mrd_wsd "1.0-SNAPSHOT"]
                  [junit/junit "4.11"]
                  [umls-tables "0.1.0-SNAPSHOT"]
                  [skr "0.1.0-SNAPSHOT"]
