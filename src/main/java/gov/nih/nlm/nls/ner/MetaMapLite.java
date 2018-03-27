@@ -1166,9 +1166,9 @@ public class MetaMapLite {
 	      } else {
 		optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
 	      }
-	    } else if (fields[0].equals("--list_sentences")) {
-	      optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
 	    } else if (fields[0].equals("--list_acronyms")) {
+	      optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
+	    } else if (fields[0].equals("--list_sentences")) {
 	      optionsConfiguration.setProperty("metamaplite.list.sentences", "true");
 	    } else if (fields[0].equals("--list_sentences_postags")) {
 	      optionsConfiguration.setProperty("metamaplite.list.sentences.with.postags", "true");
@@ -1227,10 +1227,10 @@ public class MetaMapLite {
       if (properties.containsKey("metamaplite.outputextension")) {
 	outputExtension = properties.getProperty("metamaplite.outputextension");
       }
-      boolean listSentences =
-	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
-      boolean listAcronyms =
+      boolean listSentencesOption =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
+      boolean listAcronymsOption =
+	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
       boolean listSentencesWithPosTags =
 	Boolean.parseBoolean(properties.getProperty
 			     ("metamaplite.list.sentences.with.postags", "false"));
@@ -1276,9 +1276,9 @@ public class MetaMapLite {
 	  logger.info("Reading and processing documents from standard input");
 	}
 	List<BioCDocument> documentList = docLoader.readAsBioCDocumentList(new InputStreamReader(System.in));
-	if (listSentences) {
+	if (listSentencesOption) {
 	  metaMapLiteInst.listSentences(documentList);
-	} else if (listAcronyms) {
+	} else if (listAcronymsOption) {
 	  metaMapLiteInst.listAcronyms(documentList);
 	} else if (listSentencesWithPosTags) {
 	  metaMapLiteInst.listSentencesWithPosTags(documentList);
@@ -1295,13 +1295,13 @@ public class MetaMapLite {
 	  }
 	  logger.info("Loading and processing " + filename);
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
-	  if (listSentences) {
+	  if (listSentencesOption) {
 	    metaMapLiteInst.listSentences(filename, documentList);
-	  } else if (listAcronyms) {
+	  } else if (listAcronymsOption) {
 	    metaMapLiteInst.listAcronyms(filename, documentList);
 	  } else if (listSentencesWithPosTags) {
 	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList);
-	  } if (listChunks) {
+	  } else if (listChunks) {
 	    metaMapLiteInst.listChunks(filename, documentList);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
