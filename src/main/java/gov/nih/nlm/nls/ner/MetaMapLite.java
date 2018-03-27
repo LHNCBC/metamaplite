@@ -157,7 +157,7 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  * Properties are prefixed with string: "bioc.document.loader.freetext"
  * followed by a period with the name of the document loader.
  * <dl>
- * <dt>bioc.document.loader.{name}<dt><dd>classname</dd>
+ * <dt>bioc.document.loader.{name}</dt><dd>classname</dd>
  * </dl>
  * The class must implement the gov.nih.nlm.nls.metamap.document.BioCDocumentLoader interface.
  * <dl>
@@ -170,7 +170,7 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  * Properties are prefixed with string: "metamaplite.result.formatter"
  * followed by a period with the name of the formatter.
  * <dl>
- * <dt>metamaplite.result.formatter.{name}<dt><dd>classname</dd>
+ * <dt>metamaplite.result.formatter.{name}</dt><dd>classname</dd>
  * </dl>
  * The class must implement 
  * <dl>
@@ -493,6 +493,7 @@ public class MetaMapLite {
       passageWithSentsAndAbbrevs.addRelation(rel);
     }
     for (BioCSentence sentence: passage0.getSentences()) {
+        // Find any abbreviations in sentence and add them as annotations referenced by relations.
       BioCSentence newSentence = abbrConverter.getSentence(sentence);
       passageWithSentsAndAbbrevs.addSentence(newSentence);
       for (BioCAnnotation note : newSentence.getAnnotations() ) {
@@ -616,12 +617,12 @@ public class MetaMapLite {
     System.err.println("  --list_acronyms");
     System.err.println("  --list_chunks");
     System.err.println("configuration options:");
-    System.err.println("  --configfile=<filename>");
-    System.err.println("  --indexdir=<directory>");
-    System.err.println("  --modelsdir=<directory>");
-    System.err.println("  --specialtermsfile=<filename>");
-    System.err.println("  --filelistfn=<filename>");
-    System.err.println("  --filelist=<file0,file1,...>");
+    System.err.println("  --configfile=<filename>  Use configuration file (default: config/metamaplite.properties");
+    System.err.println("  --indexdir=<directory>   Set directory containing UMLS indexes");
+    System.err.println("  --modelsdir=<directory>  Set OpenNLP model directory");
+    System.err.println("  --specialtermsfile=<filename> Set location of specialterms file");
+    System.err.println("  --filelistfn=<filename>  name of file containing list of files to be processed.");
+    System.err.println("  --filelist=<file0,file1,...>  comma-separated list of files to be processed.");
   }
 
   public static void expandModelsDir(Properties properties, String modelsDir) {
@@ -783,6 +784,26 @@ public class MetaMapLite {
     return properties;
   }
 
+  void listEntities(List<BioCDocument> documentList,
+		    PrintWriter pw,
+		    String outputFormatOption)
+    throws IllegalAccessException, InvocationTargetException, IOException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+
+    logger.info("outputing results to standard output." );
+    // format output
+    ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
+    if (formatter != null) {
+      formatter.initProperties(this.properties);
+      formatter.entityListFormatter(pw, entityList);
+    } else {
+      System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
+    }
+    pw.flush();
+  }
+
   /** list entities using document list from stdin 
    * @param documentList list of BioC documents
    */
@@ -843,21 +864,13 @@ public class MetaMapLite {
 
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
-    // format output
-    ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
-    if (formatter != null) {
-      formatter.initProperties(this.properties);
-      formatter.entityListFormatter(pw, entityList);
-    } else {
-      System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
-    }
-    pw.flush();
-    pw.close();
+    listEntities(documentList, pw, outputFormatOption);
   }
 
   /** list entities using document list from stdin 
    * @param filename filename
    * @param documentList list of BioC documents
+   * @throws IOException i/o exception
    */
   void listSentences(String filename, 
 		     List<BioCDocument> documentList)
@@ -959,6 +972,22 @@ public class MetaMapLite {
     pw.close();
   }
   
+  void listEntities(String outputFilename, 
+		    List<BioCDocument> documentList,
+		    String outputFormatOption)
+    throws IOException, IllegalAccessException, InvocationTargetException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+    logger.info("outputing results to " + outputFilename);
+    
+    // output results for file
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    listEntities(documentList, pw, outputFormatOption);
+    pw.close();
+  } /* processFile */
+
   void listEntities(String filename, 
 		    List<BioCDocument> documentList,
 		    String outputExtension,
@@ -980,16 +1009,10 @@ public class MetaMapLite {
     // output results for file
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFilename)));
-    // format output
-    ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
-    if (formatter != null) {
-      formatter.initProperties(this.properties);
-      formatter.entityListFormatter(pw, entityList);
-    } else {
-      System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
-    }
+    listEntities(documentList, pw, outputFormatOption);
     pw.close();
   } /* processFile */
+
 
   /**
    * log information about caches.
