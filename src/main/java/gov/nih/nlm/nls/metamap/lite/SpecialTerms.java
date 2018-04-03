@@ -84,6 +84,8 @@ public class SpecialTerms {
    * </pre>
    * @param filename input filename
    * @return set of terms
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public Set<String> loadTerms(String filename)
     throws FileNotFoundException, IOException
@@ -120,7 +122,8 @@ public class SpecialTerms {
   }
 
   public boolean isExcluded(String cui, String term) {
-    return this.specialTerms.contains(makeKey(cui,term));
+    return this.specialTerms.contains(makeKey(cui,term)) ||
+      this.specialTerms.contains(makeKey("*", term));
   }
   public int size() {
     return this.specialTerms.size();
