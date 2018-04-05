@@ -160,16 +160,18 @@ public class OpenNLPChunker implements ChunkerMethod {
     List<ERToken> cTokenList = new ArrayList<ERToken>();
     for (String tagChunk: tag) {
       // logger.debug(tagChunk + "-chunk");
-      String fields[] = tagChunk.split("-");
-      if (fields[0].equals("B")) {
-	if (cTokenList.size() > 0) {
-	  chunkList.add(new PhraseImpl(cTokenList, phraseTag));
-	  cTokenList = new ArrayList();
+      if (i < tokenList.size()) {
+	String fields[] = tagChunk.split("-");
+	if (fields[0].equals("B")) {
+	  if (cTokenList.size() > 0) {
+	    chunkList.add(new PhraseImpl(cTokenList, phraseTag));
+	    cTokenList = new ArrayList();
+	  }
+	  phraseTag = fields[1];
+	  cTokenList.add(tokenList.get(i));
+	} else if (fields[0].equals("I") || fields[0].equals("O")) {
+	  cTokenList.add(tokenList.get(i));
 	}
-	phraseTag = fields[1];
-	cTokenList.add(tokenList.get(i));
-      } else if (fields[0].equals("I") || fields[0].equals("O")) {
-	cTokenList.add(tokenList.get(i));
       }
       i++;
     }
