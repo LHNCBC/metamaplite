@@ -212,6 +212,9 @@ public class MetaMapLite {
 
   SegmentatonType segmentationMethod = SegmentatonType.SENTENCES;
 
+  /** end of citation output marker */
+  public static String eotString = "<<< EOT >>>";
+
   /** did user specify part-of-speech tagging? */
   boolean addPartOfSpeechTagsFlag;
   ChunkerMethod chunkerMethod;
@@ -233,18 +236,12 @@ public class MetaMapLite {
     boolean enableScoring = false;
     if (properties.containsKey("metamaplite.outputformat")) {
       if (properties.get("metamaplite.outputformat").equals("mmi")) {
-	enableScoring = true;
+	properties.setProperty("metamaplite.enable.scoring","true");
       }
     }
     if (properties.containsKey("metamaplite.enable.scoring")) {
       if (Boolean.parseBoolean(properties.getProperty("metamaplite.enable.scoring"))) {
-	enableScoring = true;
       }
-    }
-    if (enableScoring) {
-      this.entityLookup = new EntityLookup5(properties);
-    } else {
-      this.entityLookup = new EntityLookup4(properties);
     }
     BioCDocumentLoaderRegistry.register("bioc",
 					"For BioC XML documents.", 
@@ -481,7 +478,6 @@ public class MetaMapLite {
       passage0 = passage;
       break;
     }
-    //BioCPassage passageWithSentsAndAbbrevs = abbrConverter.getPassage(passage0);
     BioCPassage passageWithSentsAndAbbrevs = new BioCPassage();
     passageWithSentsAndAbbrevs.setInfons( passage0.getInfons() );
     passageWithSentsAndAbbrevs.setOffset( passage0.getOffset() );
@@ -493,12 +489,14 @@ public class MetaMapLite {
       passageWithSentsAndAbbrevs.addRelation(rel);
     }
     for (BioCSentence sentence: passage0.getSentences()) {
-        // Find any abbreviations in sentence and add them as annotations referenced by relations.
+      // Find any abbreviations in sentence and add them as annotations referenced by relations.
       BioCSentence newSentence = abbrConverter.getSentence(sentence);
       passageWithSentsAndAbbrevs.addSentence(newSentence);
+      // Copy any annotations from sentences to passage.
       for (BioCAnnotation note : newSentence.getAnnotations() ) {
 	passageWithSentsAndAbbrevs.addAnnotation( abbrConverter.getAnnotation(note) );
       }
+      // Copy any relations from sentences to passage.
       for (BioCRelation rel : newSentence.getRelations() ) {
 	passageWithSentsAndAbbrevs.addRelation(rel);
       }
@@ -525,7 +523,11 @@ public class MetaMapLite {
     } else if (document.getID().trim().equals("")) {
       document.setID("0000000.TXT");
     }
+    Map<String,String> docInfoMap = new HashMap<String,String>();
+    docInfoMap.put("docid", document.getID());
+    document.setInfons(docInfoMap);
     for (BioCPassage passage: document.getPassages()) {
+      passage.setInfons(docInfoMap);
       entityList.addAll(processPassage(passage));
     }
     return entityList;
@@ -534,6 +536,15 @@ public class MetaMapLite {
   public List<Entity> processDocumentList(List<BioCDocument> documentList)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
+    if (Boolean.parseBoolean(this.getProperties().getProperty("metamaplite.enable.scoring"))) {
+      // Don't re-instantiate EntityLookup5 if instance exists.
+      if ((this.entityLookup == null) ||
+	  (! (this.entityLookup instanceof EntityLookup5))) {
+	this.entityLookup = new EntityLookup5(properties);
+      }
+    } else {
+      this.entityLookup = new EntityLookup4(properties);
+    }
     List<Entity> entityList = new ArrayList<Entity>();    
     for (BioCDocument document: documentList) {
       entityList.addAll(this.processDocument(document));
@@ -614,6 +625,7 @@ public class MetaMapLite {
     // System.err.println("  --luceneresultlen=<length>");
     System.err.println("alternate output options:");
     System.err.println("  --list_sentences");
+    System.err.println("  --list_sentences_postags");
     System.err.println("  --list_acronyms");
     System.err.println("  --list_chunks");
     System.err.println("configuration options:");
@@ -623,6 +635,9 @@ public class MetaMapLite {
     System.err.println("  --specialtermsfile=<filename> Set location of specialterms file");
     System.err.println("  --filelistfn=<filename>  name of file containing list of files to be processed.");
     System.err.println("  --filelist=<file0,file1,...>  comma-separated list of files to be processed.");
+    System.err.println("scheduler options:");
+    System.err.println("  --scheduler              use: \"program inputfilename outputfilename\" scheduler convention.");
+    System.err.println("  -E (--indicate_citation_end)  emit citation end at end of input.");
   }
 
   public static void expandModelsDir(Properties properties, String modelsDir) {
@@ -972,22 +987,6 @@ public class MetaMapLite {
     pw.close();
   }
   
-  void listEntities(String outputFilename, 
-		    List<BioCDocument> documentList,
-		    String outputFormatOption)
-    throws IOException, IllegalAccessException, InvocationTargetException, Exception
-  {
-    // process documents
-    List<Entity> entityList = this.processDocumentList(documentList);
-    logger.info("outputing results to " + outputFilename);
-    
-    // output results for file
-    PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
-    listEntities(documentList, pw, outputFormatOption);
-    pw.close();
-  } /* processFile */
-
   void listEntities(String filename, 
 		    List<BioCDocument> documentList,
 		    String outputExtension,
@@ -1013,6 +1012,21 @@ public class MetaMapLite {
     pw.close();
   } /* processFile */
 
+  void listEntities(String outputFilename, 
+		    List<BioCDocument> documentList,
+		    String outputFormatOption)
+    throws IOException, IllegalAccessException, InvocationTargetException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+    logger.info("outputing results to " + outputFilename);
+    
+    // output results for file
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    listEntities(documentList, pw, outputFormatOption);
+    pw.close();
+  } /* processFile */
 
   /**
    * log information about caches.
