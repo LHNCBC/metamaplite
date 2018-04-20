@@ -4,7 +4,7 @@
   <groupId>gov.nih.nlm.nls</groupId>
   <artifactId>metamaplite</artifactId>
   <packaging>jar</packaging>
-  <version>3.6.1</version>
+  <version>3.6.1p1</version>
   <name>metamaplite</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -89,6 +89,11 @@
     </repository>
   </repositories>
   <dependencies>
+    <dependency>
+      <groupId>com.github.jankroken</groupId>
+      <artifactId>commandline</artifactId>
+      <version>1.7.0</version>
+    </dependency>
     <!-- dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-analyzers-common</artifactId>
@@ -120,17 +125,17 @@
       <version>3.0.3</version>
     </dependency>
 
-    <!-- dependency>
+    <dependency>
       <groupId>edu.stanford.nlp</groupId>
       <artifactId>stanford-corenlp</artifactId>
-      <version>3.3.1</version>
-    </dependency -->
-    <!-- dependency>
+      <version>3.9.1</version>
+    </dependency>
+    <dependency>
       <groupId>edu.stanford.nlp</groupId>
       <artifactId>stanford-corenlp</artifactId>
-      <version>3.3.1</version>
+      <version>3.9.1</version>
       <classifier>models</classifier>
-    </dependency -->
+    </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -183,6 +188,12 @@
       <version>2.3</version>
     </dependency>
 
+    <dependency>
+      <groupId>gov.nih.nlm.nls.mps</groupId>
+      <artifactId>medpostskr</artifactId>
+      <version>1.0</version>
+    </dependency>
+
     <!-- dependency>
       <groupId>edu.ucdenver.ccp</groupId>
       <artifactId>biolemmatizer-core</artifactId>
@@ -224,7 +235,9 @@
       <groupId>org.functionaljava</groupId>
       <artifactId>functionaljava-java8</artifactId>
       <version>4.2-beta-1</version>
-    </dependency -->
+      </dependency -->
+
+      
 
     <!-- https://mvnrepository.com/artifact/org.apache.uima/uimaj-core -->
     <dependency>

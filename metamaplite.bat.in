@@ -14,7 +14,7 @@ set QUERYPARSER=%projectdir%/lib/lucene-queryparser-4.10.0.jar
 set OPENNLPMAXENT=%projectdir%/lib/opennlp-maxent-3.0.3.jar
 set OPENCSV=%projectdir%/lib/opencsv-2.3.jar
 set IRUTILS=%projectdir%/lib/irutils-2.0-SNAPSHOT.jar
-set METAMAPLITE=%projectdir%/target/metamaplite-3.6.1.jar
+set METAMAPLITE=%projectdir%/target/metamaplite-3.6.1p1.jar
 
 set JARSPATH=%ANALYZERS%;%CORE%;%QUERYPARSER%;%OPENNLPTOOLS%;%OPENNLPMAXENT%;%BIOC%;%NLP%;%LOG4JAPI%;%LOG4JCORE%;%CONTEXT%;%OPENCSV%;%IRUTILS%;%METAMAPLITE%
 
