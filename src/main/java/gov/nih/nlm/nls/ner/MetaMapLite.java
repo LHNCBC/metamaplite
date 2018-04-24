@@ -226,8 +226,6 @@ public class MetaMapLite {
   {
     this.properties = properties;
     this.sentenceExtractor = new OpenNLPSentenceExtractor(properties);
-    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-    this.chunkerMethod = new OpenNLPChunker(properties);
 
     this.addPartOfSpeechTagsFlag =
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
@@ -847,6 +845,7 @@ public class MetaMapLite {
   void listSentencesWithPosTags(List<BioCDocument> documentList)
     throws IOException
   {
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     logger.info("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -945,6 +944,8 @@ public class MetaMapLite {
 		  List<BioCDocument> documentList)
     throws IOException
   {
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    this.chunkerMethod = new OpenNLPChunker(properties);
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> sentenceTokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());

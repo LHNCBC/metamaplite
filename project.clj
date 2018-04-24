@@ -1,4 +1,4 @@
-(defproject gov.nih.nlm.nls/metamaplite "3.6.1"
+(defproject gov.nih.nlm.nls/metamaplite "3.6.1p2"
   :description "Clojure code for exploring MetaMapLite in lieu of a debugger."
   :url "http://usa.gov/"
   :min-lein-version "2.0.0"
