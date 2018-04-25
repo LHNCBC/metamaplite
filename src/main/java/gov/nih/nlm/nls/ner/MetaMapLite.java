@@ -273,7 +273,7 @@ public class MetaMapLite {
     					new PubTator());
     BioCDocumentLoaderRegistry.register("medline",
     					"Medline formatt",
-    					new PubTator());
+    					new MedlineDocument());
     ResultFormatterRegistry.register("bc",
 				     "BioCreative Evaluation Format",
 				     new BcEvaluate());
