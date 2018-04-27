@@ -110,6 +110,9 @@ configuration file is not present:
 	--negationDetectorClass=className
 	                       Use a user-defined class for negation detector, class must implement to
 	                       gov.nih.nlm.nls.metamap.lite.NegationDetector interface.
+    --postaglist=tag,tag,...
+                           List of part-of-speech tags to use for term lookup (each Penn Treebank
+                           part-of-speech tag is separated by commas.)
 
   alternate output options:
 
@@ -161,6 +164,8 @@ These properties can be set using a System property
     | opennlp.en-token.bin.path             | (default: data/models/en-token.bin)
     | opennlp.en-sent.bin.path              | (default: data/models/en-sent.bin)
 	| metamaplite.enable.postagging         | Enable part of speech tagging (default: "true" [on])
+	| metamaplite.postaglist                | List of part-of-speech tags to use for term lookup
+	                                        | (each Penn Treebank part-of-speech tag is separated by commas.)
 
 ## Using MetaMapLite from Java
 

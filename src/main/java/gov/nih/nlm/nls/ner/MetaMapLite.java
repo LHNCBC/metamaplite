@@ -264,15 +264,18 @@ public class MetaMapLite {
      					new SingleLineInput());
     BioCDocumentLoaderRegistry.register("sldi",
     					"Single Line Input document sets",
+    					new SingleLineInput());
+    BioCDocumentLoaderRegistry.register("sldiwi",
+    					"Single Line Input document sets with id",
     					new SingleLineDelimitedInputWithID());
     BioCDocumentLoaderRegistry.register("pubmed",
     					"PubMed XML Abstract",
     					new PubMedXMLDocument());
     BioCDocumentLoaderRegistry.register("pubtator",
-    					"PubTator formatt",
+    					"PubTator format",
     					new PubTator());
     BioCDocumentLoaderRegistry.register("medline",
-    					"Medline formatt",
+    					"Medline format",
     					new MedlineDocument());
     ResultFormatterRegistry.register("bc",
 				     "BioCreative Evaluation Format",
@@ -502,12 +505,13 @@ public class MetaMapLite {
     logger.info("passage relations: " + passageWithSentsAndAbbrevs.getRelations());
     logger.info("passage annotations: " + passageWithSentsAndAbbrevs.getAnnotations());
     // BioCPassage newPassage = processSentences(passageWithSentsAndAbbrevs);
+    String docid = (passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000";
     List<Entity> entityList =
-      MarkAbbreviations.markAbbreviations
-      (passageWithSentsAndAbbrevs,
-       this.entityLookup.processPassage
-       ((passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000",
-	passageWithSentsAndAbbrevs, this.detectNegationsFlag, this.semanticGroup, this.sourceSet));
+      this.entityLookup.processPassage(docid,
+				       passageWithSentsAndAbbrevs,
+				       this.detectNegationsFlag,
+				       this.semanticGroup,
+				       this.sourceSet);
     logger.debug("exit processPassage");
     return entityList;
   }
@@ -521,6 +525,7 @@ public class MetaMapLite {
     } else if (document.getID().trim().equals("")) {
       document.setID("0000000.TXT");
     }
+    // add docid to passage info namespace (infons)
     Map<String,String> docInfoMap = new HashMap<String,String>();
     docInfoMap.put("docid", document.getID());
     document.setInfons(docInfoMap);

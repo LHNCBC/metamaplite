@@ -29,6 +29,10 @@ public class ResultFormatterRegistry {
    * @param name name of loader
    * @param description description of loader
    * @param className full classname of loader
+   * @throws ClassNotFoundException Class Not Found Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception while instantiating class 
+   * @throws NoSuchMethodException  no method in class
    */
   public static void register(String name, String description, 
 			      String className)
@@ -70,6 +74,10 @@ public class ResultFormatterRegistry {
 
   public static Set<String> listNameSet() {
     return formatterMap.keySet();
+  }
+
+  public static boolean contains(String name) {
+    return formatterMap.containsKey(name);
   }
 
   public static List<String> listInfo() {

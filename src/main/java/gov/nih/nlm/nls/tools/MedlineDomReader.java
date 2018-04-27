@@ -120,7 +120,10 @@ public class MedlineDomReader implements MedlineReader {
     return pubtypelist;
   }
 
-  /** get journal title */
+  /** get journal title
+   * @param citation XML DOM node representing a citation.
+   * @return content of journal title field
+   */
   public String getJournalTitle(Node citation) 
   {
     if (citation instanceof Element) {
@@ -143,7 +146,10 @@ public class MedlineDomReader implements MedlineReader {
     return "";
   }
 
-  /** get medline TA */
+  /** get medline TA
+   * @param citation XML DOM node representing a citation.
+   * @return content of TA if it exists.
+   */
   public String getMedlineTA(Node citation) 
   {
     if (citation instanceof Element) {

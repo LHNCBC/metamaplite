@@ -113,6 +113,7 @@ public class BioCUtilities {
   /** 
    * precondition: sentence must contain a TokenListAnnotation.
    * @param entityLookup entityLookup class instance 
+   * @param sentenceAnnotator sentence annotator class
    * @param sentence target sentence
    * @return sentence annotated with entities
    * @throws IOException Input/Output exception

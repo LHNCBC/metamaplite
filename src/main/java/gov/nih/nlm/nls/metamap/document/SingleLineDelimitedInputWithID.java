@@ -77,6 +77,8 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
    * Load list of BioCDocument documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException thrown when file can not be found for opening.
+   * @throws IOException throw when an I/O exception occurs.
    */
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -93,8 +95,9 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
 
   /**
    * Save a list of BioCDocuments as SLDI.
-   * @param outputfilename
+   * @param outputfilename output filename
    * @param documentList list of BioCDocument instances
+   * @throws IOException throw when an I/O exception occurs.
    */
   public static void saveBioCDocumentListAsSLDIFile(String outputfilename, List<BioCDocument> documentList)
     throws IOException

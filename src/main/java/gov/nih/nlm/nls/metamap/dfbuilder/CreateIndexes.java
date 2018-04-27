@@ -57,6 +57,7 @@ public class CreateIndexes {
    * @param mrconsofilename MRCONSO filename
    * @param mrstyfilename MRSTY filename
    * @param ivfDir inverted file directory
+   * @throws Exception general exception
    */
   static void createTables(String mrconsofilename, String mrstyfilename, String ivfDir)
     throws Exception
@@ -117,6 +118,7 @@ public class CreateIndexes {
    *
    * @param configFilename name of configuration file
    * @param tableConfig map of dbname to associated configuration fields
+   * @throws IOException i/o exception
    */
   static void saveTableConfig(String configFilename, Map<String,String[]> tableConfig)
     throws IOException
@@ -173,6 +175,10 @@ public class CreateIndexes {
    *
    * @param ivfDir inverted file directory
    * @param tableConfig map of dbname to associated configuration fields
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
+   * @throws NoSuchAlgorithmException no such algorithm exception
+
    */
   static void createIndices(String ivfDir, Map<String,String[]> tableConfig)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException

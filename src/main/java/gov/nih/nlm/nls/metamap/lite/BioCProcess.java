@@ -100,6 +100,10 @@ public class BioCProcess {
    * @param semanticGroup semantic type group set
    * @param sourceSet vocabulary source set.
    * @return updated sentence
+   * @throws IOException IO Exception
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
    */
   public BioCSentence processSentence(String docid,
 				      BioCSentence sentence,
@@ -130,6 +134,7 @@ public class BioCProcess {
   
   /**
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
+   * @param docid document identifier
    * @param passage containing list of sentences
    * @return list of results from sentence processing pipeline, one per sentence in input list.
    * @throws FileNotFoundException File Not Found Exception

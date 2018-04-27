@@ -29,7 +29,8 @@ public class ConceptInfo {
 		     String conceptString,
 		     Set<String> newSourceSet,
 		     Set<String> newSemanticTypeSet) {
-    this.cui = cui.intern();
+    // this.cui = cui.intern();
+    this.cui = cui;
     this.preferredName = prefname.intern();
     this.conceptString = conceptString;
     this.sourceSet = newSourceSet;
@@ -38,7 +39,8 @@ public class ConceptInfo {
   public ConceptInfo(String cui, String prefname, 
 		     Set<String> newSourceSet,
 		     Set<String> newSemanticTypeSet) {
-    this.cui = cui.intern();
+    // this.cui = cui.intern();
+    this.cui = cui;
     this.preferredName = prefname.intern();
     this.sourceSet = newSourceSet;
     this.semanticTypeSet = newSemanticTypeSet;

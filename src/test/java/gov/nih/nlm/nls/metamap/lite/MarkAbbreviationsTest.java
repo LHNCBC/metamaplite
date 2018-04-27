@@ -15,6 +15,9 @@ import junit.framework.TestSuite;
  */
 public class MarkAbbreviationsTest extends TestCase {
 
+
+  String text0 = "Heart Rate (HR)";
+
   public MarkAbbreviationsTest() {
 
   }
@@ -31,8 +34,10 @@ public class MarkAbbreviationsTest extends TestCase {
   public void testLongFormShortForm()
   {
     /* initialize input strings */
+    String input = "Heart Rate (HR)";
     /* initialize found entities */
     /* initialize entities expected after processing */
+
   }
 
   /** 
@@ -47,6 +52,7 @@ public class MarkAbbreviationsTest extends TestCase {
   public void testShortFormLongForm()
   {
     /* initialize input strings */
+    String input = "HR (Heart Rate)";
     /* initialize found entities */
     /* initialize entities expected after processing */
   }

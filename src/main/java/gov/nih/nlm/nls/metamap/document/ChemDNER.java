@@ -77,6 +77,7 @@ public class ChemDNER implements BioCDocumentLoader {
    * Read list of PubMedDocumentImpl documents
    * @param inputReader input text reader
    * @return List of strings, one document per line.
+   * @throws IOException i/o exception
    */
   public static List<PubMedDocument> read(Reader inputReader)
     throws IOException
@@ -99,6 +100,8 @@ public class ChemDNER implements BioCDocumentLoader {
    * Load list of PubMedDocumentImpl documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<PubMedDocument> loadFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -117,6 +120,7 @@ public class ChemDNER implements BioCDocumentLoader {
    * Read list of BioCDocument documents
    * @param inputReader input text reader
    * @return List of strings, one document per line.
+   * @throws IOException i/o exception
    */
   public static List<BioCDocument> bioCRead(Reader inputReader)
     throws IOException
@@ -139,6 +143,8 @@ public class ChemDNER implements BioCDocumentLoader {
    * Load list of BioCDocument documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException

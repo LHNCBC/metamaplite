@@ -130,7 +130,6 @@ public class OpenNLPChunker implements ChunkerMethod {
       return this.tokenlist.stream().map(i -> i.toString()).collect(Collectors.joining(", ")) + "/" + this.tag;
     }
   }
-
   
   /**
    * @param tokenList token list with whitespace tokens removed and
@@ -138,45 +137,51 @@ public class OpenNLPChunker implements ChunkerMethod {
    * @return list of noun and verb phrase tags
    */
   public List<Phrase> applyChunker(List<ERToken> tokenList) {
-    List<String> sentenceTokenList = new ArrayList<String>();
-    List<String> posTokenList = new ArrayList<String>();
-    for (ERToken token: tokenList) {
+    List<Phrase> chunkList = new ArrayList<Phrase>();
+    if (tokenList.size() > 0) {
+      // Only process chunk list to tokenlist size is greater than zero.
+      List<String> sentenceTokenList = new ArrayList<String>();
+      List<String> posTokenList = new ArrayList<String>();
+      logger.debug("---begin tokenList");
+      for (ERToken token: tokenList) {
+	logger.debug(token);
 	sentenceTokenList.add(token.getText());
 	posTokenList.add(token.getPartOfSpeech());
-    }
-    String sentence[] = sentenceTokenList.toArray(new String[1]);
-    String pos[] = posTokenList.toArray(new String[1]);
-    String tag[] = this.chunker.chunk(sentence, pos);
-    List<Phrase> chunkList = new ArrayList<Phrase>();
-
-    logger.debug("---begin");
-    for (int k = 0; k< tag.length; k++) {
-      logger.debug(k + ": " + tag[k] + "|" + sentence[k] + "|" + pos[k]);
-    }
-    logger.debug("---end");
-
-    int i = 0;
-    String phraseTag = "unk";
-    List<ERToken> cTokenList = new ArrayList<ERToken>();
-    for (String tagChunk: tag) {
-      // logger.debug(tagChunk + "-chunk");
-      if (i < tokenList.size()) {
-	String fields[] = tagChunk.split("-");
-	if (fields[0].equals("B")) {
-	  if (cTokenList.size() > 0) {
-	    chunkList.add(new PhraseImpl(cTokenList, phraseTag));
-	    cTokenList = new ArrayList();
-	  }
-	  phraseTag = fields[1];
-	  cTokenList.add(tokenList.get(i));
-	} else if (fields[0].equals("I") || fields[0].equals("O")) {
-	  cTokenList.add(tokenList.get(i));
-	}
       }
-      i++;
-    }
-    if (cTokenList.size() > 0) {
-      chunkList.add(new PhraseImpl(cTokenList, phraseTag));
+      logger.debug("---end tokenList");
+      String sentence[] = sentenceTokenList.toArray(new String[1]);
+      String pos[] = posTokenList.toArray(new String[1]);
+      String tag[] = this.chunker.chunk(sentence, pos);
+
+      logger.debug("---begin");
+      for (int k = 0; k< tag.length; k++) {
+	logger.debug(k + ": " + tag[k] + "|" + sentence[k] + "|" + pos[k]);
+      }
+      logger.debug("---end");
+
+      int i = 0;
+      String phraseTag = "unk";
+      List<ERToken> cTokenList = new ArrayList<ERToken>();
+      for (String tagChunk: tag) {
+	// logger.debug(tagChunk + "-chunk");
+	if (i < tokenList.size()) {
+	  String fields[] = tagChunk.split("-");
+	  if (fields[0].equals("B")) {
+	    if (cTokenList.size() > 0) {
+	      chunkList.add(new PhraseImpl(cTokenList, phraseTag));
+	      cTokenList = new ArrayList();
+	    }
+	    phraseTag = fields[1];
+	    cTokenList.add(tokenList.get(i));
+	  } else if (fields[0].equals("I") || fields[0].equals("O")) {
+	    cTokenList.add(tokenList.get(i));
+	  }
+	}
+	i++;
+      }
+      if (cTokenList.size() > 0) {
+	chunkList.add(new PhraseImpl(cTokenList, phraseTag));
+      }
     }
     return chunkList;
   }

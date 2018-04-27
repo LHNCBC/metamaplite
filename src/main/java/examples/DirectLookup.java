@@ -26,7 +26,7 @@ public class DirectLookup {
   
   /**
    * Creates a new <code>DirectLookup</code> instance.
-   *
+   * @throws IOException I/O exception
    */
   public DirectLookup()
     throws IOException

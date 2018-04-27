@@ -302,6 +302,7 @@ public class MMI implements ResultFormatter {
   
   /**
    * @param pw printwriter used for output
+   * @param docid document identifier
    * @param entityList entitylist to be rendered for output
    */
   public void renderEntityList(PrintWriter pw, String docid, List<Entity> entityList) 
@@ -344,7 +345,7 @@ public class MMI implements ResultFormatter {
   
 
   /**
-   * @param pw printwriter used for output
+   * @param writer printwriter used for output
    * @param entityList entitylist to be rendered for output
    */
   public void entityListFormatter(PrintWriter writer,
@@ -356,7 +357,8 @@ public class MMI implements ResultFormatter {
   }
 
   /**
-   * @param pw printwriter used for output
+   * @param sb string builder used for output
+   * @param docid document identifier
    * @param entityList entitylist to be rendered for output
    */
   public void renderEntityList(StringBuilder sb, String docid, List<Entity> entityList)

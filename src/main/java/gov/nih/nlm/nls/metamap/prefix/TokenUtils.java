@@ -37,7 +37,11 @@ public class TokenUtils {
     return token.getText().equals(content);
   }
 
-  /** return next printable token in tokenlist */
+  /** return next printable token in tokenlist
+   * @param tokenList token list
+   * @param start start character position
+   * @return next printable token
+   */
   public static Token nextPrintableToken(List<Token> tokenList, int start) {
     int i = start;
     while (i < tokenList.size()) {
@@ -49,7 +53,11 @@ public class TokenUtils {
     }
     return (i < tokenList.size()) ? tokenList.get(i) : null;
   }
-  /** return position of next printable token in tokenlist */
+  /** return position of next printable token in tokenlist 
+   * @param tokenList token list
+   * @param start start character position
+   * @return next printable token position
+   */
   public static int nextPrintableTokenPosition(List<Token> tokenList, int start) {
     int i = start;
     while (i < tokenList.size()) {

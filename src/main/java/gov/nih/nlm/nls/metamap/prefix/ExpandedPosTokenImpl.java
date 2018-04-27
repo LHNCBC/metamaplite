@@ -18,7 +18,10 @@ public class ExpandedPosTokenImpl extends PosTokenImpl implements Token, PosToke
   int originalOffset;
   /**
    * Creates a new <code>ExpandedPosToken</code> instance.
-   *
+   * @param tokenText text of token
+   * @param offset of token in text
+   * @param originalText original text
+   * @param originalOffset original offset of token in text
    */
   public ExpandedPosTokenImpl(String tokenText, int offset, 
 			  String originalText, int originalOffset) {

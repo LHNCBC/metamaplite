@@ -289,7 +289,9 @@ public class SemEvalDocument implements BioCDocumentLoader {
   /**
    *
    * @param args - Arguments passed from the command line
-   **/
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
+   */
   public static void main(String[] args) 
     throws FileNotFoundException, IOException
 

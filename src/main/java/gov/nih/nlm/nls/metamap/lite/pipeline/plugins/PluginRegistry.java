@@ -33,6 +33,10 @@ public class PluginRegistry {
    * @param className          fully qualified classname of plugin
    * @param methodName         target method name 
    * @param inputParameterType type of input parameter 
+   * @throws ClassNotFoundException class not found exception
+   * @throws InstantiationException class instantiation exception
+   * @throws NoSuchMethodException no such method exception
+   * @throws IllegalAccessException illegal access exception
    */
   public static void register(String name, String description, 
 			      String className, String methodName,

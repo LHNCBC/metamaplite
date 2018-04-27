@@ -27,8 +27,8 @@ public class BioCSentenceEntityAnnotatorImpl implements BioCSentenceEntityAnnota
    * and concept annotations with linking relations.  Token and
    * part-of-speech annotations are removed.
    *
-   * @param docid document id of parent BioCDocument of sentence
-   * @param BioCSentence with token and part-of-speech annotations.
+   * @param tokenizedSentence with token and part-of-speech annotations.
+   * @param entitySet set of entities extracted from the sentence.
    * @return BioCSentence with entity and concept annotations with linking relations.
    */
   public BioCSentence annotateSentence(BioCSentence tokenizedSentence, Set<Entity> entitySet)

@@ -6,7 +6,8 @@ public class PosTokenImpl implements PosToken, Token, Serializable {
   String tokenText;
   int offset;
   public PosTokenImpl(String tokenText, int offset) {
-    this.tokenText = tokenText.intern();
+    // this.tokenText = tokenText.intern();
+    this.tokenText = tokenText;
     this.offset = offset;
   }
   public String getText() { return this.tokenText; }

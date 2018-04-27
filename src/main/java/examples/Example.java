@@ -25,6 +25,13 @@ public class Example {
   /**
    * Main program
    * @param args - Arguments passed from the command line
+   * @throws Exception General exception
+   * @throws ClassNotFoundException Class Not Found Exception
+   * @throws IOException IO Exception
+   * @throws NoSuchMethodException  no method in class
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception while instantiating class 
+   * @throws InvocationTargetException invocation target exception
    */
   public static void main(String[] args)
     throws Exception, IOException, ClassNotFoundException, InstantiationException,

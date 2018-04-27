@@ -63,10 +63,9 @@ import gov.nih.nlm.nls.metamap.evaluation.Scoring;
  */
 
 public class EntityLookup5 implements EntityLookup {
-  private static final Logger logger = LogManager.getLogger(EntityLookup4.class);
+  private static final Logger logger = LogManager.getLogger(EntityLookup5.class);
 
   public MetaMapIvfIndexes mmIndexes;
-  Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   ChunkerMethod chunkerMethod;
   
   /** string column for cuisourceinfo index*/
@@ -95,6 +94,10 @@ public class EntityLookup5 implements EntityLookup {
   boolean disableChunker = 
     Boolean.parseBoolean(System.getProperty("metamaplite.disable.chunker","false"));
   
+  /** Part of speech tags used for term lookup, can be set using
+   * property: metamaplite.pos.taglist; the tag list is a set of Penn
+   * Treebank part of speech tags separated by commas. */
+  Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
     this.allowedPartOfSpeechSet.add("NN");
@@ -106,6 +109,11 @@ public class EntityLookup5 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("JJS");
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
+  /** Phrase types that can be used for lookup */
+  Set<String> allowedPhraseTypeSet = new HashSet<String>();
+  public void defaultAllowedPhraseTypes() {
+    this.allowedPhraseTypeSet.add("NP"); // just noun phrases for now.
+  }
 
   public EntityLookup5(Properties properties) 
     throws IOException, FileNotFoundException
@@ -115,11 +123,29 @@ public class EntityLookup5 implements EntityLookup {
     this.addPartOfSpeechTagsFlag =
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
+
     this.disableChunker = 
       Boolean.parseBoolean(properties.getProperty("metamaplite.disable.chunker","false"));
 
+    this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+      if (allowedPartOfSpeechTaglist != null) {
+	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
+	  this.allowedPartOfSpeechSet.add(pos);
+	}
+      } else {
+	this.defaultAllowedPartOfSpeech();
+      }
+    }
+    String allowedPhraseTypeList = properties.getProperty("metamaplite.phrasetypelist");
+    if (allowedPhraseTypeList != null) {
+      for (String phraseType: allowedPhraseTypeList.split(",")) {
+	this.allowedPhraseTypeSet.add(phraseType);
+      }
+    } else {
+      this.defaultAllowedPhraseTypes();
     }
 
     this.chunkerMethod = new OpenNLPChunker(properties);
@@ -143,7 +169,6 @@ public class EntityLookup5 implements EntityLookup {
       throw new RuntimeException(iae);
     }
 
-    this.defaultAllowedPartOfSpeech();
     if (properties.containsKey("metamaplite.excluded.termsfile")) {
       this.excludedTerms.addTerms(properties.getProperty("metamaplite.excluded.termsfile"));
     } else if (System.getProperty("metamaplite.excluded.termsfile") != null) {
@@ -236,41 +261,6 @@ public class EntityLookup5 implements EntityLookup {
     }
   }
 
-  boolean isCuiInSemanticTypeRestrictSet(String cui, Set<String> semanticTypeRestrictSet)
-  {
-    if (semanticTypeRestrictSet.isEmpty() || semanticTypeRestrictSet.contains("all"))
-      return true;
-    try {
-      boolean inSet = false;
-      for (String semtype: cuiSemanticTypeSetIndex.getSemanticTypeSet(cui)) {
-	inSet = inSet || semanticTypeRestrictSet.contains(semtype);
-      }
-      return inSet;
-    } catch (FileNotFoundException fnfe) {
-      return false;
-    } catch (IOException ioe) {
-      return false;
-    }
-  }
-
-
-  boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
-  {
-    if (sourceRestrictSet.isEmpty() || sourceRestrictSet.contains("all"))
-      return true;
-    try {
-      boolean inSet = false;
-      for (String semtype: cuiSourceSetIndex.getSourceSet(cui)) {
-	inSet = inSet || sourceRestrictSet.contains(semtype);
-      }
-      return inSet;
-    } catch (FileNotFoundException fnfe) {
-      return false;
-    } catch (IOException ioe) {
-      return false;
-    }
-  }
-
   public static boolean isLikelyMatch(String term, String normTerm, String docStr) {
     if (term.length() < 5) {
       return term.equals(docStr);
@@ -333,7 +323,8 @@ public class EntityLookup5 implements EntityLookup {
       ERToken firstToken = (ERToken)tokenSubList.get(0);
       ERToken lastToken = (ERToken)tokenSubList.get(tokenSubList.size() - 1);
       if ((! firstToken.getText().toLowerCase().equals("other")) &&
-       	  this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech())) {
+       	  (this.allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech()) ||
+	   this.allowedPhraseTypeSet.contains(phraseType))) {
        	int termLength = (tokenSubList.size() > 1) ?
        	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
        	  firstToken.getText().length();
@@ -348,7 +339,6 @@ public class EntityLookup5 implements EntityLookup {
 	  if (CharUtils.isAlpha(originalTerm.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
-
 	    for (ConceptInfo concept: this.termConceptInfoCache.lookupTermConceptInfo(originalTerm,
 							    normTerm,
 							    tokenSubList)) {
@@ -418,31 +408,6 @@ public class EntityLookup5 implements EntityLookup {
       } /* first token has allowed partOfSpeech */
     } /* for token-sublist in list-of-token-sublists */
     return new SpanEntityMapAndTokenLength(spanMap, longestMatchedTokenLength);
-  }
-
-  public void filterEntityEvListBySemanticType(Entity entity, Set<String> semanticTypeRestrictSet)
-  {
-    Set<Ev> newEvSet = new HashSet<Ev>();
-    for (Ev ev: entity.getEvList()) {
-      String cui = ev.getConceptInfo().getCUI();
-      if (this.isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
-	newEvSet.add(ev);
-      }
-    }
-    entity.setEvSet(newEvSet);
-  }
-
-
-  public void filterEntityEvListBySource(Entity entity, Set<String> sourceRestrictSet)
-  {
-    Set<Ev> newEvSet = new HashSet<Ev>();
-    for (Ev ev: entity.getEvList()) {
-      String cui = ev.getConceptInfo().getCUI();
-      if (this.isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-	newEvSet.add(ev);
-      }
-    }
-    entity.setEvSet(newEvSet);
   }
 
   /**
@@ -666,10 +631,12 @@ public class EntityLookup5 implements EntityLookup {
    * @return modified list of phrases
    */
   public List<Phrase> glomNounPhrasePrepPhrase(List<Phrase> phraseList) {
-    List<Phrase> newPhraseList = new ArrayList<Phrase>();
-    Phrase first = phraseList.get(0);
-    for (Phrase phrase: phraseList.subList(1, phraseList.size())) {
-      
+    if (phraseList.size() > 0) {
+      List<Phrase> newPhraseList = new ArrayList<Phrase>();
+      Phrase first = phraseList.get(0);
+      for (Phrase phrase: phraseList.subList(1, phraseList.size())) {
+	
+      }
     }
     return phraseList;
   }
@@ -858,9 +825,13 @@ public class EntityLookup5 implements EntityLookup {
       int i = 0;
       for (BioCSentence sentence: passage.getSentences()) {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
-	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
+	Set<Entity> sentenceEntitySet0 = this.processSentenceTokenList(docid, fieldid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
+	
+	// mark abbreviations that are entities and add them to sentence entity set.
+	Set<Entity> sentenceEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage, new ArrayList(sentenceEntitySet0)));
+	
 	for (Entity entity: sentenceEntitySet) {
 	  entity.setLocationPosition(i);
 	}
@@ -871,11 +842,13 @@ public class EntityLookup5 implements EntityLookup {
 	}
 	i++;
       }
+      // remove any entities subsumed by another entity
       Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
+      // filter entities by semantic type and source sets.
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
-	filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
-	filterEntityEvListBySource(entity, sourceRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySource(entity, sourceRestrictSet);
 	if (entity.getEvList().size() > 0) {
 	  entitySet.add(entity);
 	}

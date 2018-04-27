@@ -175,7 +175,7 @@ public final class StringUtils extends Object
  * toCleanedUpString removes embedded whitespace (nl's tabs, multiple spaces)
  * and trims the string up for display
  * 
- * @param pOldString
+ * @param pOldString old string
  * @return String
  * @exception Exception  
 */
@@ -216,7 +216,7 @@ public static String toCleanedUpString( String pOldString ) throws Exception
  * a utf-8 compliant method, because it only tests within the ranges of [a-z] and
  * [A-Z].
  * 
- * @param pString
+ * @param pString input text
  * @return boolean 
 */
 public static boolean isLowercase( String pString ) 

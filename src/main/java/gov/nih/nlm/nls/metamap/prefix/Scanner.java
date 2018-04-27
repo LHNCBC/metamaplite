@@ -179,7 +179,7 @@ public class Scanner {
 
   /**
    * remove whitespace tokens from tokenlist.
-   * @param tokenlist
+   * @param tokenlist token list
    * @return tokenlist with whitespace tokens removed.
    */
   public static List<ERToken> removeWhiteSpaceTokens(List<ERToken> tokenlist) {

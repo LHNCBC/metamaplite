@@ -28,7 +28,7 @@ public class CuiSourceSetIndex {
 
   /**
    * Creates a new <code>CuiSourceSetIndex</code> instance.
-   *
+   * @param mmIndexes container for metamap lite indexes
    */
   public CuiSourceSetIndex(MetaMapIvfIndexes mmIndexes)
   {

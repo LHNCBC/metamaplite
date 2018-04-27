@@ -15,8 +15,8 @@ public interface BioCSentenceEntityAnnotator {
    * Annotate sentence using entities from entity set adding entity
    * and concept annotations with linking relations.
    *
-   * @param docid document id of parent BioCDocument of sentence
-   * @param BioCSentence with token and part-of-speech annotations.
+   * @param tokenizedSentence with token and part-of-speech annotations.
+   * @param entitySet set of entities extracted from the sentence.
    * @return BioCSentence with entity and concept annotations with linking relations.
    */
   BioCSentence annotateSentence(BioCSentence tokenizedSentence, Set<Entity> entitySet);

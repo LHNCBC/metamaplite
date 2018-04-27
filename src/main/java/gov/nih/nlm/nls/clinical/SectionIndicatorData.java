@@ -144,6 +144,8 @@ public class SectionIndicatorData {
   /**
    *
    * @param args - Arguments passed from the command line
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
    **/
   public static void main(String[] args) 
     throws FileNotFoundException, IOException

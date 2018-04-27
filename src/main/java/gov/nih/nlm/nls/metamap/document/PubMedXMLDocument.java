@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import bioc.BioCDocument;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
@@ -70,7 +69,6 @@ public class PubMedXMLDocument
     throws FileNotFoundException, IOException
   {
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
-    // TODO: Stub
     Map<String,Citation> citationMap = this.medlineDomReader.readCitations(filename);
     for (Citation citation: citationMap.values()) {
       documentList.add(instantiateBioCDocument(citation));

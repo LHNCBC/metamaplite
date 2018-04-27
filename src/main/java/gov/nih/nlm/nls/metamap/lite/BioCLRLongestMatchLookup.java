@@ -76,7 +76,10 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
 
-  /** Constructor */
+  /** Constructor 
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
+   */
   public BioCLRLongestMatchLookup() 
     throws IOException, FileNotFoundException
   {
@@ -89,6 +92,8 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
   /** 
    * Constructor
    * @param properties metamaplite properties instance.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public BioCLRLongestMatchLookup(Properties properties)
     throws IOException, FileNotFoundException
@@ -137,6 +142,8 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
    * Constructor
    * @param properties metamaplite properties instance.
    * @param sentenceAnnotator an OpenNLP sentence annotator instance
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public BioCLRLongestMatchLookup(Properties properties, SentenceAnnotator sentenceAnnotator)
     throws IOException, FileNotFoundException
@@ -212,6 +219,8 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
    * Find preferred name for cui (concept unique identifier)
    * @param cui target cui
    * @return preferredname for cui or null if not found
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public String findPreferredName(String cui)
     throws FileNotFoundException, IOException

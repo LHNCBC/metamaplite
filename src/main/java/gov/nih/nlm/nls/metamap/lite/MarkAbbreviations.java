@@ -30,7 +30,6 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 public class MarkAbbreviations {
   private static final Logger logger = LogManager.getLogger(MarkAbbreviations.class);
 
-
   public static List<Entity> findMatches(BioCPassage passage, Entity entity) {
     String target = entity.getText();
     List<Entity> newEntityList = new ArrayList<Entity>();
@@ -47,15 +46,33 @@ public class MarkAbbreviations {
   }
 
   /**
-   * add any entity that are abbreviations.
+   * Add any entity that has an abbreviations.  Passage has been
+   * pre-annotated using the abbreviation detector.
    * @param passage text of target passage
    * @param entityList initial list of entities 
    * @return initial entity list with abbreviation added.
    */
-  public static List<Entity> markAbbreviations(BioCPassage passage, List<Entity> entityList) {
+  public static List<Entity> markAbbreviations(BioCPassage passage, List<Entity> entityList)
+  {
+    Map<String,String> uaMap = new HashMap<String,String>();
+    return markAbbreviations(passage, uaMap, entityList);
+  }
+  
+  /**
+   * Add any entity that has an abbreviations.  Passage has been
+   * pre-annotated using the abbreviation detector.
+   * @param passage text of target passage
+   * @param uaMap user defined abbreviation map
+   * @param entityList initial list of entities 
+   * @return initial entity list with abbreviation added.
+   */
+  public static List<Entity> markAbbreviations(BioCPassage passage,
+					       Map<String,String> uaMap,
+					       List<Entity> entityList) {
     // add abbreviations to entity set if present
     List<Entity> newEntityList = new ArrayList<Entity>(entityList);
-    // generate abbrevation Maps 
+    // Generate abbrevation Maps
+
     Map<String,String> abbrMap = new HashMap<String,String>(); // short form -> long form
     Map<String,List<BioCAnnotation>> shortFormMap = new HashMap<String,List<BioCAnnotation>>(); // short form -> annotation list
     Map<String,List<BioCAnnotation>> longFormMap = new HashMap<String,List<BioCAnnotation>>(); // long form -> annotation list
@@ -95,6 +112,10 @@ public class MarkAbbreviations {
       }
     } /*for relation in annotation relations*/
 
+    if (uaMap.size() > 0) {
+      abbrMap.putAll(uaMap);
+    }
+    
     // Actually add the entities
     if (abbrMap.size() > 0) {
       List<Entity> abbrevEntities = new ArrayList<Entity>();

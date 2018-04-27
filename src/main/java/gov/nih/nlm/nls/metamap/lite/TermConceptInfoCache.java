@@ -57,6 +57,7 @@ public class TermConceptInfoCache {
    * Creates a new <code>TermConceptInfoCache</code> instance.
    *
    * @param mmIndexes set of inverted file indexes
+   * @param cuiPreferredNameCache cui to preferred name cache
    */
   public TermConceptInfoCache(MetaMapIvfIndexes mmIndexes, CuiPreferredNameCache cuiPreferredNameCache) {
     this.mmIndexes = mmIndexes;
@@ -71,6 +72,7 @@ public class TermConceptInfoCache {
    *
    * @param mmIndexes set of inverted file indexes
    * @param properties application properties
+   * @param cuiPreferredNameCache cui to preferred name cache
    */
   public TermConceptInfoCache(Properties properties,
 			      MetaMapIvfIndexes mmIndexes,
@@ -92,8 +94,12 @@ public class TermConceptInfoCache {
   /**
    * Creates a new <code>TermConceptInfoCache</code> instance.
    *
-   * @param mmIndexes set of inverted file indexes
    * @param properties application properties
+   * @param mmIndexes set of inverted file indexes
+   * @param cuiPreferredNameCache cui to preferred name cache
+   * @param cuiSemanticTypeSetIndex cui to semantic type set index
+   * @param cuiSourceSetIndex cui to source set index
+   * @param excludedTerms term to be excluded from result
    */
   public TermConceptInfoCache(Properties properties,
 			      MetaMapIvfIndexes mmIndexes,
@@ -196,6 +202,10 @@ public class TermConceptInfoCache {
 						List<? extends Token> tokenlist)
     throws FileNotFoundException, IOException
   {
+    // System.out.println("originalTerm: " + originalTerm);
+    // System.out.println("normTerm: " + normTerm);
+    // System.out.println("tokenlist: " + tokenlist);
+    
     if (this.enableTermConceptInfoCache) {
       if (this.termConceptCache.containsKey(normTerm) ) {
 	Set<ConceptInfo> result;

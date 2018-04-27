@@ -178,6 +178,7 @@ public class SimplePipeline {
    * token extents with in sentence.
    *
    * @param docid document id
+   * @param fieldid field id
    * @param sentence sentence to be examined.
    * @return set of entities found in the sentence.
    * @throws FileNotFoundException file not found exception

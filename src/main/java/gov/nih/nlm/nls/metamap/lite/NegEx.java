@@ -290,6 +290,8 @@ public class NegEx implements NegationDetector {
 
   /**
    * combine tokens of the form: alpha-token dash-token alpha-token in one token.
+   * @param tokenList token list 
+   * @return modified token list with metaTokens replacing alpha dash alpha token combinations.
    */
   public List<ERToken> addMetaTokens(List<ERToken> tokenList) {
     List<ERToken> newTokenlist = new ArrayList<ERToken>();

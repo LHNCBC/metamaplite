@@ -96,7 +96,15 @@ public class EntityLookup3 implements EntityLookup {
   {
     this.mmIndexes = new MetaMapIvfIndexes(properties);
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-    this.defaultAllowedPartOfSpeech();
+    String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+    if (allowedPartOfSpeechTaglist != null) {
+	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
+	  this.allowedPartOfSpeechSet.add(pos);
+	}
+	this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
+      } else {
+      this.defaultAllowedPartOfSpeech();
+    }
     if (System.getProperty("metamaplite.excluded.termsfile") != null) {
       this.excludedTerms.addTerms(System.getProperty("metamaplite.excluded.termsfile"));
     } else if (properties.containsKey("metamaplite.excluded.termsfile") &&
@@ -264,41 +272,6 @@ public class EntityLookup3 implements EntityLookup {
     }
   }
 
-  boolean isCuiInSemanticTypeRestrictSet(String cui, Set<String> semanticTypeRestrictSet)
-  {
-    if (semanticTypeRestrictSet.isEmpty() || semanticTypeRestrictSet.contains("all"))
-      return true;
-    try {
-      boolean inSet = false;
-      for (String semtype: getSemanticTypeSet(cui)) {
-	inSet = inSet || semanticTypeRestrictSet.contains(semtype);
-      }
-      return inSet;
-    } catch (FileNotFoundException fnfe) {
-      return false;
-    } catch (IOException ioe) {
-      return false;
-    }
-  }
-
-
-boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
-  {
-    if (sourceRestrictSet.isEmpty() || sourceRestrictSet.contains("all"))
-      return true;
-    try {
-      boolean inSet = false;
-      for (String semtype: getSourceSet(cui)) {
-	inSet = inSet || sourceRestrictSet.contains(semtype);
-      }
-      return inSet;
-    } catch (FileNotFoundException fnfe) {
-      return false;
-    } catch (IOException ioe) {
-      return false;
-    }
-  }
-
   public static boolean isLikelyMatch(String term, String normTerm, String docStr) {
     if (term.length() < 5) {
       return term.equals(docStr);
@@ -436,31 +409,6 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       } /* first token has allowed partOfSpeech */
     } /* for token-sublist in list-of-token-sublists */
     return new SpanEntityMapAndTokenLength(spanMap, longestMatchedTokenLength);
-  }
-
-  public void filterEntityEvListBySemanticType(Entity entity, Set<String> semanticTypeRestrictSet)
-  {
-    Set<Ev> newEvSet = new HashSet<Ev>();
-    for (Ev ev: entity.getEvList()) {
-      String cui = ev.getConceptInfo().getCUI();
-      if (isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
-	newEvSet.add(ev);
-      }
-    }
-    entity.setEvSet(newEvSet);
-  }
-
-
-  public void filterEntityEvListBySource(Entity entity, Set<String> sourceRestrictSet)
-  {
-    Set<Ev> newEvSet = new HashSet<Ev>();
-    for (Ev ev: entity.getEvList()) {
-      String cui = ev.getConceptInfo().getCUI();
-      if (isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-	newEvSet.add(ev);
-      }
-    }
-    entity.setEvSet(newEvSet);
   }
 
   /**
@@ -640,8 +588,8 @@ boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
       Set<Entity> entitySet1 = removeSubsumingEntities(entitySet0);
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
-	filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
-	filterEntityEvListBySource(entity, sourceRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySource(entity, sourceRestrictSet);
 	if (entity.getEvList().size() > 0) {
 	  entitySet.add(entity);
 	}

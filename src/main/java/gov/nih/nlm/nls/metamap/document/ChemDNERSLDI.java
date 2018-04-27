@@ -90,6 +90,8 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
    * Load list of PubMedDocumentImpl documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<PubMedDocument> loadSLDIFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -108,6 +110,7 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
    * Read list of BioCDocument documents
    * @param inputReader input reader
    * @return List of strings, one document per line.
+   * @throws IOException i/o exception
    */
   public static List<BioCDocument> bioCReadSLDI(Reader inputReader)
     throws IOException
@@ -130,6 +133,8 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
    * Load list of BioCDocument documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<BioCDocument> bioCLoadSLDIFile(String inputFilename)
     throws FileNotFoundException, IOException

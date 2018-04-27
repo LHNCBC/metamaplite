@@ -1,4 +1,4 @@
-package irutils;
+package gov.nih.nlm.nls.metamap.dfbuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,10 +50,10 @@ public class IndexLookup {
    * @param indexName  name of index to search 
    * @param column column to search
    * @param query query terms
-   *
+   * @return list of string records matching query
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
-   * @throws NoSuchAlgorithmException no such algorithm exception 
+   * @throws NoSuchAlgorithmException no such algorithm exception
    */
   static List<String> lookup(String ivfDir, Map<String,String[]> tableConfig, String indexName, int column, String query)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException

@@ -133,6 +133,14 @@ public class BioCPipeline {
   boolean segmentSentences = true;
   boolean segmentBlanklines = false;
 
+  /**
+   * @param properties metamaplite properties instance
+   * @throws ClassNotFoundException Class Not Found Exception
+   * @throws IOException IO Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception while instantiating class 
+   * @throws NoSuchMethodException  no method in class
+   */
   public BioCPipeline(Properties properties)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException,
@@ -191,8 +199,13 @@ public class BioCPipeline {
 
   /**
    * Invoke sentence processing pipeline on asentence
-   * @param sentence
+   * @param docid  document identifier
+   * @param sentence BioC sentence instance to be processed
    * @return updated sentence
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
+   * @throws IllegalAccessException illegal access of class
+   * @throws InvocationTargetException exception while invoking target class 
    */
   public BioCSentence processSentence(String docid, BioCSentence sentence)
     throws IllegalAccessException, InvocationTargetException,
@@ -225,13 +238,14 @@ public class BioCPipeline {
   
   /**
    * Invoke sentence processing pipeline on each sentence in supplied sentence list.
+   * @parm docid document identifier
    * @param passage containing list of sentences
    * @return list of results from sentence processing pipeline, one per sentence in input list.
    * @throws FileNotFoundException File Not Found Exception
    * @throws IOException IO Exception
    * @throws IllegalAccessException illegal access of class
    * @throws InvocationTargetException exception while invoking target class 
- */
+   */
   public BioCPassage processSentences(String docid, BioCPassage passage) 
     throws IllegalAccessException, InvocationTargetException,
 	   IOException, FileNotFoundException 
@@ -290,6 +304,12 @@ public class BioCPipeline {
   /**
    * Initialize pipeline application.
    * @return pipeline application instance
+   * @throws ClassNotFoundException Class Not Found Exception
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
+   * @throws NoSuchMethodException  no method in class
+   * @throws IllegalAccessException illegal access of class
+   * @throws InstantiationException exception while instantiating class 
    */
   static BioCPipeline initPipeline()
     throws IOException, FileNotFoundException,
@@ -348,7 +368,9 @@ public class BioCPipeline {
 
   static void displayHelp() {
     System.err.println("usage: [options] filename");
-
+    System.err.println("");
+    System.err.println("\n\nOutputs BioC XML documents with UMLS entity annotations.\n\n");
+    System.err.println("");
     System.err.println("input options:");
     System.err.println("  --              Read from standard input, write to standard output");
     System.err.println("  --pipe          Read from standard input, write to standard output");

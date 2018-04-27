@@ -35,6 +35,7 @@ public class ContextWrapper implements NegationDetector {
    * @param conceptList list of concepts
    * @param sentenceList list of sentences
    * @throws Exception any exception
+   * @return list of lists of strings containing relations
    */
   public static List<List<String>> applyContext(List<String> conceptList, List<String> sentenceList) 
     throws Exception {
@@ -64,6 +65,10 @@ public class ContextWrapper implements NegationDetector {
 
   /** Given annotated sentence list with entities, determine hedging
    * relations using ConText.
+   * @param entityList list of entities found in sentence list.
+   * @param sentenceList list of sentences.
+   * @return list of lists of strings containing relations
+   * @throws Exception general exception
    */
   public static List<List<String>> applyContextUsingEntities(List<Entity> entityList, 
 							     List<Sentence> sentenceList) 
@@ -82,8 +87,13 @@ public class ContextWrapper implements NegationDetector {
     return resultlist;
   }
 
-  /** Given a set of annotated sentence with associated entities,
-   * determine hedging relations using ConText.*/
+  /**
+   * Given a set of annotated sentence with associated entities,
+   * determine hedging relations using ConText.
+   * @param sentence BioC sentence
+   * @return BioC sentence with negation apply to sentences
+   * @throws Exception general exception
+   */
   public static BioCSentence applyContext(BioCSentence sentence) throws Exception {
     for (BioCAnnotation annotation: sentence.getAnnotations()) {
       if (annotation instanceof BioCEntity) {

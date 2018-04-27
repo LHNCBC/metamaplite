@@ -21,7 +21,7 @@ import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 
 public class CuiList implements ResultFormatter {
 
-  public static Set<String> entityToStringSet(Entity entity){
+  public static Set<String> entityToCuiSet(Entity entity){
     Set<String> cuiSet = new TreeSet<String>();
     for (Ev ev: entity.getEvSet()) {
       cuiSet.add(ev.getConceptInfo().getCUI());
@@ -29,40 +29,40 @@ public class CuiList implements ResultFormatter {
     return cuiSet;
   }
 
-  public static void displayEntityList(PrintWriter pw, List<Entity> entityList) 
-  {
+  public static Set<String> entityListToCuiSet(List<Entity> entityList) {
     Collections.reverse(entityList);
-    Set<String> stringSet = new TreeSet<String>();
+    Set<String> cuiSet = new TreeSet<String>();
     for (Entity entity: entityList) {
       if (entity.getEvSet().size() > 0) {
-	stringSet.addAll(entityToStringSet(entity));
+	cuiSet.addAll(entityToCuiSet(entity));
       }
     }
-    for (String resultString: stringSet) {
+    return cuiSet;
+  }
+
+  public static void displayEntityList(PrintWriter pw, List<Entity> entityList) 
+  {
+    Set<String> cuiSet = entityListToCuiSet(entityList);
+    for (String resultString: cuiSet) {
       pw.print(resultString + "\n");
     }
   }
 
+  
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
     displayEntityList(writer, entityList);
   }
-
+  
   public String entityListFormatToString(List<Entity> entityList) {
     StringBuilder sb = new StringBuilder();
-    Collections.reverse(entityList);
-    Set<String> stringSet = new TreeSet<String>();
-    for (Entity entity: entityList) {
-      if (entity.getEvSet().size() > 0) {
-	stringSet.addAll(entityToStringSet(entity));
-      }
-    }
-    for (String resultString: stringSet) {
+    Set<String> cuiSet = entityListToCuiSet(entityList);
+    for (String resultString: cuiSet) {
       sb.append(resultString).append("\n");
     }
     return sb.toString();
   }
-
+  
   public void initProperties(Properties properties) {
   }
 

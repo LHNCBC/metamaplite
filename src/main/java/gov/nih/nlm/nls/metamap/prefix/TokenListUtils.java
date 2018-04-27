@@ -75,9 +75,22 @@ public class TokenListUtils {
     return listOfTokenLists;
   }
 
-  public static void processTokenList(List<Token> tokenList) {
+  public static void processTokenList(List<? extends Token> tokenList) {
     for (int i = 0; i < tokenList.size(); i++) {
       
     }
+  }
+
+  /**
+   * Concatenate text components of tokens in tokenlist into one string.
+   * @param tokenList list of tokens
+   * @return string containing text contents concatenated.
+   */
+  public static String tokenListToString(List<? extends Token> tokenList) {
+    StringBuilder sb = new StringBuilder();
+    for (Token token: tokenList) {
+      sb.append(token.getText());
+    }
+    return sb.toString();
   }
 }

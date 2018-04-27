@@ -31,6 +31,10 @@ public class BioCDocumentLoaderRegistry {
    * @param name name of loader
    * @param description description of loader
    * @param className full classname of loader
+   * @throws ClassNotFoundException class not found exception
+   * @throws InstantiationException exception during class instantiation
+   * @throws NoSuchMethodException no such method exception
+   * @throws IllegalAccessException illegal access exception
    */
   public static void register(String name, String description, 
 			      String className)

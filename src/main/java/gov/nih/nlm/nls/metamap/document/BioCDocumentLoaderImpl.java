@@ -18,7 +18,8 @@ import bioc.io.BioCCollectionReader;
 import bioc.io.BioCFactory;
 import bioc.io.standard.BioCFactoryImpl;
 /**
- *
+ * An implementation of BioCDocumentLoader that can read a BioC XML
+ * Document or Document Collection.
  */
 
 public class BioCDocumentLoaderImpl implements BioCDocumentLoader {

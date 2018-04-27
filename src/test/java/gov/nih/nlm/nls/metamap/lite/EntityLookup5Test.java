@@ -32,7 +32,7 @@ public class EntityLookup5Test {
 
   
   /**
-   * Creates a new <code>EntityLookup5Test</code> instance.
+   * Test if code that removes subsumed entities works as expected.
    *
    */
   public EntityLookup5Test() {

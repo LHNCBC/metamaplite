@@ -137,7 +137,7 @@ public class U
  /**
    * Method run 
    *
-   * @param pCommand
+   * @param pCommand command text
    * @return  String Anything that comes back from that command
    */
   /* ================================================|Public Method Header|==== */
@@ -210,7 +210,7 @@ public class U
   /**
    * Method isNumber 
    *
-   * @param pValue
+   * @param pValue input text
    * 
    * @return boolean true if the string contains only numerals and appropriate punctuation
    */
@@ -248,7 +248,7 @@ public class U
   /**
    * Method isRealNumber 
    *
-   * @param pValue
+   * @param pValue input text
    * 
    * @return boolean true if the string contains only numerals and appropriate punctuation
    */
@@ -297,7 +297,7 @@ public class U
   /**
    * Method isPunctuation
    *
-   * @param pValue
+   * @param pValue input text
    * 
    * @return boolean true if the string contains only punctuation
    */
@@ -327,7 +327,7 @@ public class U
   /**
    * Method containsNumber 
    *
-   * @param pValue
+   * @param pValue text string
    * 
    * @return boolean true if the string contains numerals
    */
@@ -385,8 +385,8 @@ public static String getParentDirectoryName()
 /**
  * Method square squares the input number
  * 
- * @param pVal 
- * @return double 
+ * @param pVal input number
+ * @return double: square of input number
  * 
 */
 // ================================================|Public Method Header|====
@@ -400,8 +400,8 @@ public static String getParentDirectoryName()
 /**
  * copyFile copies the contents of file A to file B 
  * 
- * @param pSourceFile 
- * @param pTargetFile
+ * @param pSourceFile source file
+ * @param pTargetFile target file
  * @exception Exception 
  * 
 */
@@ -433,8 +433,8 @@ public static void copyFile( String pSourceFile, String pTargetFile ) throws Exc
  * copyDir  Copies all files under srcDir to dstDir.
  * If dstDir does not exist, it will be created.
  * 
- * @param srcDir
- * @param dstDir
+ * @param srcDir source directory
+ * @param dstDir destination directory
  * @exception Exception 
  * 
 */
@@ -460,8 +460,8 @@ public static void copyFile( String pSourceFile, String pTargetFile ) throws Exc
  * copyDir  Copies all files under srcDir to dstDir.
  * If dstDir does not exist, it will be created.
  * 
- * @param pSrcDir
- * @param pDstDir
+ * @param pSrcDir source directory
+ * @param pDstDir destination directory
  * @exception Exception 
  * 
 */
@@ -479,8 +479,8 @@ public static void copyFile( String pSourceFile, String pTargetFile ) throws Exc
 /**
  * renameFile changes the name of the file t
  * 
- * @param pSourceFile 
- * @param pTargetFile
+ * @param pSourceFile source file
+ * @param pTargetFile target file
  * @exception Exception 
  * 
 */
@@ -502,10 +502,10 @@ public static void renameFile( String pSourceFile, String pTargetFile ) throws E
 /**
  * concat concatinates two strings together efficiently 
  * 
- * @param pStringA
- * @param pStringB
- * @return String
- * @exception Exception 
+ * @param pStringA first string 
+ * @param pStringB second string
+ * @return concatenation of first and second strings 
+ * @exception Exception general exception
  * 
 */
 // ================================================|Public Method Header|====
@@ -588,11 +588,11 @@ public static String concat( String pStringA,
 /**
  * concat concatinates five strings together efficiently 
  * 
- * @param pStringA
- * @param pStringB
- * @param pStringC
- * @param pStringD
- * @param pStringE
+ * @param pStringA first string
+ * @param pStringB second string
+ * @param pStringC third string
+ * @param pStringD fourth string
+ * @param pStringE five string
  * @return String
  * @exception Exception 
  * 

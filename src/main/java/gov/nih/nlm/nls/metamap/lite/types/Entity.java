@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import gov.nih.nlm.nls.types.Annotation;
 
 /**
- * Class 
+ * Entity class, a span with information attached. 
  */
 public class Entity implements Annotation, Comparable<Entity>
 {		// for lack of a better name.
@@ -132,9 +132,11 @@ public class Entity implements Annotation, Comparable<Entity>
    */
   public int getStart() { return this.start; }
   public void setScore(double value) { this.score = value; }
-  /** set start position of entity in text */
+  /** set start position of entity in text 
+   * @param start start position of entity in text */
   public void setStart(int start) { this.start = start; }
-  /** set length of entity in text */
+  /** set length of entity in text
+   * @param length length of entity in text */
   public void setLength(int length) { this.length = length; }
 
   public List<Ev> getEvList() { return new ArrayList<Ev>(this.evSet); }

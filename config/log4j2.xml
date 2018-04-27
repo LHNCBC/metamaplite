@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <File name="MetaMapLitePipeline" fileName="logs/MetaMapLitePipeline.log" append="false">
+    <File name="MetaMapLitePipeline" fileName="logs/MetaMapLiteDebug.log" append="false">
       <PatternLayout pattern="%t %-5p %c{2} - %m%n"/>
     </File>
     <Console name="STDOUT" target="SYSTEM_OUT">
@@ -9,14 +9,11 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="org.apache.log4j.xml" level="warn">
+    <Logger name="org.apache.log4j.xml" level="debug">
       <AppenderRef ref="MetaMapLitePipeline"/>
     </Logger>
-    <Root level="warn">
+    <Root level="debug">
       <AppenderRef ref="MetaMapLitePipeline"/>
     </Root>
   </Loggers>
 </Configuration>
-
-<!--  LocalWords:  Appenders
--->

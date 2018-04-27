@@ -78,7 +78,11 @@ public class FreeText implements BioCDocumentLoader
     return document;
   }
 
-  /** Read free text document from reader. */
+  /** Read free text document from reader.
+   * @param reader reader for input file
+   * @return list of BioC document instances.
+   * @throws IOException i/o exception
+   */
   public static List<BioCDocument> readFreeText(Reader reader) 
     throws IOException
   {

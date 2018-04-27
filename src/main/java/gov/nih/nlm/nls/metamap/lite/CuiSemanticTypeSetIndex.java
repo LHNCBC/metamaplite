@@ -29,7 +29,7 @@ public class CuiSemanticTypeSetIndex {
 
   /**
    * Creates a new <code>CuiSemanticTypeSetIndex</code> instance.
-   *
+   * @param mmIndexes metamaplite inverted file indexes container
    */
   public CuiSemanticTypeSetIndex(MetaMapIvfIndexes mmIndexes) {
     this.mmIndexes = mmIndexes;

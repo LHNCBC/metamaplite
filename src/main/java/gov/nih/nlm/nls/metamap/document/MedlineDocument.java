@@ -27,15 +27,16 @@ public class MedlineDocument
   /**
    * Instantiate Medline Document as a BioC document.
    * <p>
-
-   * @param citation citation instance
+   * @param documentId document identifier
+   * @param titleText text of title
+   * @param abstractText text of abstract
    * @return BioC document instance
    */
   public static BioCDocument instantiateBioCDocument(String documentId,
 						     String titleText,
 						     String abstractText) 
   {
-        BioCDocument doc = new BioCDocument();
+    BioCDocument doc = new BioCDocument();
     doc.setID(documentId);
     BioCPassage titlePassage = new BioCPassage();
     titlePassage.setText(titleText);

@@ -323,7 +323,7 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
     //    }
 
     String docid = sentence.getInfon("docid");
-    if (docid == null) { docid = "00000000.tx"; }
+    if (docid == null) { docid = "00000000.TXT"; }
     List<ERToken>tokenList = Scanner.analyzeText(sentence);
     this.addPartOfSpeech(tokenList);
 	
@@ -369,7 +369,7 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
     //    }
 
     String docid = sentence.getInfon("docid");
-    if (docid == null) { docid = "00000000.tx"; }
+    if (docid == null) { docid = "00000000.TXT"; }
     List<ERToken>tokenList = Scanner.analyzeText(sentence);
     this.addPartOfSpeech(tokenList);
     // find any entities in sentence 

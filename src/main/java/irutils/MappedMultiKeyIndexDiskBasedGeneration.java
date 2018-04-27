@@ -165,7 +165,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 
   /**
    * Write dictionary and extent list file
-   * @param workingdir working directory
+   * @param workingDir working directory
    * @param indexName short name of index
    * @param termDigestMap term to digest list map
    * @param digestExtentMap digest to postings extent map

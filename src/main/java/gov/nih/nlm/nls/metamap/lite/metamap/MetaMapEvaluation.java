@@ -101,8 +101,9 @@ public class MetaMapEvaluation {
    * @param cui concept unique identifier.
    * @param inputTextTokenList tokenized version of input text.
    * @param candidateCollection collection of entities found using input text.
-   * @throws FileNotFoundException
-   * @throws IOException
+   * @return score value
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public double calculateScore(String textstring,
 			       String preferredName,

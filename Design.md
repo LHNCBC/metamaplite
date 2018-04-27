@@ -634,7 +634,7 @@ Segmentation
 
 myProperties.setProperty("metamaplite.segmentation.method", methodname);
 
-
+1
 Times for songs collection using various segmentation methods
 
       program        | method     | time1           | time2
@@ -701,3 +701,15 @@ differ from the corresponding words in the phrase.
 ## MetaMapLite Scoring Components?
 
 Dice or Jaro distance functions
+
+## Maven Issues
+
+These are related to the use of Antonio Jimeno Yepes' WSD library.
+
+package                            |  new repository location
+-----------------------------------+-----------------------------------------------------
+monq:monq:jar:1.1.1                | bioinformatics.ua.pt/maven/content/groups/public
+org.w3c.xml:thirdparty:jar:1.2.0   | ?
+com.sleepycat.db:db:jar:4.1        | ?
+
+

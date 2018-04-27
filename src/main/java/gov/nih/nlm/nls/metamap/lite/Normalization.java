@@ -75,8 +75,74 @@ public class Normalization {
     return normString;
   }
 
+ /**
+   * Normalize metathesaurus string.
+   * <p>
+   * normalizeMetaString(String) performs "normalization" on String to produce
+   * the returned normalized string.  The purpose of normalization is to detect strings
+   * which are effectively the same.  The normalization process (also called
+   * lexical filtering) consists of the following steps:
+   * <ol>
+   *    <li> removal of (left []) parentheticals;</li>
+   *    <li> removal of multiple meaning designators (&lt;n&gt;);</li>
+   *    <li> NOS normalization;</li>
+   *    <li> syntactic uninversion;</li>
+   *    <li> conversion to lowercase;</li>
+   *    <li> replacement of hyphens with spaces; and</li>
+   *    <li> stripping of possessives.</li>
+   * </ol>
+   * Some right parentheticals used to be stripped, but no longer are.
+   * Lexical Filtering Examples:
+   * The concept "Abdomen" has strings "ABDOMEN" and "Abdomen, NOS".
+   * Similarly, the concept "Lung Cancer" has string "Cancer, Lung".
+   * And the concept "1,4-alpha-Glucan Branching Enzyme" has a string
+   * "1,4 alpha Glucan Branching Enzyme".
+   *
+   * <p>
+   * Note that the order in which the various normalizations occur is important.
+   * The above order is correct.
+   * important; e.g., parentheticals must be removed before either lowercasing
+   * or normalized syntactic uninversion (which includes NOS normalization)
+   * are performed.
+   *
+   * @param string meta string to normalize.
+   * @return normalized meta string.
+   */
+  public static String normalizeMetaString(String string)
+  {
+    String pstring = NLSStrings.removeLeftParentheticals(string);
+    String unPstring = NLSStrings.normalizedSyntacticUninvertString(pstring);
+    String lcUnPstring = unPstring.toLowerCase();
+    String hLcUnPstring = NLSStrings.removeHyphens(lcUnPstring);
+    String normString = NLSStrings.stripPossessives(hLcUnPstring);
+    return normString;
+  }
 
-
-
+  /**
+   * Similar to normalize_meta_string except hyphens are not removed
+   * normalizeAstString(String) performs "normalization" on String to
+   * produce the resulting normalized string.  The purpose of
+   * normalization is to detect strings which are effectively the
+   * same.  The normalization process (also called lexical filtering)
+   * consists of the following steps:
+   *
+   * <ul>
+   *    <li>removal of (left []) parentheticals;</li>
+   *    <li>syntactic uninversion;</li>
+   *    <li>conversion to lowercase;</li>
+   *    <li>stripping of possessives.</li>
+   * </ul>
+   * 
+   * @param astString meta string to normalize.
+   * @return normalized AST string.
+   */
+  public static String normalizeAstString(String astString)
+  {
+    String pstring = NLSStrings.removeLeftParentheticals(astString);
+    String unPstring = NLSStrings.syntacticUninvertString(pstring);
+    String lcUnPstring = unPstring.toLowerCase();
+    String normString = NLSStrings.stripPossessives(lcUnPstring);
+    return normString;
+  } 
   
 }

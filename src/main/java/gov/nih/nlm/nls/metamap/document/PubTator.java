@@ -31,8 +31,9 @@ public class PubTator
   /**
    * Instantiate PubMed XML as a BioC document.
    * <p>
-
-   * @param citation citation instance
+   * @param documentId document identifier
+   * @param titleText text of title
+   * @param abstractText text of abstract
    * @return BioC document instance
    */
   public static BioCDocument instantiateBioCDocument(String documentId,

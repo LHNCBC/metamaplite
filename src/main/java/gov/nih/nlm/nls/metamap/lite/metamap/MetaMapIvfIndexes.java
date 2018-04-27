@@ -112,19 +112,24 @@ public class MetaMapIvfIndexes {
     return this.root;
   }
 
-  /** get cui -&gt; source info index */
+  /** get cui -&gt; source info index 
+   * @return lookup class for index. */
   public MappedMultiKeyIndexLookup getCuiSourceInfoIndex() { return this.cuiSourceInfoIndex; }
 
-  /** get cui -&gt; semantic type index */
+  /** get cui -&gt; semantic type index
+   * @return lookup class for index. */
   public MappedMultiKeyIndexLookup getCuiSemanticTypeIndex() { return this.cuiSemanticTypeIndex; }
 
-  /** get cui -&gt; concept index (actually bi-directional) */
+  /** get cui -&gt; concept index (actually bi-directional)
+   * @return lookup class for index. */
   public MappedMultiKeyIndexLookup getCuiConceptIndex() { return this.cuiConceptIndex; }
 
-  /** get term/cat/word/cat/level/history index */
+  /** get term/cat/word/cat/level/history index
+   * @return lookup class for index. */
   public MappedMultiKeyIndexLookup getVarsIndex() { return this.varsIndex; }
 
-  /** get MeSH Treecodes Relaxed Model index */
+  /** get MeSH Treecodes Relaxed Model index
+   * @return lookup class for index. */
   public MappedMultiKeyIndexLookup getMeshTcRelaxedIndex() { return this.meshTcRelaxedIndex; }
 
 }

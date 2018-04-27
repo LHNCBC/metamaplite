@@ -107,6 +107,8 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
    * Load list of PubMed documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<PubMedDocument> loadFile(String inputFilename)
     throws FileNotFoundException, IOException
@@ -121,6 +123,8 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
    * Read list of BioC documents
    * @param inputReader input reader
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<BioCDocument> bioCRead(Reader inputReader)
     throws FileNotFoundException, IOException
@@ -146,6 +150,8 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
    * Load list of BioC documents
    * @param inputFilename input text filename
    * @return List of strings, one document per line.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException

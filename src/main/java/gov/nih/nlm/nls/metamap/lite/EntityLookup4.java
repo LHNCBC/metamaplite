@@ -62,7 +62,6 @@ public class EntityLookup4 implements EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup4.class);
 
   public MetaMapIvfIndexes mmIndexes;
-  Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   
   /** string column for cuisourceinfo index*/
   int strColumn = 3;		
@@ -88,6 +87,10 @@ public class EntityLookup4 implements EntityLookup {
   boolean addPartOfSpeechTagsFlag =
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
 
+  /** Part of speech tags used for term lookup, can be set using
+   * property: metamaplite.pos.taglist; the tag list is a set of Penn
+   * Treebank part of speech tags separated by commas. */
+  Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
     this.allowedPartOfSpeechSet.add("NN");
@@ -111,6 +114,15 @@ public class EntityLookup4 implements EntityLookup {
 
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+      if (allowedPartOfSpeechTaglist != null) {
+	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
+	  this.allowedPartOfSpeechSet.add(pos);
+	}
+	this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
+      } else {
+	this.defaultAllowedPartOfSpeech();
+      }
     }
 
     // Instantiate user-specified negation detector if present,
@@ -132,7 +144,6 @@ public class EntityLookup4 implements EntityLookup {
       throw new RuntimeException(iae);
     }
 
-    this.defaultAllowedPartOfSpeech();
     if (properties.containsKey("metamaplite.excluded.termsfile")) {
       this.excludedTerms.addTerms(properties.getProperty("metamaplite.excluded.termsfile"));
     } else if (System.getProperty("metamaplite.excluded.termsfile") != null) {
@@ -222,41 +233,6 @@ public class EntityLookup4 implements EntityLookup {
 				 lexicalCategory, sentenceNumber,
 				 offset, length, 0.0, evSet);
       spanMap.put(span, entity);
-    }
-  }
-
-  boolean isCuiInSemanticTypeRestrictSet(String cui, Set<String> semanticTypeRestrictSet)
-  {
-    if (semanticTypeRestrictSet.isEmpty() || semanticTypeRestrictSet.contains("all"))
-      return true;
-    try {
-      boolean inSet = false;
-      for (String semtype: cuiSemanticTypeSetIndex.getSemanticTypeSet(cui)) {
-	inSet = inSet || semanticTypeRestrictSet.contains(semtype);
-      }
-      return inSet;
-    } catch (FileNotFoundException fnfe) {
-      return false;
-    } catch (IOException ioe) {
-      return false;
-    }
-  }
-
-
-  boolean isCuiInSourceRestrictSet(String cui, Set<String> sourceRestrictSet)
-  {
-    if (sourceRestrictSet.isEmpty() || sourceRestrictSet.contains("all"))
-      return true;
-    try {
-      boolean inSet = false;
-      for (String semtype: cuiSourceSetIndex.getSourceSet(cui)) {
-	inSet = inSet || sourceRestrictSet.contains(semtype);
-      }
-      return inSet;
-    } catch (FileNotFoundException fnfe) {
-      return false;
-    } catch (IOException ioe) {
-      return false;
     }
   }
 
@@ -401,31 +377,6 @@ public class EntityLookup4 implements EntityLookup {
       } /* first token has allowed partOfSpeech */
     } /* for token-sublist in list-of-token-sublists */
     return new SpanEntityMapAndTokenLength(spanMap, longestMatchedTokenLength);
-  }
-
-  public void filterEntityEvListBySemanticType(Entity entity, Set<String> semanticTypeRestrictSet)
-  {
-    Set<Ev> newEvSet = new HashSet<Ev>();
-    for (Ev ev: entity.getEvList()) {
-      String cui = ev.getConceptInfo().getCUI();
-      if (this.isCuiInSemanticTypeRestrictSet(cui, semanticTypeRestrictSet)) {
-	newEvSet.add(ev);
-      }
-    }
-    entity.setEvSet(newEvSet);
-  }
-
-
-  public void filterEntityEvListBySource(Entity entity, Set<String> sourceRestrictSet)
-  {
-    Set<Ev> newEvSet = new HashSet<Ev>();
-    for (Ev ev: entity.getEvList()) {
-      String cui = ev.getConceptInfo().getCUI();
-      if (this.isCuiInSourceRestrictSet(cui, sourceRestrictSet)) {
-	newEvSet.add(ev);
-      }
-    }
-    entity.setEvSet(newEvSet);
   }
 
   /**
@@ -598,8 +549,8 @@ public class EntityLookup4 implements EntityLookup {
       Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
-	filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
-	filterEntityEvListBySource(entity, sourceRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySource(entity, sourceRestrictSet);
 	if (entity.getEvList().size() > 0) {
 	  entitySet.add(entity);
 	}
