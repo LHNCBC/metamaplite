@@ -540,12 +540,26 @@ public class EntityLookup4 implements EntityLookup {
 	  entity.setLocationPosition(i);
 	}
 	entitySet0.addAll(sentenceEntitySet);
-	// look for negation and other relations using Context.
-	if (detectNegationsFlag) {
-	  detectNegations(sentenceEntitySet, sentence.getText(), tokenList);
-	}
 	i++;
       }
+
+      // look for negation and other relations using Context.
+      for (BioCSentence sentence: passage.getSentences()) {
+	List<ERToken> tokenList = Scanner.analyzeText(sentence);
+
+	// mark abbreviations that are entities and add them to entity set.
+	Set<Entity> abbrevEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage, new ArrayList(entitySet0)));
+	// dbg
+	for (Entity entity: abbrevEntitySet) {
+	  logger.debug("abbrevEntitySet.entity: " + entity);
+	}
+	// end of dbg
+	entitySet0.addAll(abbrevEntitySet);
+	if (detectNegationsFlag) {
+	  detectNegations(entitySet0, sentence.getText(), tokenList);
+	}
+      }
+
       Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {

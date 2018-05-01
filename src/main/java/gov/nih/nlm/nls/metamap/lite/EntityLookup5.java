@@ -707,7 +707,6 @@ public class EntityLookup5 implements EntityLookup {
     List<Phrase> newPhraseList = glomNounPhrasePrepPhrase(phraseList);
     for (Phrase phrase: newPhraseList) {
       logger.debug("phrase: " + phrase);
-      logger.info("phrase: " + phrase);
       List<ERToken> phraseTokenList = mapToTokenList(sentenceTokenList, phrase.getPhrase());
       logger.debug("phraseTokenList: " + phraseTokenList);
       int i = 0;
@@ -825,23 +824,29 @@ public class EntityLookup5 implements EntityLookup {
       int i = 0;
       for (BioCSentence sentence: passage.getSentences()) {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
-	Set<Entity> sentenceEntitySet0 = this.processSentenceTokenList(docid, fieldid, tokenList,
+	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
-	
-	// mark abbreviations that are entities and add them to sentence entity set.
-	Set<Entity> sentenceEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage, new ArrayList(sentenceEntitySet0)));
 	
 	for (Entity entity: sentenceEntitySet) {
 	  entity.setLocationPosition(i);
 	}
 	entitySet0.addAll(sentenceEntitySet);
-	// look for negation and other relations using Context.
-	if (detectNegationsFlag) {
-	  detectNegations(sentenceEntitySet, sentence.getText(), tokenList);
-	}
 	i++;
       }
+
+      // look for negation and other relations using Context.
+      for (BioCSentence sentence: passage.getSentences()) {
+	List<ERToken> tokenList = Scanner.analyzeText(sentence);
+
+	// mark abbreviations that are entities and add them to sentence entity set.
+	Set<Entity> abbrevEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage, new ArrayList(entitySet0)));
+	entitySet0.addAll(abbrevEntitySet);
+	if (detectNegationsFlag) {
+	  detectNegations(entitySet0, sentence.getText(), tokenList);
+	}
+      }
+      
       // remove any entities subsumed by another entity
       Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
       // filter entities by semantic type and source sets.
