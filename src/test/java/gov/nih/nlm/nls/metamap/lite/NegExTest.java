@@ -4,9 +4,13 @@ import org.junit.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
+import gov.nih.nlm.nls.metamap.lite.types.Entity;
+import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.prefix.Scanner;
+import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 
 /**
  * NegEx unit tests
@@ -35,7 +39,7 @@ public class NegExTest extends TestCase {
 
 
   /**
-   * Test findPhrase 
+   * Test findPhrase function for trigger ["can", "be", "ruled", "out"] in sentence at token 5.
    */
   @Test
   public void testFindPhrase0()
@@ -46,6 +50,10 @@ public class NegExTest extends TestCase {
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
     assertTrue(positionList.equals(Arrays.asList(new Integer(5))));
   }
+
+  /**
+   * Test find phrase function for trigger ["no", "sign", "of"] in sentence at token 2.
+   */
   @Test
   public void testFindPhrase1()
   {
@@ -54,6 +62,10 @@ public class NegExTest extends TestCase {
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
     assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
   }
+
+  /**
+   * Test find phrase function for trigger "denies" in sentence at token 2.
+   */
   @Test
   public void testFindPhrase2()
   {
@@ -63,6 +75,10 @@ public class NegExTest extends TestCase {
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
     assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
   }
+
+  /**
+   * Test find phrase function for trigger "no" in sentence at token 7.
+   */
   @Test
   public void testFindPhrase3()
   {
@@ -73,6 +89,9 @@ public class NegExTest extends TestCase {
     assertTrue(positionList.equals(Arrays.asList(new Integer(7))));
   }
 
+  /**
+   * Test find phrase function for trigger "sufficient to rule him out" in sentence at token 2.
+   */
   public void testFindPhrase4()
   {
     List<String> stringlist =
@@ -82,6 +101,9 @@ public class NegExTest extends TestCase {
     assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
   }
 
+  /**
+   * Test find phrase function for trigger "was ruled out" in sentence at token 1.
+   */
   public void testFindPhrase5()
   {
     List<String> stringlist =
@@ -96,15 +118,17 @@ public class NegExTest extends TestCase {
     assertTrue(true);
   }
 
-  String metaSubSentence =
-    "SMX-NO depleted CYS and GSH in buffer, and to a lesser extent, in cells and plasma.";
-
+  /**
+   * test determining range of meta-token.
+   */
   public void testGetRangeOfMetaToken()
   {
+    String metaSubSentence =
+      "SMX-NO depleted CYS and GSH in buffer, and to a lesser extent, in cells and plasma.";
     List<ERToken> subTokenList = Scanner.analyzeText(metaSubSentence);
-    int range = inst.getRangeOfMetaToken(subTokenList);
+    int range = this.inst.getRangeOfMetaToken(subTokenList);
     System.out.println("range: " + range);
-    assertTrue( range == 0 );
+    assertTrue( range == 2 );
   }
 
 
@@ -114,7 +138,7 @@ public class NegExTest extends TestCase {
 
   {
     List<ERToken> tokenList = Scanner.analyzeText(testMetaSentence);
-    List<ERToken> newTokenList = inst.addMetaTokens(tokenList);
+    List<ERToken> newTokenList = this.inst.addMetaTokens(tokenList);
     System.out.println("newTokenList: " + newTokenList);
     assertTrue( newTokenList.get(12).getText().equals("SMX-NO") );
   }
@@ -123,9 +147,95 @@ public class NegExTest extends TestCase {
   public void testAddMetaToken2()
   {
     List<ERToken> tokenList = Scanner.analyzeText(testMetaSentence2);
-    List<ERToken> newTokenList = inst.addMetaTokens(tokenList);
+    List<ERToken> newTokenList = this.inst.addMetaTokens(tokenList);
     System.out.println("newTokenList2: " + newTokenList);
     assertTrue( newTokenList.get(4).getText().equals("((NO)H)") );
+  }
+
+  String testMetaSentence3 = "Patient denies current SI/HI/AVH.";
+  List<ERToken> testTokenList3 = Scanner.analyzeText(testMetaSentence3);
+  
+  
+  public void testAddMetaToken3()
+  {
+    List<ERToken> newTokenList = this.inst.addMetaTokens(testTokenList3);
+    System.out.println("testAddMetaToken3: newTokenList: " + newTokenList);
+    assertTrue( newTokenList.size() == 8 );
+  }
+
+  public void testFindPhraseDenies()
+  {
+    List<String> stringlist = Arrays.asList(Tokenize.mmTokenize(testMetaSentence3, 0));
+    List<String> phrase = Arrays.asList("denies");
+    List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
+    System.out.println("testFindPhraseDenies: positionList: " + positionList +
+		       " -> (" + stringlist.get(positionList.get(0)) + ")");
+    assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
+  }
+
+  public void testGetEntityTokenPosition0()
+  {
+    Entity entity = new Entity("s1", "AVH", 29, 3, 100.0, new ArrayList<Ev>());
+    System.out.println("testGetEntityTokenPosition0: testTokenList3: " + testTokenList3);
+    int position = this.inst.getEntityTokenPosition(entity, testTokenList3);
+    System.out.println("testGetEntityTokenPosition0: position: " + position);
+    assertTrue(position == 10);		// force it to fail.
+  }
+
+  public void testGetEntityTokenPosition1()
+  {
+    Entity entity0 = new Entity("s1", "SI", 23, 2, 100.0, new ArrayList<Ev>());
+    Entity entity1 = new Entity("s1", "HI", 26, 2, 100.0, new ArrayList<Ev>());
+    Entity entity2 = new Entity("s1", "AVH", 29, 3, 100.0, new ArrayList<Ev>());
+    System.out.println("testGetEntityTokenPosition1: testTokenList3: " + testTokenList3);
+    List<ERToken> newTokenList = this.inst.addMetaTokens(testTokenList3);
+    System.out.println("testGetEntityTokenPosition1: newTokenList: " + newTokenList);
+    int position0 = this.inst.getEntityTokenPosition(entity0, newTokenList);
+    System.out.println("testGetEntityTokenPosition1: position0: " + position0 + ", entity0: " + entity0);
+    int position1 = this.inst.getEntityTokenPosition(entity1, newTokenList);
+    System.out.println("testGetEntityTokenPosition1: position1: " + position1 + ", entity1: " + entity1);
+    int position2 = this.inst.getEntityTokenPosition(entity2, newTokenList);
+    System.out.println("testGetEntityTokenPosition1: position2: " + position2 + ", entity2: " + entity2);
+    assertTrue((position0 == 6) &&
+	       (position0 == 6) &&
+	       (position0 == 6));
+  }
+
+  public void testMarkNegatedEntities()  
+  {
+    // list of entities
+    List<Entity> entityList = new ArrayList<Entity>();
+    entityList.add(new Entity("s1", "Patient", 0, 7, 100.0, new ArrayList<Ev>()));
+    entityList.add(new Entity("s1", "SI", 23, 2, 100.0, new ArrayList<Ev>()));
+    entityList.add(new Entity("s1", "HI", 26, 2, 100.0, new ArrayList<Ev>()));
+    entityList.add(new Entity("s1", "AVH", 29, 3, 100.0, new ArrayList<Ev>()));
+    
+    List<NegPhraseInfo> negationPhraseList = new ArrayList<NegPhraseInfo>();
+    List<Integer> posList = Arrays.asList(new Integer("2"));
+    negationPhraseList.add(new NegPhraseInfo(Arrays.asList("denies"), "nega", posList));
+    
+    List<NegPhraseInfo> conjPhraseList = new ArrayList<NegPhraseInfo>(); // empty, no conjunctions
+
+    System.out.println("testMarkNegatedEntities: testTokenList3: " + testTokenList3);
+    List<ERToken> newTokenList = this.inst.addMetaTokens(testTokenList3);
+    System.out.println("testMarkNegatedEntities: newTokenList: " + newTokenList);
+
+    System.out.println("before:");
+    for (Entity entity: entityList) {
+      System.out.println(" " + entity);
+    }
+    this.inst.markNegatedEntities(newTokenList,
+				  negationPhraseList,
+				  conjPhraseList,
+				  entityList);
+    System.out.println("after:");
+    for (Entity entity: entityList) {
+      System.out.println(" " + entity);
+    }
+    assertTrue(entityList.get(1).isNegated() &&
+	       entityList.get(2).isNegated() &&
+	       entityList.get(3).isNegated()
+	       );
   }
 }
 

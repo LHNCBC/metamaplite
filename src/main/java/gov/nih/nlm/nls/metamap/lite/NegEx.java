@@ -20,6 +20,7 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.NegExKeyMap;
+import gov.nih.nlm.nls.tools.SetOps;
 // import explore.negex;
 
 /**
@@ -139,15 +140,25 @@ public class NegEx implements NegationDetector {
   }
 
   public int getEntityTokenPosition(Entity entity, List<ERToken> tokenlist) {
-    int tokenPosition = -1;
-    int i = 0;
-    for (ERToken token: tokenlist) {
-      if (entity.getOffset() == token.getOffset()) {
-	tokenPosition = i;
+    if ((entity.getOffset() < tokenlist.get(0).getOffset()) ||
+	(entity.getOffset() > (tokenlist.get(tokenlist.size() - 1).getOffset() +
+			       tokenlist.get(tokenlist.size() - 1).getText().length()))) {
+      return -1;
+    } else {
+      int tokenPosition = -1;
+      int i = 0;
+      for (ERToken token: tokenlist) {
+	if (entity.getOffset() == token.getOffset()) {
+	  tokenPosition = i;
+	} else if ((entity.getOffset() > token.getOffset()) &&
+		   (entity.getOffset() + entity.getMatchedText().length()) <=
+		   (token.getOffset() + token.getText().length())) {
+	  tokenPosition = i;
+	}
+	i++;
       }
-      i++;
+      return tokenPosition;
     }
-    return tokenPosition;
   }
 
   /**
@@ -254,12 +265,11 @@ public class NegEx implements NegationDetector {
     for (Entity entity: entityColl) {
       boolean inSet = false;
       for (Ev ev: entity.getEvList()) {
-	for (String semtype: ev.getConceptInfo().getSemanticTypeSet()) {
-	  if (semanticTypeSet.contains(semtype)) {
-	    inSet = true;
-	  }
+	if (SetOps.intersection(ev.getConceptInfo().getSemanticTypeSet(),
+				semanticTypeSet).size() > 0) {
+	  inSet = true;
 	}
-      }		      
+      }
       if (inSet) {
 	newEntityColl.add(entity);
       }
@@ -271,13 +281,19 @@ public class NegEx implements NegationDetector {
     List<ERToken> newTokenlist = new ArrayList<ERToken>();
     for (ERToken token: tokenList) {
       if ((! token.getTokenClass().equals("ws")) &&
-	  (! token.getTokenClass().equals("pd"))) {
+	  (! token.getTokenClass().equals("pd")) ||
+	  NegExKeyMap.negationPhraseTypeMap.containsKey(Arrays.asList(token.getText()))) {
 	newTokenlist.add(token);
-      }
+      } 
     }
     return newTokenlist;
   }
 
+  /* 
+   * Determine range of metatoken at head of tokenlist.
+   * @param subtokenlist 
+   * @return range of metatoken in tokenlist
+   */
   public int getRangeOfMetaToken(List<ERToken> subtokenlist) {
     int range = 0;
     while ((range < (subtokenlist.size() - 1)) &&
@@ -301,7 +317,8 @@ public class NegEx implements NegationDetector {
 	  (tokenList.get(i).getTokenClass() != "ws") &&
 	  (tokenList.get(i+1).getTokenClass() != "ws") &&
 	  (tokenList.get(i+2).getTokenClass() != "ws") &&
-	  (tokenList.get(i+2).getTokenClass() != "pd")) {
+	  (tokenList.get(i+2).getTokenClass() != "pd") &&
+	  (! NegExKeyMap.negationPhraseTypeMap.containsKey(Arrays.asList(tokenList.get(i+2).getText())))) {
 	int range = getRangeOfMetaToken(tokenList.subList(i+2, tokenList.size())) + 3;
 	int offset = tokenList.get(i).getOffset();
 	String tc = tokenList.get(i).getTokenClass();
@@ -358,9 +375,11 @@ public class NegEx implements NegationDetector {
     List<String> tokenStringList = extractStringsFromTokenlist(filteredTokenList);
     List<NegPhraseInfo> negationPhraseList0 =
       getNegationPhraseList(tokenStringList, NegExKeyMap.negationPhraseTypeMap);
-    List<NegPhraseInfo> conjPhraseList = listConjPhrases(negationPhraseList0);
-    List<NegPhraseInfo> negationPhraseList = keepLongestNegationPhrases(negationPhraseList0);
-    markNegatedEntities(filteredTokenList, negationPhraseList, conjPhraseList, filteredEntityColl);
+    if (negationPhraseList0.size() > 0) {
+      List<NegPhraseInfo> conjPhraseList = listConjPhrases(negationPhraseList0);
+      List<NegPhraseInfo> negationPhraseList = keepLongestNegationPhrases(negationPhraseList0);
+      markNegatedEntities(filteredTokenList, negationPhraseList, conjPhraseList, filteredEntityColl);
+    }
   }
 
   /**
