@@ -1,4 +1,4 @@
-e#
+#
 set projectdir=%cd%
 
 set BIOC=%projectdir%/lib/bioc-1.0.1.jar
