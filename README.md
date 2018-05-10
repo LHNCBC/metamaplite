@@ -47,9 +47,13 @@ What is missing:
 
 ## Command Line Usage
 
-Example of invocation using script:
+Example of invocation on Linux or MINGW using script:
 
     ./metamaplite.sh [options] [<input file>|--]
+
+Example of invocation on Windows using batch file:
+
+    metamaplite.bat [options] [<input file>|--]
 
 Example of invocation using Java VM directly:
 
