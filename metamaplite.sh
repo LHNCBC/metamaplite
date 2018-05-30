@@ -27,5 +27,5 @@ MMLPROPS="-Dopennlp.en-sent.bin.path=$OPENNLP_MODELS/en-sent.bin \
     -Dmetamaplite.excluded.termsfile=$PROJECTDIR/data/specialterms.txt"
 
 CLASSPATH=$CONFIGDIR
-java -verbose $MML_JVM_OPTS $MMLPROPS -cp $PROJECTDIR/target/metamaplite-*-standalone.jar gov.nih.nlm.nls.ner.MetaMapLite $* 
+java $MML_JVM_OPTS $MMLPROPS -cp $PROJECTDIR/target/metamaplite-*-standalone.jar gov.nih.nlm.nls.ner.MetaMapLite $* 
 
