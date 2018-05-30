@@ -66,7 +66,6 @@ public class UserDefinedAcronym<T> {
       String line;
       while ((line = br.readLine()) != null) {
 	String[] fields = line.split("\\|");
-	System.out.println(line);
 	udaMap.put
 	  (fields[0],
 	   new UserDefinedAcronym<T>
