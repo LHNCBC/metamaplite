@@ -51,6 +51,21 @@ public class Entity implements Annotation, Comparable<Entity>
     this.evSet = evSet;
   }
 
+  public Entity(String id,
+		String docid,  
+		String matchedText,
+		int start, int length,
+		double scoreValue,
+		Set<Ev> evSet) {
+    this.id = id;
+    this.docid = docid;
+    this.matchedText = matchedText;
+    this.score = scoreValue;
+    this.start = start;
+    this.length = length;
+    this.evSet = evSet;
+  }
+
   public Entity(String docid,  
 		String matchedText,
 		int start, int length,
@@ -62,6 +77,28 @@ public class Entity implements Annotation, Comparable<Entity>
     this.start = start;
     this.length = length;
     this.evSet = new HashSet<Ev>(evList);
+  }
+
+
+  public Entity(String id,
+		String docid,
+		String fieldId,
+		String matchedText,
+		String lexicalCategory,
+		int sentenceNumber,
+		int start, int length,
+		double scoreValue,
+		Set<Ev> evSet) {
+    this.id = id;
+    this.docid = docid;
+    this.fieldId = fieldId;
+    this.matchedText = matchedText;
+    this.lexicalCategory = lexicalCategory;
+    this.sentenceNumber = sentenceNumber;
+    this.score = scoreValue;
+    this.start = start;
+    this.length = length;
+    this.evSet = evSet;
   }
 
 
