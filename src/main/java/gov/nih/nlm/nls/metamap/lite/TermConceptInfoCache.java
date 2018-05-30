@@ -158,6 +158,66 @@ public class TermConceptInfoCache {
   }
 
   public Set<ConceptInfo> lookupTermConceptInfoIVF(String originalTerm,
+						   String normTerm) 
+    throws FileNotFoundException, IOException
+  {
+    Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
+    // if not in cache then lookup term 
+    for (String doc: this.mmIndexes.cuiSourceInfoIndex.lookup(normTerm, 3)) {
+      String[] fields = doc.split("\\|");
+      String cui = fields[0];
+      String docStr = fields[3];
+      
+      // If term is not in excluded term list and term or
+      // normalized form of term matches lookup string or
+      // normalized form of lookup string then get
+      // information about lookup string.
+      if ((! excludedTerms.isExcluded(cui,normTerm)) && isLikelyMatch(originalTerm,normTerm,docStr)) {
+	ConceptInfo conceptInfo = new ConceptInfo(cui,
+						  this.cuiPreferredNameCache.findPreferredName(cui),
+						  docStr,
+						  this.cuiSourceSetIndex.getSourceSet(cui),
+						  this.cuiSemanticTypeSetIndex.getSemanticTypeSet(cui));
+	conceptInfoSet.add(conceptInfo);
+      }
+    }
+    return conceptInfoSet;
+  }
+
+  /**
+   * Lookup Term - if term info is already in cache then use cached
+   * term info, otherwise, lookup term info in index.
+   * @param originalTerm Term to lookup
+   * @param normTerm normalized version of originalTerm 
+   * @return map of entities keyed by span
+   * @throws FileNotFoundException File Not Found Exception
+   * @throws IOException IO Exception
+   */
+  public Set<ConceptInfo> lookupTermConceptInfo(String originalTerm,
+						String normTerm)
+    throws FileNotFoundException, IOException
+  {
+    // System.out.println("originalTerm: " + originalTerm);
+    // System.out.println("normTerm: " + normTerm);
+    
+    if (this.enableTermConceptInfoCache) {
+      if (this.termConceptCache.containsKey(normTerm) ) {
+	Set<ConceptInfo> result;
+	synchronized(this.termConceptCache) {
+	  result = this.termConceptCache.get(normTerm);
+	}
+	return result;
+      } else {
+	Set<ConceptInfo> conceptInfoSet = this.lookupTermConceptInfoIVF(originalTerm, normTerm);
+	this.cacheConceptInfoSet(normTerm, conceptInfoSet);
+	return conceptInfoSet;
+      }
+    } else {
+      return this.lookupTermConceptInfoIVF(originalTerm, normTerm);
+    }
+  }
+
+  public Set<ConceptInfo> lookupTermConceptInfoIVF(String originalTerm,
 						   String normTerm,
 						   List<? extends Token> tokenlist) 
     throws FileNotFoundException, IOException
@@ -221,5 +281,5 @@ public class TermConceptInfoCache {
     } else {
       return this.lookupTermConceptInfoIVF(originalTerm, normTerm, tokenlist);
     }
-  }  
+  }
 }
