@@ -668,7 +668,10 @@ Times for songs collection using various segmentation methods
 
 ## MetaMap Scoring Components
 
-score = 1000*(1.0 + variation + coverage + cohesiveness)/6
+Described in paper "MetaMap Evaluation", Alan R. Aronson,
+https://ii.nlm.nih.gov/Publications/Papers/mm.evaluation.pdf
+
+    score = 1000*((centrality + variation + coverage + cohesiveness)/6)
 
 ### Variation
 
@@ -696,20 +699,27 @@ differ from the corresponding words in the phrase.
 
 ### Involvement
 
-   
+## MetaMapLite Scoring Components
 
-## MetaMapLite Scoring Components?
+Currently based on MetaMap's Scoring Components
 
-Dice or Jaro distance functions
+    score = 1000*((centrality + variation + (2.0*(coverage + cohesiveness)))/6.0)
+
+
+## MMI Ranking
+
+Describe in paper "MMI Ranking Function", Alan R. Aronson,
+https://ii.nlm.nih.gov/Publications/Papers/ranking.pdf
+
 
 ## Maven Issues
 
 These are related to the use of Antonio Jimeno Yepes' WSD library.
 
-package                            |  new repository location
------------------------------------+-----------------------------------------------------
-monq:monq:jar:1.1.1                | bioinformatics.ua.pt/maven/content/groups/public
-org.w3c.xml:thirdparty:jar:1.2.0   | ?
-com.sleepycat.db:db:jar:4.1        | ?
+    package                            |  new repository location
+    -----------------------------------+-----------------------------------------------------
+    monq:monq:jar:1.1.1                | bioinformatics.ua.pt/maven/content/groups/public
+    org.w3c.xml:thirdparty:jar:1.2.0   | ?
+    com.sleepycat.db:db:jar:4.1        | ?
 
 
