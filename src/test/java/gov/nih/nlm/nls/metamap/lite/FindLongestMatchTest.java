@@ -36,7 +36,7 @@ public class FindLongestMatchTest {
   List<ERToken> tokenlist0;
   Set<TermInfo> refTermInfoSet0;
   List<ERToken> tokenlist1;
-  DictionaryLookup dictionaryLookup;
+  DictionaryLookup<TermInfo> dictionaryLookup;
   /**
    * Test if code that removes subsumed entities works as expected.
    *
@@ -69,7 +69,7 @@ public class FindLongestMatchTest {
    * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
    * @version 1.0
    */
-  static class HashMapDictionaryLookup implements DictionaryLookup {
+  static class HashMapDictionaryLookup implements DictionaryLookup<TermInfo> {
     
     
     Map<String,String> dictionary;
@@ -84,7 +84,7 @@ public class FindLongestMatchTest {
     // Implementation of gov.nih.nlm.nls.metamap.lite.DictionaryLookup
 
     /**
-     * Describe <code>lookup</code> method here.
+     * <code>lookup</code> - lookup term in <code>HashMap</code>
      *
      * @param originalTerm a <code>String</code> value
      * @param normTerm a <code>String</code> value
@@ -103,6 +103,26 @@ public class FindLongestMatchTest {
 	return null;
       }
     }
+
+  /**
+   * Lookup term in <code>HashMap</code>
+   *
+   * @param originalTerm original term
+   * @param normTerm normalized form of term
+   * @return a <code>TermInfo</code> value associated with input term.
+   */
+    public final TermInfo lookup(final String originalTerm, final String normTerm) {
+      String cui = this.dictionary.get(normTerm.toLowerCase());
+      if (cui == null) {
+	cui = this.dictionary.get(originalTerm.toLowerCase());
+      }
+      if (cui != null) {
+	System.out.println("HashMapDictionary:lookup: cui: " + cui);
+	return new TermInfoImpl(originalTerm, normTerm, cui);
+      } else {
+	return null;
+      }
+    }    
   }
 
   @org.junit.Before public void setup() {
