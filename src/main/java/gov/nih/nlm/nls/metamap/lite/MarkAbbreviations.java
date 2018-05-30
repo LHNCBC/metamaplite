@@ -96,7 +96,7 @@ public class MarkAbbreviations {
 	      String refId = node.getRefid();
 	      for (BioCAnnotation lfAnnotation: passage.getAnnotations()) {
 		if (lfAnnotation.getID() == refId) {
-		  longForm = lfAnnotation.getText();
+		  longForm = lfAnnotation.getText().replace("\n", " ");
 		  List<BioCAnnotation> newLfAnnotList = new ArrayList<BioCAnnotation>();
 		  newLfAnnotList.add(lfAnnotation);
 		  longFormMap.put(longForm, newLfAnnotList);
@@ -129,13 +129,16 @@ public class MarkAbbreviations {
 	      // verify if abbreviation is in original text at specified offset 
 	      if ((location.getOffset() > 0) && (abbrAnnot.getText().length() > 0)) {
 		logger.debug("abbrev annotation: " + abbrAnnot.getText() ); 
-		logger.debug("location offset: " + location.getOffset());
+		logger.debug("abbrev location offset: " + location.getOffset());
 		String passageText = passage.getText();
-		int begin = Math.min(0, location.getOffset());
-		int end = Math.max(begin + abbrAnnot.getText().length(), passageText.length());
+		int begin = Math.max(0, location.getOffset());
+		int end = Math.min(begin + abbrAnnot.getText().length(), passageText.length());
+		logger.debug("abbrev begin: " + begin);
+		logger.debug("abbrev end: " + end);
 		String passageSubstring = passageText.substring(begin, end);
+		logger.debug("abbrev passageSubstring: " + passageSubstring);
 		if (passageSubstring.equals(abbrAnnot.getText())) {
-		  logger.info("adding " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
+		  logger.debug("adding entity " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
 		  Entity newEntity = new Entity(entity);
 		  newEntity.setText(abbrAnnot.getText());
 		  newEntity.setStart(location.getOffset());

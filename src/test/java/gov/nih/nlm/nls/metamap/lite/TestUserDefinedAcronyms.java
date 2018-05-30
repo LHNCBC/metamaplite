@@ -1,16 +1,20 @@
 package gov.nih.nlm.nls.metamap.lite;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.Ignore;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.junit.Assert.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import bioc.BioCAnnotation;
 import bioc.BioCPassage;
@@ -22,20 +26,26 @@ import bioc.tool.ExtractAbbrev;
 
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
+import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.tools.SetOps;
+import gov.nih.nlm.nls.metamap.prefix.Scanner;
+import gov.nih.nlm.nls.metamap.prefix.Token;
+import gov.nih.nlm.nls.metamap.prefix.ERToken;
+import gov.nih.nlm.nls.metamap.lite.IVFLookup;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Describe class MarkAbbreviationsTest here.
+ * Describe class TestUserDefinedAcronyms here.
  *
  *
- * Created: Tue Jan 31 09:22:43 2017
+ * Created: Fri May 18 11:19:36 2018
  *
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public class MarkAbbreviationsTest extends TestCase {
+@RunWith(JUnit4.class)
+public class TestUserDefinedAcronyms {
 
-  String text0 = "Heart Rate (HR)";
   String text1 = "There was the possibility of suicidal ideations (SI),\n" +
     "homicidal ideations (HI), and audio visual hallucinations (AVH).\n" +
     "\n" +
@@ -46,71 +56,40 @@ public class MarkAbbreviationsTest extends TestCase {
     "presented yesterday to local ER after being brought in by police with AH/VH and SI/HI\n";
   
   AbbrConverter abbrConverter = new AbbrConverter();
-  ExtractAbbrev extractAbbr = new ExtractAbbrev();
 
-  public MarkAbbreviationsTest() {
+  /**
+   * Creates a new <code>TestUserDefinedAcronyms</code> instance.
+   *
+   */
+  public TestUserDefinedAcronyms() {
 
   }
-
-  public String getText0() {
-    return this.text0;
-  }
-  public String getText1() {
-    return this.text1;
-  }
-  public AbbrConverter getAbbrConverter() {
-    return this.abbrConverter;
-  }
-
 
   @org.junit.Before public void setup() {
-  }
-
-  /** 
-   * Test code with presence of short form followed by short form in parenthesis.
-   * <p>
-   * Example:
-   * <pre>
-   *   Heart Rate (HR)
-   * </pre>
-   */
-  @Test
-  public void testLongFormShortForm()
-  {
-    /* initialize input strings */
-    String input = "Heart Rate (HR)";
-    BioCPassage inputPassage = new BioCPassage();
-    inputPassage.setText(input);
-    inputPassage.setOffset(0);
-    BioCPassage passage = abbrConverter.getPassage(inputPassage);
     
-    /* initialize found entities */
-    Set<Entity> initialEntitySet = new HashSet<Entity>();
-    initialEntitySet.add(new Entity("en0","Heart Rate", 0, 10, 0.000000, new HashSet<Ev>()));
-    /* initialize entities expected after processing */
-    Set<Entity> expectedEntitySet = new HashSet<Entity>();
-    expectedEntitySet.add(new Entity("en0","Heart Rate", 0, 10, 0.000000, new HashSet<Ev>()));
-    expectedEntitySet.add(new Entity("en0","HR", 12, 2, 0.000000, new HashSet<Ev>()));
-    /** processing */
-    Set<Entity> abbrevEntitySet =
-      new HashSet(MarkAbbreviations.markAbbreviations(passage,
-						      new ArrayList<Entity>(initialEntitySet)));    
-    HelperMethods.displayEntitySet("testLongFormShortForm: intersection: ", SetOps.intersection(abbrevEntitySet, expectedEntitySet) );
-    assertTrue(abbrevEntitySet.equals(expectedEntitySet));
+
   }
+  
+  @org.junit.Test
+    public void test0() {
+    /* initialize user defined acronyms */
+    Map<String,String> uaMap = new HashMap<String,String>();
+    uaMap.put("VH","visual hallucinations");
+    uaMap.put("AH","auditory hallucinations");
 
 
-  /** 
-   * Test code with multiple abbreviations.
-   * <p>
-   * Example:
-   * <pre>
-   *   Heart Rate (HR)
-   * </pre>
-   */
-  @Test
-  public void testComplex()
-  {
+    Map<String,UserDefinedAcronym<TermInfo>> udaMap =
+      new HashMap<String,UserDefinedAcronym<TermInfo>>();
+    for (Map.Entry<String,String> entry: uaMap.entrySet()) {
+      udaMap.put(entry.getKey(),
+		 new UserDefinedAcronym<TermInfo>(entry.getKey(),
+						  entry.getValue(),
+						  new IVFLookup.IVFTermInfo(entry.getValue(),
+									    entry.getKey(),
+									    new HashSet<ConceptInfo>(),
+									    Scanner.analyzeText(entry.getKey()))));
+    }
+    
     /* initialize found entities */
     Set<Entity> initialEntitySet = new HashSet<Entity>();
     initialEntitySet.add(new Entity("en0","suicidal ideations", 29, 18, 0.000000, new HashSet<Ev>()));
@@ -137,6 +116,14 @@ public class MarkAbbreviationsTest extends TestCase {
     expectedEntitySet.add(new Entity("en0","SI", 364, 2, 0.000000, new HashSet<Ev>()));
     expectedEntitySet.add(new Entity("en0","HI", 367, 2, 0.000000, new HashSet<Ev>()));
 
+    expectedEntitySet.add(new Entity("en0","AH", 22, 2, 0.000000, new HashSet<Ev>()));
+    expectedEntitySet.add(new Entity("en0","AH", 70, 2, 0.000000, new HashSet<Ev>()));
+    expectedEntitySet.add(new Entity("en0","VH", 19, 2, 0.000000, new HashSet<Ev>()));
+    expectedEntitySet.add(new Entity("en0","VH", 42, 2, 0.000000, new HashSet<Ev>()));
+    expectedEntitySet.add(new Entity("en0","VH", 73, 2, 0.000000, new HashSet<Ev>()));
+
+
+    Set<Entity> augmentedEntitySet = new HashSet<Entity>();
     BioCPassage passage0 = new BioCPassage();
     // passage0.setText(text1.replace("\n", " "));
     // BioCPassage passage = this.abbrConverter.getPassage(passage0);
@@ -155,22 +142,29 @@ public class MarkAbbreviationsTest extends TestCase {
       for (BioCRelation rel : newSentence.getRelations() ) {
 	passage.addRelation(rel);
       }
+      List<ERToken> tokenlist = Scanner.analyzeText(newSentence);
+      augmentedEntitySet.addAll(UserDefinedAcronym.generateEntities("testdoc", udaMap, tokenlist));
     }
-    System.out.println("testComplex: passage: " + passage);
-    HelperMethods.displayEntitySet("testComplex: initialEntitySet", initialEntitySet);
-    HelperMethods.displayEntitySet("testComplex: expectedEntitySet", expectedEntitySet);
+
+    augmentedEntitySet.addAll(initialEntitySet);
+    System.out.println("test0: passage: " + passage);
+    HelperMethods.displayEntitySet("test0: initialEntitySet", initialEntitySet);
+    HelperMethods.displayEntitySet("test0: augmentedEntitySet", augmentedEntitySet);
+    HelperMethods.displayEntitySet("test0: expectedEntitySet", expectedEntitySet);
     Set<Entity> abbrevEntitySet =
       new HashSet(MarkAbbreviations.markAbbreviations(passage,
-						      new ArrayList<Entity>(initialEntitySet)));
-    HelperMethods.displayEntitySet("testComplex: abbrevEntitySet", abbrevEntitySet);
+						      uaMap,
+						      new ArrayList<Entity>(augmentedEntitySet)));
 
-    System.out.println("testComplex: abbrevEntitySet.size() = " + abbrevEntitySet.size());
-    System.out.println("testComplex: expectedEntitySet.size() = " + expectedEntitySet.size());
-    HelperMethods.displayEntitySet("testComplex: intersection: ", SetOps.intersection(abbrevEntitySet, expectedEntitySet) );
-    HelperMethods.displayEntitySet("testComplex: symmetric difference: ", SetOps.symmetric_difference(abbrevEntitySet, expectedEntitySet) );
+    HelperMethods.displayEntitySet("test0: abbrevEntitySet", abbrevEntitySet);
+
+    System.out.println("test0: abbrevEntitySet.size() = " + abbrevEntitySet.size());
+    System.out.println("test0: expectedEntitySet.size() = " + expectedEntitySet.size());
+    HelperMethods.displayEntitySet("test0: intersection: ", SetOps.intersection(abbrevEntitySet, expectedEntitySet) );
+    HelperMethods.displayEntitySet("test0: symmetric difference: ", SetOps.symmetric_difference(abbrevEntitySet, expectedEntitySet));
     
 
-    // assertTrue(abbrevEntitySet.size() == expectedEntitySet.size());
-    assertTrue(abbrevEntitySet.equals(expectedEntitySet));
+    assertTrue(abbrevEntitySet.size() == expectedEntitySet.size());
+    // assertTrue(abbrevEntitySet.equals(expectedEntitySet));
   }
 }
