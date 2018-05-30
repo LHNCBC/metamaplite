@@ -38,7 +38,7 @@ public class Scanner {
   static Pattern openbrack = Pattern.compile("^\\[$");
   static Pattern closebrack = Pattern.compile("^\\]$");
   static Pattern comma = Pattern.compile("^,$");
-  static Pattern period = Pattern.compile("^.$");
+  static Pattern period = Pattern.compile("^\\.$");
 
   public static List<ERToken> addOffsets(List<ClassifiedToken> tokenlist, int start) {
     List<ERToken> newtokenlist = new ArrayList<ERToken>();
