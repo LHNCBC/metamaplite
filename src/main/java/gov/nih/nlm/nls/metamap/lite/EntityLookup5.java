@@ -18,6 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.Writer;
 import java.io.PrintWriter;
 import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.PrintStream;
 import java.io.OutputStreamWriter;
@@ -109,6 +111,12 @@ public class EntityLookup5 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("JJS");
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
+  /** short form to long form user defined acronym map */
+  Map<String,UserDefinedAcronym<TermInfo>> udaMap =
+    new HashMap<String,UserDefinedAcronym<TermInfo>>();
+
+  Map<String,String> uaMap = new HashMap<String,String>();
+
   /** Phrase types that can be used for lookup */
   Set<String> allowedPhraseTypeSet = new HashSet<String>();
   public void defaultAllowedPhraseTypes() {
@@ -188,6 +196,16 @@ public class EntityLookup5 implements EntityLookup {
 							 this.cuiSourceSetIndex,
 							 this.excludedTerms);
     this.variantLookup = new VariantLookupIVF(this.mmIndexes);
+
+    // user defined acronyms
+    if (properties.containsKey("metamaplite.uda.filename")) {
+      String udaFilename = properties.getProperty("metamaplite.uda.filename");
+      this.udaMap = UserDefinedAcronym.loadUDAList(udaFilename, new IVFLookup(properties));
+      for (Map.Entry<String,UserDefinedAcronym<TermInfo>> acronym: udaMap.entrySet()) {
+	logger.info(acronym.getKey() + " -> " + acronym.getValue());
+      }
+      this.uaMap = UserDefinedAcronym.udasToUA(this.udaMap);
+    }
   }
 
   /**
@@ -208,32 +226,6 @@ public class EntityLookup5 implements EntityLookup {
       return NormalizedStringCache.normalizeString(inputtext.replaceAll(" of the", ","));
     } 
     return inputtext;
-  }
-
-  public class SpanEntityMapAndTokenLength {
-    Map<String,Entity> spanEntityMap;
-    int length;
-    public SpanEntityMapAndTokenLength(Map<String,Entity> spanEntityMap, int length) {
-      this.spanEntityMap = spanEntityMap;
-      this.length = length;
-    }
-    public Map<String,Entity> getSpanEntityMap() {
-      return this.spanEntityMap;
-    }
-    public int getLength() {
-      return this.length;
-    }
-    public List<Entity> getEntityList() {
-      return new ArrayList<Entity>(this.spanEntityMap.values());
-    }
-    public int size() { return this.spanEntityMap.size(); }
-  }
-
-  public class SpanInfo {
-    int start;
-    int length;
-    int getStart()  { return this.start; }
-    int getLength() { return this.length; }
   }
 
   public void addEvSetToSpanMap(Map<String,Entity> spanMap, Set<Ev> evSet, 
@@ -771,12 +763,6 @@ public class EntityLookup5 implements EntityLookup {
     return newEntitySet;
   }
 
-  static class EntityStartComparator implements Comparator<Entity> {
-    public int compare(Entity o1, Entity o2) { return o1.getStart() - o2.getStart(); }
-    public boolean equals(Object obj) { return false; }
-    public int hashCode() { return 0; }
-  }
-
   static EntityStartComparator entityComparator = new EntityStartComparator();
 
   /**
@@ -827,7 +813,7 @@ public class EntityLookup5 implements EntityLookup {
 	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
-	
+	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities(docid, this.udaMap, tokenList));	
 	for (Entity entity: sentenceEntitySet) {
 	  entity.setLocationPosition(i);
 	}

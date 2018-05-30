@@ -22,6 +22,8 @@ public class ConceptInfoUtils {
    * Is intersection of concept semantic type set and semantic type restrict set not empty?
    * @param conceptSemanticTypeSet concept semantic type set
    * @param semanticTypeRestrictSet semantic type restrict set 
+   * @return true if at least one semantic type in concept semantic
+   * type set is in semantic type restrict set.
    */
   public static boolean inSemanticTypeRestrictSet(Set<String> conceptSemanticTypeSet, Set<String> semanticTypeRestrictSet)
   {
@@ -40,7 +42,9 @@ public class ConceptInfoUtils {
   /**
    * Is intersection of concept source set and source restrict set not empty?
    * @param conceptSourceSet concept source set
-   * @param sourceeRestrictSet source restrict set 
+   * @param sourceRestrictSet source restrict set 
+   * @return true if at least one source in concept source set is in
+   * source restrict set.
    */
   public static boolean inSourceRestrictSet(Set<String> conceptSourceSet, Set<String> sourceRestrictSet)
   {

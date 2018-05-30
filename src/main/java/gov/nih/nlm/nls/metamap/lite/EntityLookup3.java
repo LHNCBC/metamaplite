@@ -225,32 +225,6 @@ public class EntityLookup3 implements EntityLookup {
     return inputtext;
   }
 
-  public class SpanEntityMapAndTokenLength {
-    Map<String,Entity> spanEntityMap;
-    int length;
-    public SpanEntityMapAndTokenLength(    Map<String,Entity> spanEntityMap, int length) {
-      this.spanEntityMap = spanEntityMap;
-      this.length = length;
-    }
-    public Map<String,Entity> getSpanEntityMap() {
-      return this.spanEntityMap;
-    }
-    public int getLength() {
-      return this.length;
-    }
-    public List<Entity> getEntityList() {
-      return new ArrayList<Entity>(this.spanEntityMap.values());
-    }
-  }
-
-
-  public class SpanInfo {
-    int start;
-    int length;
-    int getStart()  { return this.start; }
-    int getLength() { return this.length; }
-  }
-
   public void addEvSetToSpanMap(Map<String,Entity> spanMap, Set<Ev> evSet, 
 				 String docid, String matchedText, 
 				 int offset, int length) {
@@ -510,12 +484,6 @@ public class EntityLookup3 implements EntityLookup {
       newEntitySet.add(entity);
     }
     return newEntitySet;
-  }
-
-  static class EntityStartComparator implements Comparator<Entity> {
-    public int compare(Entity o1, Entity o2) { return o1.getStart() - o2.getStart(); }
-    public boolean equals(Object obj) { return false; }
-    public int hashCode() { return 0; }
   }
 
   static EntityStartComparator entityComparator = new EntityStartComparator();

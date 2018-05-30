@@ -18,6 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.Writer;
 import java.io.PrintWriter;
 import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.PrintStream;
 import java.io.OutputStreamWriter;
@@ -103,6 +105,12 @@ public class EntityLookup4 implements EntityLookup {
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
 
+  /** short form to long form user defined acronym map */
+  Map<String,UserDefinedAcronym<TermInfo>> udaMap =
+    new HashMap<String,UserDefinedAcronym<TermInfo>>();
+
+  Map<String,String> uaMap = new HashMap<String,String>();
+  
   public EntityLookup4(Properties properties) 
     throws IOException, FileNotFoundException
   {
@@ -163,6 +171,16 @@ public class EntityLookup4 implements EntityLookup {
 							 this.cuiSourceSetIndex,
 							 this.excludedTerms);
     this.variantLookup = new VariantLookupIVF(this.mmIndexes);
+
+    // user defined acronyms
+    if (properties.containsKey("metamaplite.uda.filename")) {
+      String udaFilename = properties.getProperty("metamaplite.uda.filename");
+      this.udaMap = UserDefinedAcronym.loadUDAList(udaFilename, new IVFLookup(properties));
+      for (Map.Entry<String,UserDefinedAcronym<TermInfo>> acronym: udaMap.entrySet()) {
+	logger.info(acronym.getKey() + " -> " + acronym.getValue());
+      }
+      this.uaMap = UserDefinedAcronym.udasToUA(this.udaMap);
+    }
   }
 
   /**
@@ -183,32 +201,6 @@ public class EntityLookup4 implements EntityLookup {
       return NormalizedStringCache.normalizeString(inputtext.replaceAll(" of the", ","));
     } 
     return inputtext;
-  }
-
-  public class SpanEntityMapAndTokenLength {
-    Map<String,Entity> spanEntityMap;
-    int length;
-    public SpanEntityMapAndTokenLength(Map<String,Entity> spanEntityMap, int length) {
-      this.spanEntityMap = spanEntityMap;
-      this.length = length;
-    }
-    public Map<String,Entity> getSpanEntityMap() {
-      return this.spanEntityMap;
-    }
-    public int getLength() {
-      return this.length;
-    }
-    public List<Entity> getEntityList() {
-      return new ArrayList<Entity>(this.spanEntityMap.values());
-    }
-    public int size() { return this.spanEntityMap.size(); }
-  }
-
-  public class SpanInfo {
-    int start;
-    int length;
-    int getStart()  { return this.start; }
-    int getLength() { return this.length; }
   }
 
   public void addEvSetToSpanMap(Map<String,Entity> spanMap, Set<Ev> evSet, 
@@ -409,9 +401,10 @@ public class EntityLookup4 implements EntityLookup {
    * Or ORF version in NLS repository:
    *  http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/nls/tree/mmtx/sources/gov/nih/nlm/nls/mmtx/dfbuilder/ExtractMrconsoSources.java
    *
-   * @param docid document id
+   * @param docid document identifier
+   * @param fieldid field identifier
    * @param sentenceTokenList sentence to be examined.
-   * @param semTypeRestrictSet semantic type 
+   * @param semTypeRestrictSet semantic type set to restrict to
    * @param sourceRestrictSet source list to restrict to
    * @return set of entities found in the sentence.
    * @throws FileNotFoundException File Not Found Exception
@@ -480,12 +473,6 @@ public class EntityLookup4 implements EntityLookup {
     return newEntitySet;
   }
 
-  static class EntityStartComparator implements Comparator<Entity> {
-    public int compare(Entity o1, Entity o2) { return o1.getStart() - o2.getStart(); }
-    public boolean equals(Object obj) { return false; }
-    public int hashCode() { return 0; }
-  }
-
   static EntityStartComparator entityComparator = new EntityStartComparator();
 
   /**
@@ -536,6 +523,7 @@ public class EntityLookup4 implements EntityLookup {
 	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
 								      semTypeRestrictSet,
 								      sourceRestrictSet);
+	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities(docid, this.udaMap, tokenList));
 	for (Entity entity: sentenceEntitySet) {
 	  entity.setLocationPosition(i);
 	}
@@ -548,7 +536,10 @@ public class EntityLookup4 implements EntityLookup {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
 
 	// mark abbreviations that are entities and add them to entity set.
-	Set<Entity> abbrevEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage, new ArrayList(entitySet0)));
+	
+	Set<Entity> abbrevEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage,
+										      this.uaMap,
+										      new ArrayList(entitySet0)));
 	// dbg
 	for (Entity entity: abbrevEntitySet) {
 	  logger.debug("abbrevEntitySet.entity: " + entity);
