@@ -519,6 +519,15 @@ public class MetaMapLite {
   public List<Entity> processDocument(BioCDocument document) 
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
+    if (Boolean.parseBoolean(this.getProperties().getProperty("metamaplite.enable.scoring"))) {
+      // Don't re-instantiate EntityLookup5 if instance exists.
+      if ((this.entityLookup == null) ||
+	  (! (this.entityLookup instanceof EntityLookup5))) {
+	this.entityLookup = new EntityLookup5(properties);
+      }
+    } else {
+      this.entityLookup = new EntityLookup4(properties);
+    }
     List<Entity> entityList = new ArrayList<Entity>();
     if (document.getID() == null) {
       document.setID("0000000.TXT");
@@ -638,6 +647,8 @@ public class MetaMapLite {
     System.err.println("  --specialtermsfile=<filename> Set location of specialterms file");
     System.err.println("  --filelistfn=<filename>  name of file containing list of files to be processed.");
     System.err.println("  --filelist=<file0,file1,...>  comma-separated list of files to be processed.");
+    System.err.println("  --uda=<filename>         user defined acronyms file.");
+    System.err.println("  --set_property=<propertyname>=<propertyvalue>  set property");
     System.err.println("scheduler options:");
     System.err.println("  --scheduler              use: \"program inputfilename outputfilename\" scheduler convention.");
     System.err.println("  -E (--indicate_citation_end)  emit citation end at end of input.");
@@ -841,7 +852,7 @@ public class MetaMapLite {
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
       pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
-		 acronym.longForm + "|" + acronym.longFormIndex );
+		 acronym.longForm.replace("\n", " ") + "|" + acronym.longFormIndex );
     }
     pw.flush();
     pw.close();
@@ -1209,6 +1220,13 @@ public class MetaMapLite {
 	      } else {
 		optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
 	      }
+	    } else if (fields[0].equals("--UDA") ||
+		       fields[0].equals("--uda")) {
+	      if (fields.length < 2) {
+		System.err.println("missing argument in \"" + args[i] + "\" option");
+	      } else {
+		optionsConfiguration.setProperty("metamaplite.uda.filename", fields[1]);
+	      }
 	    } else if (fields[0].equals("--list_acronyms")) {
 	      optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");
 	    } else if (fields[0].equals("--list_sentences")) {
@@ -1220,7 +1238,11 @@ public class MetaMapLite {
 	    } else if (fields[0].equals("--output_extension")) {
 	      optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);
 	    } else if (fields[0].equals("--set_property")) {
-	      optionsConfiguration.setProperty(fields[1],fields[2]);
+	      if (fields.length < 3) {
+		System.err.println("not enough arguments in \"" + args[i] + "\" option");
+	      } else {
+		optionsConfiguration.setProperty(fields[1],fields[2]);
+	      }
 	    } else if (args[i].equals("--verbose")) {
 	      verbose = true;
 	    } else if (args[i].equals("--help")) {
@@ -1279,7 +1301,7 @@ public class MetaMapLite {
 			     ("metamaplite.list.sentences.with.postags", "false"));
       boolean listChunks = 
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.chunks", "false"));
-      
+
       String inputfileListPropValue = properties.getProperty("metamaplite.inputfilelist");
       if (inputfileListPropValue != null) {
 	if (filenameList.size() > 0) {
