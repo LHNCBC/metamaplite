@@ -1029,6 +1029,55 @@ public class MetaMapLite {
     pw.close();
   } /* processFile */
 
+  void listEntities(String filename, 
+		    List<BioCDocument> documentList,
+		    String outputExtension,
+		    String outputFormatOption,
+		    boolean indicateCitationEnd)
+    throws IOException, IllegalAccessException, InvocationTargetException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+    String basename = "output";
+    // create output filename
+    if (filename.lastIndexOf(".") >= 0) {
+      basename = filename.substring(0,filename.lastIndexOf(".")); //
+    } else {
+      basename = filename;
+    }
+    String outputFilename = basename + outputExtension;
+    logger.info("outputing results to " + outputFilename);
+    
+    // output results for file
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    listEntities(documentList, pw, outputFormatOption);
+    if (indicateCitationEnd) {
+      pw.println(eotString); // should this be in Prolog format? Will 'EOT' suffice?
+      pw.flush();
+    }
+  } /* processFile */
+
+  void listEntities(String outputFilename, 
+		    List<BioCDocument> documentList,
+		    String outputFormatOption,
+		    boolean indicateCitationEnd)
+    throws IOException, IllegalAccessException, InvocationTargetException, Exception
+  {
+    // process documents
+    List<Entity> entityList = this.processDocumentList(documentList);
+    logger.info("outputing results to " + outputFilename);
+    
+    // output results for file
+    PrintWriter pw = new PrintWriter(new BufferedWriter
+				     (new FileWriter(outputFilename)));
+    listEntities(documentList, pw, outputFormatOption);
+    if (indicateCitationEnd) {
+      pw.println(eotString); // should this be in Prolog format? Will 'EOT' suffice?
+      pw.flush();
+    }
+  } /* processFile */
+
   void listEntities(String outputFilename, 
 		    List<BioCDocument> documentList,
 		    String outputFormatOption)
@@ -1123,6 +1172,7 @@ public class MetaMapLite {
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
       Properties optionsConfiguration = new Properties();
+      boolean fromScheduler = false;
       int i = 0;
       while (i < args.length) {
 	if (args[i].length() > 1) {
@@ -1155,6 +1205,8 @@ public class MetaMapLite {
 	      optionsConfiguration.setProperty ("metamaplite.segmentation.method","LINES");
 	    } else if (fields[0].equals("--enable_scoring")) {
 	      optionsConfiguration.setProperty ("metamaplite.enable.scoring","true");
+	    } else if (fields[0].equals("--indicate_citation_end")) {
+	      optionsConfiguration.setProperty ("metamaplite.indicate.citation.end","true");
 	    } else if (fields[0].equals("--freetext")) {
 	      optionsConfiguration.setProperty ("metamaplite.document.inputtype","freetext");
 	    } else if (fields[0].equals("--outputformat")) {
@@ -1243,6 +1295,8 @@ public class MetaMapLite {
 	      } else {
 		optionsConfiguration.setProperty(fields[1],fields[2]);
 	      }
+	    } else if (args[i].equals("--scheduler")) { // files from scheduler
+	      fromScheduler = true;
 	    } else if (args[i].equals("--verbose")) {
 	      verbose = true;
 	    } else if (args[i].equals("--help")) {
@@ -1259,6 +1313,8 @@ public class MetaMapLite {
 	      System.err.println("unknown option: " + args[i]);
 	      System.exit(1);
 	    }
+	  } else if (args[i].substring(0,2).equals("-E")) { // print ">>> EOT <<<" for the scheduler
+	    optionsConfiguration.setProperty ("metamaplite.indicate.citation.end","true");
 	  } else {
 	    if (inputFromStdin) {
 	      System.err.println("unexpected filename in command line argument list: " + args[i]);
@@ -1301,6 +1357,11 @@ public class MetaMapLite {
 			     ("metamaplite.list.sentences.with.postags", "false"));
       boolean listChunks = 
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.chunks", "false"));
+            
+      // turn on input from standard input if indicate citation end is on.
+      boolean indicateCitationEnd =
+	Boolean.parseBoolean(properties.getProperty("metamaplite.indicate.citation.end", "false"));
+      logger.debug("metamaplite.indicate.citation.end: " + indicateCitationEnd);
 
       String inputfileListPropValue = properties.getProperty("metamaplite.inputfilelist");
       if (inputfileListPropValue != null) {
@@ -1352,6 +1413,19 @@ public class MetaMapLite {
 	} else {
 	  metaMapLiteInst.listEntities(documentList,outputFormatOption);
 	}
+	if (indicateCitationEnd) {
+	  System.out.println(eotString); // should this be in Prolog format? Will 'EOT' suffice?
+	  System.out.flush();
+	}
+      } else if (fromScheduler) {
+	logger.info("Loading and processing " + filenameList.get(0));
+	if (filenameList.size() > 1) {
+	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filenameList.get(0));
+	  metaMapLiteInst.listEntities(filenameList.get(1), documentList,
+				       outputFormatOption, indicateCitationEnd);
+	} else {
+	  System.out.println("missing input or output filename arguments, check invocation.");
+	}
       } else {
 	logger.info("Loading and processing documents");
 	for (String filename: filenameList) {
@@ -1370,7 +1444,8 @@ public class MetaMapLite {
 	    metaMapLiteInst.listChunks(filename, documentList);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
-					 outputExtension, outputFormatOption);
+					 outputExtension, outputFormatOption,
+					 indicateCitationEnd);
 	  }
 	} /*for filename */
       }
