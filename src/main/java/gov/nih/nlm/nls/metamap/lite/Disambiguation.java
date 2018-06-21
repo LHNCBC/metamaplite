@@ -38,6 +38,11 @@ public class Disambiguation {
 
   }
 
+  /**
+   * @param entityList list of entities for the same span.
+   * @param text context of entities for use by disambiguation method.
+   * @return filtered final list of entities, such probably contain one entity (if possible)
+   */
   public List<Entity> disambiguateEntityList(List<Entity> entityList, String text) {
     List<Entity> filteredEntityList = new ArrayList<Entity>();
     for (Entity entity: entityList) {
