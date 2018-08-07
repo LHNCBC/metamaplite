@@ -101,11 +101,16 @@ public class MedlineDocument
     String key = "";
     while ((line = br.readLine()) != null) {
       if (line.trim().length() == 0) { // end of document
-	documentList.add(instantiateBioCDocument(documentId,
-						 titleText.toString(),
-						 abstractText.toString()));
-	titleText.setLength(0);
-	abstractText.setLength(0);
+	if ((documentId.length() +
+	     titleText.toString().length() +
+	     abstractText.toString().length()) > 0) {
+	  // don't instantiate any empty documents.
+	  documentList.add(instantiateBioCDocument(documentId,
+						   titleText.toString(),
+						   abstractText.toString()));
+	  titleText.setLength(0);
+	  abstractText.setLength(0);
+	}
       } else {
 	String header = line.substring(0,4);
 	String content = line.substring(6);
