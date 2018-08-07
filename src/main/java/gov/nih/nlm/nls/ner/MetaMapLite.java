@@ -427,6 +427,7 @@ public class MetaMapLite {
     switch (segmentationMethod) {
     case SENTENCES:
       passage0 = this.sentenceExtractor.createSentences(passage);
+      passage0.setInfons(passage.getInfons()); // copy docid and section info
       break;
     case BLANKLINES:
       sentenceList = new ArrayList<BioCSentence>();
@@ -535,11 +536,17 @@ public class MetaMapLite {
       document.setID("0000000.TXT");
     }
     // add docid to passage info namespace (infons)
-    Map<String,String> docInfoMap = new HashMap<String,String>();
+    Map<String,String> docInfoMap = document.getInfons();
+    if (docInfoMap == null) {
+      docInfoMap = new HashMap<String,String>();
+      document.setInfons(docInfoMap);
+    }
     docInfoMap.put("docid", document.getID());
-    document.setInfons(docInfoMap);
     for (BioCPassage passage: document.getPassages()) {
-      passage.setInfons(docInfoMap);
+      Map<String,String> passageInfons = passage.getInfons();
+      if (! passageInfons.containsKey("docid")) {
+	passageInfons.put("docid", document.getID());
+      }
       entityList.addAll(processPassage(passage));
     }
     return entityList;
