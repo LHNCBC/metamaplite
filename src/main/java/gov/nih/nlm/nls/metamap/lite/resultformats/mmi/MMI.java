@@ -319,11 +319,10 @@ public class MMI implements ResultFormatter {
 		 aatf.getCui() +"|" +
 		 aatf.getSemanticTypes() +"|" +
 		 aatf.getTuplelist().stream().map(i -> this.renderTupleInfo(i)).collect(Collectors.joining(","))  + "|" +
-		 aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(","))  + "|" +
-		 aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(",")));
+		 aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(";"))  + "|" +
+		 aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(";")));
     }
   }
-
   
   /**
    * map entities by document id.
@@ -374,8 +373,8 @@ public class MMI implements ResultFormatter {
 	.append(aatf.getCui()).append("|")
 	.append(aatf.getSemanticTypes()).append("|")
 	.append(aatf.getTuplelist().stream().map(i -> this.renderTupleInfo(i)).collect(Collectors.joining(","))).append("|")
-	.append(aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(","))).append("|")
-	.append(aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(","))).append("\n");
+	.append(aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(";"))).append("|")
+	.append(aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(";"))).append("\n");
     }
   }
 
