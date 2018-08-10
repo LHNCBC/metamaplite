@@ -64,6 +64,8 @@ public class MMI implements ResultFormatter {
   public MMI()
   {
     scoreFormat.setMaximumFractionDigits(2);
+    scoreFormat.setMinimumFractionDigits(2);
+    scoreFormat.setGroupingUsed(false);
   }
 
   public static String evToTriggerString(Ev ev, Entity entity) {
@@ -393,7 +395,7 @@ public class MMI implements ResultFormatter {
       for (Ev ev: entity.getEvList()) {
 	String cui = ev.getConceptInfo().getCUI();
 	String conceptString = ev.getConceptInfo().getConceptString();
-	String tfKey = cui + "|" + conceptString;
+	String tfKey = cui;
 	if (termFreqMap.containsKey(tfKey)) {
 	  TermFrequency tf = termFreqMap.get(tfKey);
 	  List<Position> posInfo = new ArrayList<Position>();
