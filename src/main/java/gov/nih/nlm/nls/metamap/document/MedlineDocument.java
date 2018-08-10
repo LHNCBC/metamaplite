@@ -40,7 +40,8 @@ public class MedlineDocument
     doc.setID(documentId);
     BioCPassage titlePassage = new BioCPassage();
     titlePassage.setText(titleText);
-    titlePassage.setOffset(0);
+    // include length of PMID field identifier
+    titlePassage.setOffset(documentId.length() + 13); // add offset of PMID and TI headers plus newline
     titlePassage.putInfon("docid",documentId);
     // titlePassage.putInfon("section","title"); 
     titlePassage.putInfon("section","TI");
@@ -51,7 +52,8 @@ public class MedlineDocument
     abstractPassage.putInfon("docid",documentId);
     // abstractPassage.putInfon("section","abstract");
     abstractPassage.putInfon("section","AB");
-    abstractPassage.setOffset(titleText.length());
+    // include length of PMID and TI field identifier
+    abstractPassage.setOffset(documentId.length() + titleText.length() + 19); // add offset of PMID, TI, and AB headers plus two newlines
     doc.addPassage(abstractPassage);
     return doc;
   }
