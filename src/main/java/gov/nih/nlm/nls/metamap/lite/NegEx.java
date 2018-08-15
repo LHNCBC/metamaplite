@@ -207,6 +207,15 @@ public class NegEx implements NegationDetector {
     return status;
   }
 
+  /**
+   * Mark entities in window of negation phrase.  Ignore pseudo negation before (pnega)
+   * and after (pnegb).
+   *
+   * @param filteredTokenlist filtered token list 
+   * @param negationPhraseList list of negation phrases
+   * @param conjPhraseList list of conjunctions 
+   * @param entityColl collection of entity candidates for marking.
+   */
   public void markNegatedEntities(List<ERToken> filteredTokenlist,
 				  List<NegPhraseInfo> negationPhraseList,
 				  List<NegPhraseInfo> conjPhraseList,
@@ -215,7 +224,7 @@ public class NegEx implements NegationDetector {
       int entityOffset = entity.getStart();
       for (NegPhraseInfo info: negationPhraseList) {
 	// System.out.println("negation info: " + info);
-	if (info.getType().equals("nega") || info.getType().equals("pnega")) {
+	if (info.getType().equals("nega")) {
 	  for (Integer negPhraseTokenPosition: info.getPositionList()) {
 	    int phraseOffset = filteredTokenlist.get(negPhraseTokenPosition.intValue()).getOffset();
 	    if (entityOffset >= phraseOffset) {
@@ -235,7 +244,7 @@ public class NegEx implements NegationDetector {
 	      }
 	    }
 	  }
-	} else if (info.getType().equals("negb") || info.getType().equals("pnegb")) {
+	} else if (info.getType().equals("negb")) {
 	  for (Integer negPhraseTokenPosition: info.getPositionList()) {
 	    int phraseOffset = filteredTokenlist.get(negPhraseTokenPosition.intValue()).getOffset();
 	    if (entityOffset < phraseOffset) {
