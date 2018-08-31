@@ -635,8 +635,8 @@ public class MetaMapLite {
     System.err.println("  --restrict_to_sources=<source>[,<source>...]");
     System.err.println("  --segmentation_method=SENTENCES|BLANKLINES|LINES    set method for text segmentation");
     System.err.println("  --segment_sentences    Set method for text segmentation to sentences");
-    System.err.println("  --segment_blanklines   Set method for text segmentation to one document between each blankline");
-    System.err.println("  --segment_lines        Set method for text segmentation to one document per line");
+    System.err.println("  --segment_blanklines   Set method for text segmentation to one text segment between each blankline");
+    System.err.println("  --segment_lines        Set method for text segmentation to one text segment per line");
     System.err.println("  --usecontext           Use ConText negation algorithm.");
     System.err.println("  --disable_chunker");
     System.err.println("  --enable_postagging=[true|false]  Use part-of-speech tagging (default: true).");
