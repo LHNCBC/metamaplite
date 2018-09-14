@@ -1,4 +1,3 @@
-
 //
 package gov.nih.nlm.nls.metamap.document;
 
@@ -8,6 +7,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -78,6 +78,23 @@ public class FreeText implements BioCDocumentLoader
     return document;
   }
 
+  public static BioCDocument instantiateBioCDocument(String docText, String inputFilename) 
+  {
+    BioCDocument document = new BioCDocument();
+    String[] pathArray = inputFilename.split("/");
+    String basename = pathArray[pathArray.length - 1];
+    document.setID(basename);
+    logger.debug(docText);
+    BioCPassage passage = new BioCPassage();
+    passage.setOffset(0);
+    passage.setText(docText);
+    passage.putInfon("docid", basename);
+    passage.putInfon("inputformat", "freetext");
+    document.addPassage(passage);
+    document.setID("00000000.tx");
+    return document;
+  }
+
   /** Read free text document from reader.
    * @param reader reader for input file
    * @return list of BioC document instances.
@@ -88,7 +105,12 @@ public class FreeText implements BioCDocumentLoader
   {
     String inputtext = FreeText.read(reader);
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
-    BioCDocument document = instantiateBioCDocument(inputtext);
+    BioCDocument document;
+    if (reader.equals(new InputStreamReader(System.in))) {
+      document = instantiateBioCDocument(inputtext, "stdin");
+    } else {
+      document = instantiateBioCDocument(inputtext);
+    }
     documentList.add(document);
     return documentList;
   }
@@ -98,7 +120,7 @@ public class FreeText implements BioCDocumentLoader
   {
     String inputtext = FreeText.loadFile(filename);
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
-    BioCDocument document = instantiateBioCDocument(inputtext);
+    BioCDocument document = instantiateBioCDocument(inputtext, filename);
     documentList.add(document);
     return documentList;
   }
@@ -108,7 +130,7 @@ public class FreeText implements BioCDocumentLoader
     throws FileNotFoundException, IOException
   {
     String inputtext = FreeText.loadFile(filename);
-    BioCDocument document = instantiateBioCDocument(inputtext);
+    BioCDocument document = instantiateBioCDocument(inputtext, filename);
     return document;
   }
 

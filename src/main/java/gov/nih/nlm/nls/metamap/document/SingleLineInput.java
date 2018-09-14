@@ -54,8 +54,24 @@ public class SingleLineInput implements BioCDocumentLoader {
   public static BioCDocument instantiateBioCDocument(String docText) 
   {
       BioCDocument doc = new BioCDocument();
-      doc.setID(".tx");
+      doc.setID("00000.txt");
       BioCPassage passage = new BioCPassage();
+      passage.setText(docText);
+      passage.setOffset(0);
+      // passage.putInfon("docid", formatter.toString());
+      doc.addPassage(passage);
+      return doc;
+  }
+
+  public static BioCDocument instantiateBioCDocument(String docText, String inputFilename) 
+  {
+      BioCDocument doc = new BioCDocument();
+      String[] pathArray = inputFilename.split("/");
+      String basename = pathArray[pathArray.length - 1];
+      doc.setID(basename);
+      BioCPassage passage = new BioCPassage();
+      passage.putInfon("docid", basename);
+      passage.putInfon("inputformat", "sli");
       passage.setText(docText);
       passage.setOffset(0);
       // passage.putInfon("docid", formatter.toString());
@@ -94,7 +110,7 @@ public class SingleLineInput implements BioCDocumentLoader {
     int i = 0;
     String line;
     while ((line = br.readLine()) != null) {
-      BioCDocument doc = instantiateBioCDocument(line); 
+      BioCDocument doc = instantiateBioCDocument(line, inputFilename); 
       StringBuilder sb = new StringBuilder();
       Formatter formatter = new Formatter(sb, Locale.US);
       formatter.format("%08d.TX", i);
@@ -111,7 +127,7 @@ public class SingleLineInput implements BioCDocumentLoader {
     throws FileNotFoundException, IOException
   {
     String inputtext = FreeText.loadFile(filename);
-    BioCDocument document = instantiateBioCDocument(inputtext);
+    BioCDocument document = instantiateBioCDocument(inputtext, filename);
     return document;
   }
 
