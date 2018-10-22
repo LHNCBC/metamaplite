@@ -39,7 +39,6 @@ import gov.nih.nlm.nls.metamap.lite.OpenNLPSentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup;
-import gov.nih.nlm.nls.metamap.lite.EntityLookup3;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup4;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup5;
 import gov.nih.nlm.nls.metamap.lite.SemanticGroupFilter;
@@ -527,7 +526,11 @@ public class MetaMapLite {
 	this.entityLookup = new EntityLookup5(properties);
       }
     } else {
-      this.entityLookup = new EntityLookup4(properties);
+      // Don't re-instantiate EntityLookup4 if instance exists.
+      if ((this.entityLookup == null) ||
+	  (! (this.entityLookup instanceof EntityLookup4))) {
+	this.entityLookup = new EntityLookup4(properties);
+      }
     }
     List<Entity> entityList = new ArrayList<Entity>();
     if (document.getID() == null) {
@@ -562,7 +565,10 @@ public class MetaMapLite {
 	this.entityLookup = new EntityLookup5(properties);
       }
     } else {
-      this.entityLookup = new EntityLookup4(properties);
+      if ((this.entityLookup == null) ||
+	  (! (this.entityLookup instanceof EntityLookup4))) {
+	this.entityLookup = new EntityLookup4(properties);
+      }
     }
     List<Entity> entityList = new ArrayList<Entity>();    
     for (BioCDocument document: documentList) {
@@ -1105,7 +1111,7 @@ public class MetaMapLite {
       logger.info("term -> concept cache size: " +
 		  ((EntityLookup5)entityLookup).termConceptInfoCache.termConceptCache.size());
       
-    }
+    } 
     logger.info("string -> normalized string cache size: " +
 		gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
   }
