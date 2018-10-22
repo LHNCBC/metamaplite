@@ -25,6 +25,7 @@
 	<configuration>
           <source>1.8</source>
           <target>1.8</target>
+	  <encoding>UTF-8</encoding>
           <debug>true</debug>
           <debuglevel>lines,vars,source</debuglevel> 
 	</configuration>
@@ -75,16 +76,16 @@
     </plugins>
   </build>
   <repositories>
-    <repository>
+    <!-- repository>
       <id>bionlp-sourceforge</id>
       <url>http://svn.code.sf.net/p/bionlp/code/repo</url>
     </repository>
     <repository>
       <id>central</id>
       <url>http://central.maven.org/maven2/</url>
-    </repository>
+    </repository -->
     <repository>
-      <id>ii internal</id>
+      <id>metamap maven</id>
       <url>https://metamap.nlm.nih.gov/maven2/</url>
     </repository>
   </repositories>
@@ -94,26 +95,6 @@
       <artifactId>commandline</artifactId>
       <version>1.7.0</version>
     </dependency>
-    <!-- dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-analyzers-common</artifactId>
-      <version>4.10.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-core</artifactId>
-      <version>4.10.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-queryparser</artifactId>
-      <version>4.10.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-queries</artifactId>
-      <version>4.10.0</version>
-    </dependency -->
     <dependency>
       <groupId>org.apache.opennlp</groupId>
       <artifactId>opennlp-tools</artifactId>
@@ -164,81 +145,26 @@
       <artifactId>bioc</artifactId>
       <version>1.0.1</version>
     </dependency>
-    <!-- dependency>
-      <groupId>bioc</groupId>
-      <artifactId>jbioc</artifactId>
-      <version>1.1.2-SNAPSHOT</version>
-    </dependency -->
-
-    <!-- dependency>
-      <groupId>gov.nih.nlm.nls</groupId>
-      <artifactId>aec_mrd_wsd</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency -->
-
     <dependency>
       <groupId>gov.nih.nlm.nls</groupId>
       <artifactId>nlp</artifactId>
       <version>2.4.C</version>
     </dependency>
-
     <dependency>
       <groupId>net.sf.opencsv</groupId>
       <artifactId>opencsv</artifactId>
       <version>2.3</version>
     </dependency>
-
     <dependency>
       <groupId>gov.nih.nlm.nls.mps</groupId>
       <artifactId>medpostskr</artifactId>
       <version>1.0</version>
     </dependency>
-
-    <!-- dependency>
-      <groupId>edu.ucdenver.ccp</groupId>
-      <artifactId>biolemmatizer-core</artifactId>
-      <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <version>1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.woodstox</groupId>
-      <artifactId>stax2-api</artifactId>
-      <version>4.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>net.java.dev.stax-utils</groupId>
-      <artifactId>stax-utils</artifactId>
-      <version>20070216</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.woodstox</groupId>
-      <artifactId>woodstox-core-asl</artifactId>
-      <version>4.1.4</version>
-    </dependency -->
     <dependency>
       <groupId>xmlunit</groupId>
       <artifactId>xmlunit</artifactId>
       <version>1.4</version>
     </dependency>
-
-    <!-- Functional Java requires Java 8 -->
-    <!-- dependency>
-      <groupId>org.functionaljava</groupId>
-      <artifactId>functionaljava</artifactId>
-      <version>4.2-beta-1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.functionaljava</groupId>
-      <artifactId>functionaljava-java8</artifactId>
-      <version>4.2-beta-1</version>
-      </dependency -->
-
-      
-
     <!-- https://mvnrepository.com/artifact/org.apache.uima/uimaj-core -->
     <dependency>
       <groupId>org.apache.uima</groupId>
