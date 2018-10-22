@@ -131,6 +131,8 @@ public class EntityLookup4 implements EntityLookup {
       } else {
 	this.defaultAllowedPartOfSpeech();
       }
+    } else {
+      this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
     }
 
     // Instantiate user-specified negation detector if present,

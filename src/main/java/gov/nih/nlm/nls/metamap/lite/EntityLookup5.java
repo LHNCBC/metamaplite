@@ -146,6 +146,8 @@ public class EntityLookup5 implements EntityLookup {
       } else {
 	this.defaultAllowedPartOfSpeech();
       }
+    } else {
+      this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
     }
     String allowedPhraseTypeList = properties.getProperty("metamaplite.phrasetypelist");
     if (allowedPhraseTypeList != null) {
