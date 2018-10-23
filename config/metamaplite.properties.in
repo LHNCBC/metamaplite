@@ -13,6 +13,7 @@ metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/strict/indices/fi
 metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/strict/indices/cuisourceinfo
 metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/strict/indices/cuist
 metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
+metamaplite.ivf.meshtcrelaxedindex: @@basedir@@/data/ivf/strict/indices/meshtcrelaxed
 
 # default semantic.type.list: if not defined is empty (all semantic types) 
 #   semantic type abbreviations separated by commas.
@@ -22,7 +23,7 @@ metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
 # OpenNLP model files 
 opennlp.en-sent.bin.path: @@basedir@@/data/models/en-sent.bin
 opennlp.en-token.bin.path: @@basedir@@/data/models/en-token.bin
-opennlp.en-pos-maxent.bin.path: @@basedir@@/data/models/en-pos-maxent.bin
+opennlp.en-pos.bin.path: @@basedir@@/data/models/en-pos-maxent.bin
 opennlp.en-chunker.bin.path: @@basedir@@/data/models/en-chunker.bin
 
 # What should a pipeline look-like?
