@@ -93,7 +93,7 @@ import gov.nih.nlm.nls.metamap.mmi.TermFrequency;
 import gov.nih.nlm.nls.metamap.mmi.Ranking;
 
 /**
- * Using MetaMapLite from a Java program:
+ * <h2>Using MetaMapLite from a Java program:</h2>
  * <pre>
  * Properties myProperties = MetaMapLite.getDefaultConfiguration();
  * myProperties.setProperty("opennlp.models.directory", 
@@ -116,52 +116,59 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  *   }
  * }
  * </pre>
- * Properties precedence (from highest to lowest):
+ * <h2>Properties precedence (from highest to lowest)</h2>
  * <ul>
  *   <li>Command line options</li>
  *   <li>System properties</li>
  *   <li>MetaMap property file</li>
+ *   <li>Defaults</li>
  * </ul>
  * <p>
- * Configuration Properties:
+ * <h2>Configuration Properties:</h2>
  * <dl>
  * <dt>metamaplite.semanticgroup</dt><dd>restrict output to concepts with specified semantic types</dd>
  * <dt>metamaplite.sourceset</dt><dd>restrict output to concepts in specified sources</dd>
  * <dt>metamaplite.segmentation.method</dt><dd>Set method for text segmentation (values: SENTENCES, BLANKLINES, LINES; default: SENTENCES)</dd>
  * <dt>metamaplite.negation.detector</dt><dd>negation detector class: default: gov.nih.nlm.nls.metamap.lite.NegEx</dd>
  * <dt>opennlp.models.directory</dt><dd>parent location of opennlp models</dd>
- * <dt>opennlp.en-pos.bin.path</dt><dd> path for part-of-speech model (default: data/models/en-pos-maxent.bin)</dd>
- * <dt>metamaplite.index.directory</dt><dd>parent location of metamap indexes, (sets the following properties)</dd>
+ * <dt>opennlp.en-sent.bin.path</dt><dd>path for sentence detector model (default: data/models/en-sent.bin)</dd>
+ * <dt>opennlp.en-token.bin.path</dt><dd>path for tokenizer model (default: data/models/en-token.bin)</dd>
+ * <dt>opennlp.en-pos.bin.path</dt><dd>path for part-of-speech model (default: data/models/en-pos-maxent.bin)</dd>
+ * <dt>opennlp.en-chunker.bin.path</dt><dd>path for chunker model (default: data/models/en-chunker.bin)</dd>
+ * <dt>metamaplite.index.directory</dt><dd>parent location of metamap indexes, sets the following properties:</dd>
  * <dt>metamaplite.ivf.cuiconceptindex</dt><dd>location of cui-concept index</dd>
  * <dt>metamaplite.ivf.cuisourceinfoindex</dt><dd>location of cui-sourceinfo index</dd>
  * <dt>metamaplite.ivf.cuisemantictypeindex</dt><dd>location of cui-semantictype index</dd>
- * <dt>metamaplite.document.inputtype</dt><dd>document input type (default: freetext)</dd>
- * <dt>metamaplite.property.file</dt><dd>load configuration from file (default: ./config/metamaplite.properties)</dd>
+ * <dt>metamaplite.ivf.varsindex</dt><dd>location of variants to path/distance index</dd>
+ * <dt>metamaplite.ivf.meshtcrelaxedindex</dt><dd>location of term to treecodes index</dd>
  * </dl>
  * <p>
- * Command line frontend properties 
+ * <h2>Command line frontend properties </h2>
  * <dl>
- * <dt>metamaplite.document.inputtype</dt><dd>set input type for document reader</dd>
+ * <dt>metamaplite.document.inputtype</dt><dd>document input type (default: freetext)</dd>
  * <dt>metamaplite.inputfilelist</dt><dd>list input files separated by commas in value of property.</dd>
  * <dt>metamaplite.inputfilelistfile</dt><dd>use file containing list of files for input, one file per line.</dd>
  * <dt>metamaplite.list.acronyms</dt><dd>list document acronyms</dd>
- * <dt>metamaplite.list.sentences</dt><dd>list document sentences only.</dd>
  * <dt>metamaplite.list.sentences.with.postags</dt><dd>list document sentences only with part-of-speech tags</dd>
- * <dt>metamaplite.outputformat</dt><dd>output format of entity result set.</dd>
+ * <dt>metamaplite.list.sentences</dt><dd>list document sentences only.</dd>
  * <dt>metamaplite.outputextension</dt><dd>set output file extension for result file(s).</dd>
+ * <dt>metamaplite.outputformat</dt><dd>entity list result format (default: mmi)</dd>
+ * <dt>metamaplite.property.file</dt><dd>load configuration from file (default: ./config/metamaplite.properties)</dd>
  * </dl>
  * <p>
- * User supplied document loader/reader properties
+ * <h2>User supplied document loader/reader properties</h2>
  * <p>
  * Properties are prefixed with string: "bioc.document.loader.freetext"
  * followed by a period with the name of the document loader.
  * <dl>
  * <dt>bioc.document.loader.{name}</dt><dd>classname</dd>
  * </dl>
- * The class must implement the gov.nih.nlm.nls.metamap.document.BioCDocumentLoader interface.
+ * The class must implement the {@link gov.nih.nlm.nls.metamap.document.BioCDocumentLoader BioCDocumentLoader} interface.
+ * <p>
+ * Example property values
  * <dl>
- * <dt>bioc.document.loader.freetext</dt><dd>gov.nih.nlm.nls.metamap.document.FreeText</dd>
- * <dt>bioc.document.loader.chemdner</dt><dd>gov.nih.nlm.nls.metamap.document.ChemDNER</dd>
+ * <dt>bioc.document.loader.freetext</dt><dd>{@link gov.nih.nlm.nls.metamap.document.FreeText gov.nih.nlm.nls.metamap.document.FreeText}</dd>
+ * <dt>bioc.document.loader.chemdner</dt><dd>{@link gov.nih.nlm.nls.metamap.document.ChemDNER gov.nih.nlm.nls.metamap.document.ChemDNER}</dd>
  * </dl>
  * <p>
  * User supplied result formatter properties
@@ -171,11 +178,15 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  * <dl>
  * <dt>metamaplite.result.formatter.{name}</dt><dd>classname</dd>
  * </dl>
- * The class must implement 
+ * The class must implement interface 
+ * {@link gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter ResultFormatter.}
+ * <p>
+ * Example property values:
  * <dl>
- * <dt>metamaplite.result.formatter.cuilist</dt><dd>gov.nih.nlm.nls.metamap.lite.resultformats.CuiList</dd>
- * <dt>metamaplite.result.formatter.brat</dt><dd>gov.nih.nlm.nls.metamap.lite.resultformats.Brat</dd>
+ * <dt>metamaplite.result.formatter.cuilist</dt><dd>{@link gov.nih.nlm.nls.metamap.lite.resultformats.CuiList gov.nih.nlm.nls.metamap.lite.resultformats.CuiList}</dd>
+ * <dt>metamaplite.result.formatter.brat</dt><dd>{@link gov.nih.nlm.nls.metamap.lite.resultformats.Brat gov.nih.nlm.nls.metamap.lite.resultformats.Brat}</dd>
  * </dl>
+ * </p>
  */
 public class MetaMapLite {
   /** log4j logger instance */
