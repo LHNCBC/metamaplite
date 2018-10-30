@@ -123,7 +123,7 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  *   <li>MetaMap property file</li>
  *   <li>Defaults</li>
  * </ul>
- * <p>
+ * 
  * <h2>Configuration Properties:</h2>
  * <dl>
  * <dt>metamaplite.semanticgroup</dt><dd>restrict output to concepts with specified semantic types</dd>
@@ -142,7 +142,7 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  * <dt>metamaplite.ivf.varsindex</dt><dd>location of variants to path/distance index</dd>
  * <dt>metamaplite.ivf.meshtcrelaxedindex</dt><dd>location of term to treecodes index</dd>
  * </dl>
- * <p>
+ * 
  * <h2>Command line frontend properties </h2>
  * <dl>
  * <dt>metamaplite.document.inputtype</dt><dd>document input type (default: freetext)</dd>
@@ -155,7 +155,7 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  * <dt>metamaplite.outputformat</dt><dd>entity list result format (default: mmi)</dd>
  * <dt>metamaplite.property.file</dt><dd>load configuration from file (default: ./config/metamaplite.properties)</dd>
  * </dl>
- * <p>
+ * 
  * <h2>User supplied document loader/reader properties</h2>
  * <p>
  * Properties are prefixed with string: "bioc.document.loader.freetext"
@@ -186,7 +186,6 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  * <dt>metamaplite.result.formatter.cuilist</dt><dd>{@link gov.nih.nlm.nls.metamap.lite.resultformats.CuiList gov.nih.nlm.nls.metamap.lite.resultformats.CuiList}</dd>
  * <dt>metamaplite.result.formatter.brat</dt><dd>{@link gov.nih.nlm.nls.metamap.lite.resultformats.Brat gov.nih.nlm.nls.metamap.lite.resultformats.Brat}</dd>
  * </dl>
- * </p>
  */
 public class MetaMapLite {
   /** log4j logger instance */
