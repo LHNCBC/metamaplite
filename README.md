@@ -55,13 +55,14 @@ Example of invocation on Windows using batch file:
 
     metamaplite.bat [options] [<input file>|--]
 
-Example of invocation using Java VM directly:
+Example of invocation using Java VM directly when running from the
+__public_mm__ directory:
 
-    $ java -cp public_mm_lite/target/metamaplite-3.6-standalone.jar \
+    $ java -cp target/metamaplite-3.6-standalone.jar \
           gov.nih.nlm.nls.ner.MetaMapLite \
-          --indexdir=public_mm_lite/data/ivf/strict \
-          --modelsdir=public_mm_lite/data/models \
-          --specialtermsfile=public_mm_lite/data/specialterms.txt  [options] [<input file>|--]
+          --indexdir=data/ivf/strict \
+          --modelsdir=data/models \
+          --specialtermsfile=data/specialterms.txt  [options] [<input file>|--]
 
 Current options are:
 
