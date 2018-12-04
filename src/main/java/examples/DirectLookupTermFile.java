@@ -1,6 +1,8 @@
 package examples;
 
 import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.List;
 import java.util.ArrayList;
@@ -11,7 +13,8 @@ import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 import gov.nih.nlm.nls.ner.MetaMapLite;
 
 /**
- * Example of looking up terms while skipping the recognition step.
+ * Example of looking up terms in file, one term per line, while
+ * skipping the recognition step.
  *
  *
  * Created: Tue Apr 11 16:31:38 2017
@@ -19,7 +22,7 @@ import gov.nih.nlm.nls.ner.MetaMapLite;
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public class DirectLookup {
+public class DirectLookupTermFile {
 
   Properties myProperties;
   MetaMapIvfIndexes mmIndexes;
@@ -28,7 +31,7 @@ public class DirectLookup {
    * Creates a new <code>DirectLookup</code> instance.
    * @throws IOException I/O exception
    */
-  public DirectLookup()
+  public DirectLookupTermFile()
     throws IOException
   {
     this.myProperties = MetaMapLite.getDefaultConfiguration();
@@ -61,29 +64,27 @@ public class DirectLookup {
    *
    * @param args a <code>String</code> value
    * @exception IOException i/o exception
+   * @throws FileNotFoundException thrown if file is not found
+   * @throws IOException i/o exception
    */
   public static final void main(final String[] args)
-    throws IOException
+    throws FileNotFoundException, IOException
   {
 
     if (args.length > 0) {
-      StringBuilder sb = new StringBuilder();
-      for (String arg: args) {
-	sb.append(arg).append(" ");
-      }
+      String filename = args[0];
       DirectLookup instance = new DirectLookup();
-      int i = 0;
-      for (String term: sb.toString().split(",")) {
+      BufferedReader br = new BufferedReader(new FileReader(filename));
+      String term;
+      while ((term = br.readLine()) != null) {
 	System.out.println("term:" + term);
 	for (String[] hit: instance.lookup(Normalization.normalizeLiteString(term))) {
-	  System.out.println(i + ": " + Arrays.toString(hit));
-	  i++;
+	  System.out.println(term + "|" + Arrays.toString(hit));
 	}
-	System.out.println("i =" + i);
       }
     } else {
-      System.err.println("examples.DirectLookup multi-word-term");
-      System.err.println(" Terms are separated by commas.");
+      System.err.println("examples.DirectLookup filename");
+      System.err.println(" Lookup term in file, one term per line.");
     }
   }
 }
