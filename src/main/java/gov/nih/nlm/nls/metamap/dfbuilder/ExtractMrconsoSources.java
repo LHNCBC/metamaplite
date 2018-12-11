@@ -1,6 +1,7 @@
 package gov.nih.nlm.nls.metamap.dfbuilder;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.text.*;
 
@@ -255,12 +256,15 @@ public class ExtractMrconsoSources
     System.out.println(filter.getOptionsMessage());
     System.out.println("Processing " + inFilename + " --> " +
 		       outFilename + ".");
-      BufferedReader infile = new BufferedReader(new FileReader(inFilename));
-      PrintWriter outfile = 
-	new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
-      filter.processInput(infile, outfile);
-      outfile.close();
-      infile.close();
+    BufferedReader infile =
+      new BufferedReader(new InputStreamReader(new FileInputStream(inFilename),
+					       Charset.forName("utf-8")));
+    PrintWriter outfile = 
+      new PrintWriter(new OutputStreamWriter(new FileOutputStream(outFilename),
+					     Charset.forName("utf-8")));
+    filter.processInput(infile, outfile);
+    outfile.close();
+    infile.close();
   }
 
   /**

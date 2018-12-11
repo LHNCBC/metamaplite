@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -180,7 +182,7 @@ public class CreateIndexes {
    * @throws NoSuchAlgorithmException no such algorithm exception
 
    */
-  static void createIndices(String ivfDir, Map<String,String[]> tableConfig)
+  static void createIndices(String ivfDir, Map<String,String[]> tableConfig, Charset charset)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
     for (Map.Entry<String,String[]> entry: tableConfig.entrySet()) {
@@ -198,7 +200,7 @@ public class CreateIndexes {
       String absTableFilename = workingDir + "/tables/" + tableFilename;
       if (new File(absTableFilename).exists()) {
 	System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-	List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(absTableFilename);
+	List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(absTableFilename, charset);
 	System.out.println("Generating index for " + indexName);
 	MultiKeyIndexGeneration instance = new MultiKeyIndexGeneration();
 	System.out.println("Generating maps for columns " +
@@ -229,6 +231,7 @@ public class CreateIndexes {
 	   java.io.IOException, BSPIndexCreateException, BSPIndexInvalidException, 
 	   ClassNotFoundException, Exception
   {
+    Charset charset = Charset.forName("utf-8");
     if (args.length > 2) {
       String mrconsoFile = args[0];
       String mrstyFile = args[1];
@@ -237,7 +240,7 @@ public class CreateIndexes {
       createTables(mrconsoFile, mrstyFile, ivfDir);
       Map<String,String[]> tableConfig = generateTableConfig(ivfDir);
       saveTableConfig(ivfDir + "/tables/ifconfig", tableConfig);
-      createIndices(ivfDir, tableConfig);
+      createIndices(ivfDir, tableConfig, charset);
     } else {
       System.out.println("usage: gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>");
     }

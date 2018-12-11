@@ -23,6 +23,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.Charset;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,9 +43,15 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
     <li>column -&gt; termlength -&gt; term -&gt; digest map 
     </ol>
   */
-
+  
+  /** encoding utf-8? */
+  Charset charset = Charset.forName("utf-8");
   /** map of stats maps for each partition, partitionName -&gt; StatsMap */
   Map<String,Map<String,String>> mapOfStatMaps = new HashMap<String,Map<String,String>>();
+
+  public MappedMultiKeyIndexDiskBasedGeneration() { }
+  public MappedMultiKeyIndexDiskBasedGeneration(Charset charset) { this.charset = charset; }
+
 
   /** start a new digest list for term using map from column -&gt; termLength 
    * @param newMap string -&gt; digest -list map
@@ -73,7 +80,8 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
    * @param columns  which columns of records to use as keys.
    * @return set of column "-" termLength keys.
    */
-  public static Set<String> writeTemporaryPartitionsTables(String workingDir, String indexName, List<Record> recordTable, int[] columns)
+  public static Set<String> writeTemporaryPartitionsTables(String workingDir, String indexName,
+							   List<Record> recordTable, int[] columns, Charset charset)
     throws IOException {
     Map<String,PrintWriter> columnLengthTempTableFileMap =  new HashMap<String,PrintWriter>();
     for (Record record: recordTable) {
@@ -81,16 +89,18 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
       // String digest = record.getDigest();
       for (int column: columns) {
 	String term = fields[column].toLowerCase();
-	int termLength = term.length();
+	/// int termLength = term.length();
+	// byte length of utf-8 or utf-16 string
+	int bytelength = term.getBytes(charset).length;
 	String tempPartitionFilename =
 	  MultiKeyIndex.partitionPath(workingDir, indexName,
-				      Integer.toString(column), Integer.toString(termLength), "-temp-partition-table");
+				      Integer.toString(column), Integer.toString(bytelength), "-temp-partition-table");
 	Path indexPath = Paths.get(workingDir + "/indices/" + indexName);
 	if (Files.notExists(indexPath)) {
 	  Path newDir = Files.createDirectory(indexPath);
 	  System.out.println("newDir: " + newDir);
 	}
-	String partitionKey = Integer.toString(column) + "-" + Integer.toString(termLength);
+	String partitionKey = Integer.toString(column) + "-" + Integer.toString(bytelength);
 	PrintWriter pw;
 	if (columnLengthTempTableFileMap.containsKey(partitionKey)) {
 	  pw = columnLengthTempTableFileMap.get(partitionKey);
@@ -116,13 +126,13 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
    */
   public static Map<String,List<String>> generateTermDigestMap(Map<String,String> digestPostingMap,
 							       List<Record> recordTable,
-							       int column)
+							       int column, Charset charset)
   {
-        System.out.println("generating term -> digest map and digest -> posting map...");
+    System.out.println("generating term -> digest map and digest -> posting map...");
     Map<String,List<String>> termDigestMap = new TreeMap<String,List<String>>();
     for (Record record: recordTable) {
       String[] fields = record.getFields();
-      String digest = record.getDigest();
+      String digest = record.getDigest(charset);
       if (! digestPostingMap.containsKey(digest)) {
 	digestPostingMap.put(digest, record.getLine());
       }
@@ -149,12 +159,14 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
   public static void writePostings(RandomAccessFile postingsRaf,
 				   Map<String, List<String>> termDigestMap,
 				   Map<String,String> digestPostingMap,
-				   Map<String,Extent> digestExtentMap)
+				   Map<String,Extent> digestExtentMap,
+				   Charset charset)
     throws IOException {
     System.out.println("writing postings...");
     for (Map.Entry<String,List<String>> termDigestEntry: termDigestMap.entrySet()) {
       for (String digest: termDigestEntry.getValue()) {
-	byte[] byteData = digestPostingMap.get(digest).getBytes(); // convert posting string to bytes
+	// convert posting string to bytes
+	byte[] byteData = digestPostingMap.get(digest).getBytes(charset);
 	long start = postingsRaf.getFilePointer();
 	postingsRaf.write(byteData);
 	long end = postingsRaf.getFilePointer();
@@ -173,7 +185,8 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
    */
     public static void writeDictionaryAndExtents(String workingDir, String indexName, String columnLengthKey,
 						 Map<String, List<String>> termDigestMap,
-						 Map<String,Extent> digestExtentMap)
+						 Map<String,Extent> digestExtentMap,
+						 Charset charset)
       throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
       System.out.println("writing dictionary and extents (TBI)...");
@@ -197,7 +210,8 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
       long recordlength = termLength + datalength;
       
       for (Entry<String,List<String>> termEntry: termDigestMap.entrySet()) {
-	byte[] byteData = termEntry.getKey().getBytes();
+	
+	byte[] byteData = termEntry.getKey().getBytes(charset);
 	  List<String> digestList = termEntry.getValue();
 	  long extentListOffset = extentsRaf.getFilePointer();
 	  // write extents
@@ -209,6 +223,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 	  // write dictionary
 	  
 	  long dictEntryStart = termDictionaryRaf.getFilePointer();
+	  // write encoded UTF-8 string 
 	  termDictionaryRaf.write(byteData);		  // term
 	  
 	  long dictEntryDataStart = termDictionaryRaf.getFilePointer();
@@ -216,8 +231,6 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 	  termDictionaryRaf.writeLong(extentListOffset);  // offset to begining of extent list
 	  datalength = termDictionaryRaf.getFilePointer() - dictEntryDataStart;
 	  recordlength = termDictionaryRaf.getFilePointer() - dictEntryStart;
-
-
       }
       termDictionaryRaf.close();
       extentsRaf.close();
@@ -240,7 +253,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
    * @param indexName short name of index
    * @param columnLengthSet set of column "-" term length keys
    */
-  public static void writeFinalIndex(String workingDir, String indexName, Set<String> columnLengthSet)
+  public static void writeFinalIndex(String workingDir, String indexName, Set<String> columnLengthSet, Charset charset)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
     // digest to diskfile extent map (offset, length in diskfile)
@@ -259,10 +272,10 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
       int termLength = Integer.parseInt(fields[1]);
       Path tempPartitionPath = Paths.get(workingDir + "/indices/" + indexName + "/" + indexName +
 					 "-" + columnLengthKey + "-temp-partition-table");
-      List<Record> recordTable = MultiKeyIndex.loadTable(tempPartitionPath.toString());
-      Map<String, List<String>> termDigestMap = generateTermDigestMap(digestPostingMap, recordTable, column);
-      writePostings(postingsRaf, termDigestMap, digestPostingMap, digestExtentMap);
-      writeDictionaryAndExtents(workingDir, indexName, columnLengthKey, termDigestMap, digestExtentMap);
+      List<Record> recordTable = MultiKeyIndex.loadTable(tempPartitionPath.toString(), charset);
+      Map<String, List<String>> termDigestMap = generateTermDigestMap(digestPostingMap, recordTable, column, charset);
+      writePostings(postingsRaf, termDigestMap, digestPostingMap, digestExtentMap, charset);
+      writeDictionaryAndExtents(workingDir, indexName, columnLengthKey, termDigestMap, digestExtentMap, charset);
     }
     postingsRaf.close();
   }
@@ -282,16 +295,18 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
     }
     for (Record record: recordTable) {
       String[] fields = record.getFields();
-      String digest = record.getDigest();
+      String digest = record.getDigest(this.charset);
       this.digestPostingMap.put(digest, record.getLine()); // store hash -> postings
       for (int column: columns) {
 	String term = fields[column].toLowerCase();
-	if (this.columnLengthTermDigestMap.get(column).containsKey(term.length())) {
-	  if (this.columnLengthTermDigestMap.get(column).get(term.length()).containsKey(term)) {
+	// byte length of utf-8 string
+	int bytelength = term.getBytes(this.charset).length;
+	if (this.columnLengthTermDigestMap.get(column).containsKey(bytelength)) {
+	  if (this.columnLengthTermDigestMap.get(column).get(bytelength).containsKey(term)) {
 	    // store column -> term -> hash list
-	    this.columnLengthTermDigestMap.get(column).get(term.length()).get(term).add(digest);
+	    this.columnLengthTermDigestMap.get(column).get(bytelength).get(term).add(digest);
 	  } else {
-	    Map<String,List<String>> termDigestMap = this.columnLengthTermDigestMap.get(column).get(new Integer(term.length()));
+	    Map<String,List<String>> termDigestMap = this.columnLengthTermDigestMap.get(column).get(new Integer(bytelength));
             List<String> newList = new ArrayList<String>();
             newList.add(digest);    
             termDigestMap.put(term, newList);
@@ -301,7 +316,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 	  List<String> newList = new ArrayList<String>();
           newList.add(digest);    
           newTermDigestMap.put(term, newList);
-          this.columnLengthTermDigestMap.get(column).put(term.length(), newTermDigestMap);
+          this.columnLengthTermDigestMap.get(column).put(bytelength, newTermDigestMap);
 	}
       }
     }
@@ -321,7 +336,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
     // get final length of file
     int length = 0;
     for (Map.Entry<String,String> digestEntry: this.digestPostingMap.entrySet()) {
-      length = length + digestEntry.getValue().getBytes().length;
+      length = length + digestEntry.getValue().getBytes(this.charset).length;
     }
 
     // map file.
@@ -331,7 +346,8 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 
     // write postings
     for (Map.Entry<String,String> digestEntry: this.digestPostingMap.entrySet()) {
-      byte[] byteData = digestEntry.getValue().getBytes(); // convert posting string to bytes
+      // convert posting string to bytes
+      byte[] byteData = digestEntry.getValue().getBytes(this.charset);
       long start = raf.position();
       raf.put(byteData);
       long end = raf.position();
@@ -371,7 +387,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 	long datalength = 16;
 	long recordlength = termLength.intValue() + datalength;
 	for (Entry<String,List<String>> termEntry: this.columnLengthTermDigestMap.get(column).get(termLength).entrySet()) {
-	  byte[] byteData = termEntry.getKey().getBytes();
+	  byte[] byteData = termEntry.getKey().getBytes(this.charset);
 	  List<String> digestList = termEntry.getValue();
 	  long extentListOffset = extentsRaf.getFilePointer();
 	  // write extents
@@ -412,7 +428,9 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
     throws IOException, FileNotFoundException
   {
     List<String> resultList = new ArrayList<String>();
-    String termLengthString = Integer.toString(term.length());
+    // byte length of utf-8 string
+    int bytelength = term.getBytes(this.charset).length;
+    String termLengthString = Integer.toString(bytelength);
     String columnString = Integer.toString(column);
       RandomAccessFile termDictionaryRaf = 
 	new RandomAccessFile(MultiKeyIndex.partitionPath(workingDir, indexname,
@@ -441,9 +459,9 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
     
     DictionaryEntry entry = 
       MultiKeyIndex.dictionaryBinarySearch(termDictionaryRaf, term, 
-			     term.length(), datalength, recordnum );
+			     bytelength, datalength, recordnum );
     if (entry != null) {
-      MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry);
+      MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry, charset);
     }
     termDictionaryRaf.close();
     extentsRaf.close();
@@ -477,6 +495,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
   public static void main(String[] args)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
+    Charset charset = Charset.forName("utf-8");
     if (args.length > 2) {
       String option = args[0];
       String workingDir = args[1];
@@ -497,12 +516,12 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 	    columns[i] = Integer.parseInt(columnStrings[i]);
 	  }
 	  System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-	  List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
+	  List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename, charset);
 	  MappedMultiKeyIndexDiskBasedGeneration instance = new MappedMultiKeyIndexDiskBasedGeneration();
 	  System.out.println("writing partitions for columns " + renderColumns(columns) ); 
-	  Set<String> columnLengthKeys = writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns);
+	  Set<String> columnLengthKeys = writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns, charset);
 	  System.out.println("writing final index");
-	  writeFinalIndex(workingDir, indexName, columnLengthKeys);
+	  writeFinalIndex(workingDir, indexName, columnLengthKeys, charset);
 	  // System.out.println("Generating maps for columns " + renderColumns(columns) );
 	  // instance.generateMaps(recordTable, columns);
 	  // Map<String,Extent> digestExtentMap = instance.writePostings(workingDir, indexName);

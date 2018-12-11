@@ -1,6 +1,7 @@
 package irutils;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 /**
  * MappedFileBinarySearch.java
@@ -103,11 +104,12 @@ public final class MappedFileBinarySearch extends Object
    * @param word       search word
    * @param wordlen    wordlength
    * @param numrecs    number of records in table
+   * @param charset    charset used for encoding terms
    * @return int containing address of posting, -1 if not found.
    */
   public static DictionaryEntry
     dictionaryBinarySearch(ByteBuffer byteBuf, String word, 
-			   int wordlen, int numrecs)
+			   int wordlen, int numrecs, Charset charset)
     throws IOException
   {
     int datalen = 8; // postings (integer[4 bytes]) + address (integer[4 bytes])
@@ -116,7 +118,7 @@ public final class MappedFileBinarySearch extends Object
     int cond = -1;
     int mid;
     byte[] tstwordbytes = new byte[wordlen];
-    byte[] wordbytes = word.getBytes();
+    byte[] wordbytes = word.getBytes(charset);
 
     while ( low < high )
       {

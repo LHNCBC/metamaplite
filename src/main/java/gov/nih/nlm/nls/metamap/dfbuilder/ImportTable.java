@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -97,7 +98,7 @@ public class ImportTable {
     }
   }
 
-  static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName)
+  static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName, Charset charset)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
     String[] tableFields = tableConfig.get(indexName);
@@ -111,14 +112,14 @@ public class ImportTable {
     }
     
     System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-    List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
+    List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename, charset);
     MappedMultiKeyIndexDiskBasedGeneration instance = new MappedMultiKeyIndexDiskBasedGeneration();
     System.out.println("writing partitions for columns " +
 		       MappedMultiKeyIndexDiskBasedGeneration.renderColumns(columns) ); 
     Set<String> columnLengthKeys =
-      MappedMultiKeyIndexDiskBasedGeneration.writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns);
+      MappedMultiKeyIndexDiskBasedGeneration.writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns, charset);
     System.out.println("writing final index");
-    MappedMultiKeyIndexDiskBasedGeneration.writeFinalIndex(workingDir, indexName, columnLengthKeys);
+    MappedMultiKeyIndexDiskBasedGeneration.writeFinalIndex(workingDir, indexName, columnLengthKeys, charset);
   }
 
   /**
@@ -138,6 +139,7 @@ public class ImportTable {
 	   java.io.IOException, BSPIndexCreateException, BSPIndexInvalidException, 
 	   ClassNotFoundException, Exception
   {
+    Charset charset = Charset.forName("utf-8");
     if (args.length > 1) {
       String varsFile = args[0];
       String ivfDir = args[1];
@@ -149,7 +151,7 @@ public class ImportTable {
 	tableConfig = Config.loadConfig(configFilename);
 	if (tableConfig.containsKey(dbname)) {
 	createTables(varsFile, ivfDir, tableConfig.get(dbname));
-	createIndex(ivfDir, tableConfig, dbname);
+	createIndex(ivfDir, tableConfig, dbname, charset);
 	} else {
 	  System.out.println("configuration record for dbname: " + dbname +
 			     " is not present, check ifconfig configuration file in " +

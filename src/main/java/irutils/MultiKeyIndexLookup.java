@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import irutils.MultiKeyIndex.Record;
@@ -24,6 +25,7 @@ import irutils.MultiKeyIndex.Record;
 public class MultiKeyIndexLookup {
 
   MultiKeyIndex index;
+  Charset charset = Charset.forName("utf-8");
 
   public MultiKeyIndexLookup(String indexDirectoryName)
     throws FileNotFoundException
@@ -35,11 +37,26 @@ public class MultiKeyIndexLookup {
     this.index = index;
   }
 
+  public MultiKeyIndexLookup(String indexDirectoryName, Charset charset)
+    throws FileNotFoundException
+  {
+    this.index = new MultiKeyIndex(indexDirectoryName);
+    this.charset = charset;
+  }
+
+  public MultiKeyIndexLookup(MultiKeyIndex index, Charset charset) {
+    this.index = index;
+    this.charset = charset;
+  }
+
   public List<String> lookup(String term, int column)
     throws IOException, FileNotFoundException
   {
     List<String> resultList = new ArrayList<String>();
-    String termLengthString = Integer.toString(term.length());
+    // byte length of utf-8 string
+    int bytelength = term.getBytes(this.charset).length;
+
+    String termLengthString = Integer.toString(bytelength);
     String columnString = Integer.toString(column);
 
     RandomAccessFile termDictionaryRaf = this.index.openTermDictionaryFile(columnString, termLengthString);
@@ -52,9 +69,9 @@ public class MultiKeyIndexLookup {
     
     DictionaryEntry entry = 
       MultiKeyIndex.dictionaryBinarySearch(termDictionaryRaf, term.toLowerCase(), 
-					   term.length(), datalength, recordnum );
+					   bytelength, datalength, recordnum );
     if (entry != null) {
-      MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry);
+      MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry, this.charset);
     }
     termDictionaryRaf.close();
     extentsRaf.close();

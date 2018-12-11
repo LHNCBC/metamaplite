@@ -6,6 +6,8 @@ import gov.nih.nlm.nls.metamap.dfbuilder.DefaultSemanticTypesRaw;
 import java.io.BufferedReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -112,7 +115,8 @@ public class ExtractMrstySemanticTypes {
   {
     Map<String,String> semTypeToStAbbrevMap = new HashMap<String,String>();
     BufferedReader br = 
-      new BufferedReader(new FileReader(stRawFilename));
+      new BufferedReader(new InputStreamReader(new FileInputStream(stRawFilename),
+					       Charset.forName("utf-8")));
     String line;
     while ((line = br.readLine()) != null) {
       String[] fields = line.split("\\|");
@@ -253,7 +257,9 @@ public class ExtractMrstySemanticTypes {
     System.out.println(filter.getOptionsMessage());
     System.out.println("Processing " + inFilename + " --> " +
 		       outFilename + ".");
-    BufferedReader infile = new BufferedReader(new FileReader(inFilename));
+    BufferedReader infile =
+      new BufferedReader(new InputStreamReader(new FileInputStream(inFilename),
+					       Charset.forName("utf-8")));
     PrintWriter outfile = 
       new PrintWriter(new BufferedWriter(new FileWriter(outFilename)));
     filter.processInput(infile, outfile);

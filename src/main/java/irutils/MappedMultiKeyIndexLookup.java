@@ -15,6 +15,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 
 import java.nio.MappedByteBuffer;
+import java.nio.charset.Charset;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -45,6 +46,8 @@ import irutils.MultiKeyIndex.Record;
 
 public class MappedMultiKeyIndexLookup {
 
+  /** character encoding */
+  Charset charset = Charset.forName("utf-8");
   MappedMultiKeyIndex index;
 
   public MappedMultiKeyIndexLookup(String indexDirectoryName)
@@ -57,11 +60,25 @@ public class MappedMultiKeyIndexLookup {
     this.index = index;
   }
 
+  public MappedMultiKeyIndexLookup(String indexDirectoryName, Charset charset)
+    throws FileNotFoundException, IOException
+  {
+    this.index = new MappedMultiKeyIndex(indexDirectoryName);
+    this.charset = charset;
+  }
+
+  public MappedMultiKeyIndexLookup(MappedMultiKeyIndex index, Charset charset) {
+    this.index = index;
+    this.charset = charset;
+  }
+
   public List<String> lookup(String term, int column)
     throws IOException, FileNotFoundException
   {
     List<String> resultList = new ArrayList<String>();
-    String termLengthString = Integer.toString(term.length());
+    // byte length of utf-8 string
+    int bytelength = term.getBytes(this.charset).length;
+    String termLengthString = Integer.toString(bytelength);
     String columnString = Integer.toString(column);
 
     MappedByteBuffer termDictionaryRaf = this.index.getTermDictionaryFile(columnString, termLengthString);
@@ -74,9 +91,9 @@ public class MappedMultiKeyIndexLookup {
     
       DictionaryEntry entry = 
 	MappedMultiKeyIndex.dictionaryBinarySearch(termDictionaryRaf, term.toLowerCase(), 
-						   term.length(), datalength, recordnum );
+						   bytelength, datalength, recordnum, this.charset );
       if (entry != null) {
-	MappedMultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry);
+	MappedMultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry, this.charset);
       }
     }
     return resultList;
@@ -117,7 +134,6 @@ public class MappedMultiKeyIndexLookup {
 	for (String result: resultList) {
 	  System.out.println(result);
 	}
-	
       } else {
 	System.out.println("Unknown option.");
 	System.out.println("Usage: build workingdir indexname");

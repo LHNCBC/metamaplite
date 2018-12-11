@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -85,7 +86,7 @@ public class BuildIndex {
     }
   }
 
-  static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName)
+  static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName, Charset charset)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
     String[] tableFields = tableConfig.get(indexName);
@@ -99,14 +100,14 @@ public class BuildIndex {
     }
     
     System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-    List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
+    List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename, charset);
     MappedMultiKeyIndexDiskBasedGeneration instance = new MappedMultiKeyIndexDiskBasedGeneration();
     System.out.println("writing partitions for columns " +
 		       MappedMultiKeyIndexDiskBasedGeneration.renderColumns(columns) ); 
     Set<String> columnLengthKeys =
-      MappedMultiKeyIndexDiskBasedGeneration.writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns);
+      MappedMultiKeyIndexDiskBasedGeneration.writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns, charset);
     System.out.println("writing final index");
-    MappedMultiKeyIndexDiskBasedGeneration.writeFinalIndex(workingDir, indexName, columnLengthKeys);
+    MappedMultiKeyIndexDiskBasedGeneration.writeFinalIndex(workingDir, indexName, columnLengthKeys, charset);
   }
 
   /**
@@ -127,6 +128,7 @@ public class BuildIndex {
 	   java.io.IOException, BSPIndexCreateException, BSPIndexInvalidException, 
 	   ClassNotFoundException, Exception
   {
+    Charset charset= Charset.forName("utf-8");
     if (args.length > 1) {
       String ivfDir = args[0];
       String indexname = args[1];
@@ -137,7 +139,7 @@ public class BuildIndex {
 	tableConfig = Config.loadConfig(configFilename);
 	if (tableConfig.containsKey(indexname)) {
 	  System.out.println("Building index " + indexname + ":" + StringUtils.join(tableConfig.get(indexname), " "));
-	  createIndex(ivfDir, tableConfig, indexname);
+	  createIndex(ivfDir, tableConfig, indexname, charset);
 	} else {
 	  System.err.println("Error: An entry for index named: " + indexname + " is not present in " + configFilename);
 	}

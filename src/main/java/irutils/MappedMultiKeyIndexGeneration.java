@@ -18,6 +18,7 @@ import java.io.BufferedWriter;
 
 import java.nio.channels.FileChannel;
 import java.nio.MappedByteBuffer;
+import java.nio.charset.Charset;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -38,8 +39,14 @@ public class MappedMultiKeyIndexGeneration {
     </ol>
   */
 
+  /** character encoding */
+  Charset charset = Charset.forName("utf-8");
+
   /** map of stats maps for each partition, partitionName -&gt; StatsMap */
   Map<String,Map<String,String>> mapOfStatMaps = new HashMap<String,Map<String,String>>();
+  
+  public MappedMultiKeyIndexGeneration() { }
+  public MappedMultiKeyIndexGeneration(Charset charset ) { this.charset = charset; }
 
   /** start a new digest list for term using map from column -&gt; termLength 
    * @param newMap string -&gt; digest -list map
@@ -72,16 +79,18 @@ public class MappedMultiKeyIndexGeneration {
     }
     for (Record record: recordTable) {
       String[] fields = record.getFields();
-      String digest = record.getDigest();
+      String digest = record.getDigest(this.charset);
       this.digestPostingMap.put(digest, record.getLine()); // store hash -> postings
       for (int column: columns) {
 	String term = fields[column].toLowerCase();
-	if (this.columnLengthTermDigestMap.get(column).containsKey(term.length())) {
-	  if (this.columnLengthTermDigestMap.get(column).get(term.length()).containsKey(term)) {
+	// byte length of utf-8 string
+	int bytelength = term.getBytes(this.charset).length;
+	if (this.columnLengthTermDigestMap.get(column).containsKey(bytelength)) {
+	  if (this.columnLengthTermDigestMap.get(column).get(bytelength).containsKey(term)) {
 	    // store column -> term -> hash list
-	    this.columnLengthTermDigestMap.get(column).get(term.length()).get(term).add(digest);
+	    this.columnLengthTermDigestMap.get(column).get(bytelength).get(term).add(digest);
 	  } else {
-	    Map<String,List<String>> termDigestMap = this.columnLengthTermDigestMap.get(column).get(new Integer(term.length()));
+	    Map<String,List<String>> termDigestMap = this.columnLengthTermDigestMap.get(column).get(new Integer(bytelength));
             List<String> newList = new ArrayList<String>();
             newList.add(digest);    
             termDigestMap.put(term, newList);
@@ -91,7 +100,7 @@ public class MappedMultiKeyIndexGeneration {
 	  List<String> newList = new ArrayList<String>();
           newList.add(digest);    
           newTermDigestMap.put(term, newList);
-          this.columnLengthTermDigestMap.get(column).put(term.length(), newTermDigestMap);
+          this.columnLengthTermDigestMap.get(column).put(bytelength, newTermDigestMap);
 	}
       }
     }
@@ -111,8 +120,10 @@ public class MappedMultiKeyIndexGeneration {
     // get final length of file
     int length = 0;
     for (Map.Entry<String,String> digestEntry: this.digestPostingMap.entrySet()) {
-      length = length + digestEntry.getValue().getBytes().length;
+      length = length + digestEntry.getValue().getBytes(this.charset).length;
     }
+    // pad length
+    length = length + 1024;
 
     // map file.
     MappedByteBuffer raf = new RandomAccessFile
@@ -121,7 +132,8 @@ public class MappedMultiKeyIndexGeneration {
 
     // write postings
     for (Map.Entry<String,String> digestEntry: this.digestPostingMap.entrySet()) {
-      byte[] byteData = digestEntry.getValue().getBytes(); // convert posting string to bytes
+      // convert posting string to bytes
+      byte[] byteData = digestEntry.getValue().getBytes(this.charset);
       long start = raf.position();
       raf.put(byteData);
       long end = raf.position();
@@ -161,7 +173,7 @@ public class MappedMultiKeyIndexGeneration {
 	long datalength = 16;
 	long recordlength = termLength.intValue() + datalength;
 	for (Entry<String,List<String>> termEntry: this.columnLengthTermDigestMap.get(column).get(termLength).entrySet()) {
-	  byte[] byteData = termEntry.getKey().getBytes();
+	  byte[] byteData = termEntry.getKey().getBytes(this.charset);
 	  List<String> digestList = termEntry.getValue();
 	  long extentListOffset = extentsRaf.getFilePointer();
 	  // write extents
@@ -171,7 +183,6 @@ public class MappedMultiKeyIndexGeneration {
 	    extentsRaf.writeLong(extent.getLength());
 	  }
 	  // write dictionary
-	  
 	  long dictEntryStart = termDictionaryRaf.getFilePointer();
 	  termDictionaryRaf.write(byteData);		  // term
 	  
@@ -202,7 +213,9 @@ public class MappedMultiKeyIndexGeneration {
     throws IOException, FileNotFoundException
   {
     List<String> resultList = new ArrayList<String>();
-    String termLengthString = Integer.toString(term.length());
+    // byte length of utf-8 string
+    int bytelength = term.getBytes(this.charset).length;
+    String termLengthString = Integer.toString(bytelength);
     String columnString = Integer.toString(column);
       RandomAccessFile termDictionaryRaf = 
 	new RandomAccessFile(MultiKeyIndex.partitionPath(workingDir, indexname,
@@ -231,9 +244,9 @@ public class MappedMultiKeyIndexGeneration {
     
     DictionaryEntry entry = 
       MultiKeyIndex.dictionaryBinarySearch(termDictionaryRaf, term, 
-			     term.length(), datalength, recordnum );
+			     bytelength, datalength, recordnum );
     if (entry != null) {
-      MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry);
+      MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry, this.charset);
     }
     termDictionaryRaf.close();
     extentsRaf.close();
@@ -267,13 +280,19 @@ public class MappedMultiKeyIndexGeneration {
   public static void main(String[] args)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
+    Charset charset = Charset.forName("utf-8");
     if (args.length > 2) {
       String option = args[0];
       String workingDir = args[1];
       String indexName = args[2];
+
+      if (args.length > 3) {
+	charset = Charset.forName(args[3]);
+      }
       System.out.println("option: " + option);
       System.out.println("workingDir: " + workingDir);
       System.out.println("indexname: " + indexName);
+      System.out.println("charset: " + charset);
 
       Map<String,String []> tableConfig = Config.loadConfig(workingDir + "/tables/ifconfig");
       String[] tableFields = tableConfig.get(indexName);
@@ -287,7 +306,7 @@ public class MappedMultiKeyIndexGeneration {
 	    columns[i] = Integer.parseInt(columnStrings[i]);
 	  }
 	  System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-	  List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
+	  List<MultiKeyIndex.Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename, charset);
 	  MultiKeyIndexGeneration instance = new MultiKeyIndexGeneration();
 	  System.out.println("Generating maps for columns " + renderColumns(columns) ); 
 	  instance.generateMaps(recordTable, columns);

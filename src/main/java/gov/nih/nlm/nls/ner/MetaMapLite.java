@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 
 import java.lang.reflect.Method;
 
@@ -864,7 +865,8 @@ public class MetaMapLite {
     // output results for file
     // create output filename
     logger.info("outputing results to Standard Output");
-    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
+							    Charset.forName("utf-8")));
     for (Sentence sent: this.getSentenceList(documentList)) {
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
     }
@@ -872,7 +874,8 @@ public class MetaMapLite {
   }
 
   void listAcronyms(List<BioCDocument> documentList) {
-    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
+				     Charset.forName("utf-8")));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
       pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
 		 acronym.longForm.replace("\n", " ") + "|" + acronym.longFormIndex );
@@ -886,7 +889,8 @@ public class MetaMapLite {
   {
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     logger.info("outputing results to Standard Output");
-    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
+				     Charset.forName("utf-8")));
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> tokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
@@ -902,7 +906,8 @@ public class MetaMapLite {
     throws IOException
   {
     logger.info("outputing results to Standard Output");
-    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
+				     Charset.forName("utf-8")));
     listChunks(pw, documentList);
     pw.close();
   }
@@ -913,7 +918,8 @@ public class MetaMapLite {
     logger.info("outputing results to standard output." );
 
     // output results for file
-    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
+				     Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
   }
 
@@ -1413,7 +1419,9 @@ public class MetaMapLite {
 	if (verbose) {
 	  logger.info("Reading and processing documents from standard input");
 	}
-	List<BioCDocument> documentList = docLoader.readAsBioCDocumentList(new InputStreamReader(System.in));
+	List<BioCDocument> documentList =
+	  docLoader.readAsBioCDocumentList(new InputStreamReader(System.in,
+					   Charset.forName("utf-8")));
 	if (listSentencesOption) {
 	  metaMapLiteInst.listSentences(documentList);
 	} else if (listAcronymsOption) {

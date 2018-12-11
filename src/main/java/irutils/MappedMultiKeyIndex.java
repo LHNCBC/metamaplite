@@ -11,10 +11,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -62,9 +66,14 @@ import java.security.NoSuchAlgorithmException;
 
 public class MappedMultiKeyIndex {
 
+  /** character encoding */
+  Charset charset = Charset.forName("utf-8");
   String indexname;
   String indexDirectoryName;
+  /* MappedByteBuffer of posting file. */
   MappedByteBuffer postingsRaf = null;
+  /** Char Buffer refering to posting MappedByteBuffer */
+  CharBuffer postingsBuf = null;
   /** random access file name cache as Map, filename -&gt; random access file. */
   Map<String,MappedByteBuffer> byteBufCache = new HashMap<String,MappedByteBuffer>(); 
   /** map of term dictionary byte buffers for each partition, partitionName -&gt; StatsMap */
@@ -90,6 +99,29 @@ public class MappedMultiKeyIndex {
     int sz = (int)postingsFileChannel.size();
     this.postingsRaf = 
       postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+    this.postingsBuf = this.charset.decode(this.postingsRaf);
+    postingsInputStream.close();
+  }
+
+  /**
+   * Open index using basename as name of index.
+   * @param indexDirectoryName name of directory containing index.
+   * @param charset character encoding of terms and postings in index.
+   */
+  public MappedMultiKeyIndex(String indexDirectoryName, Charset charset)
+    throws FileNotFoundException, IOException
+  {
+    this.indexDirectoryName = indexDirectoryName;
+    this.charset = charset;
+    String[] fields = indexDirectoryName.split("/");
+    this.indexname = fields[fields.length - 1];
+    FileInputStream postingsInputStream =
+      new FileInputStream(new File (indexDirectoryName + "/postings"));
+    FileChannel postingsFileChannel = postingsInputStream.getChannel();
+    int sz = (int)postingsFileChannel.size();
+    this.postingsRaf = 
+      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+    this.postingsBuf = this.charset.decode(this.postingsRaf);
     postingsInputStream.close();
   }
 
@@ -110,7 +142,35 @@ public class MappedMultiKeyIndex {
     int sz = (int)postingsFileChannel.size();
     this.postingsRaf = 
       postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+    this.postingsBuf = this.charset.decode(this.postingsRaf);
     postingsInputStream.close();
+  }
+
+  /**
+   * Open index using basename and use supplied name as name of index.
+   * @param workingDirectoryName name of directory containing index.
+   * @param indexname name of index.
+   * @param charset character encoding of terms and postings in index.
+   */
+  public MappedMultiKeyIndex(String workingDirectoryName, String indexname, Charset charset)
+    throws FileNotFoundException, IOException
+  {
+    this.charset = charset;
+    this.indexDirectoryName = workingDirectoryName +  "/indices/" + indexname ;
+    this.indexname = indexname;
+
+    FileInputStream postingsInputStream =
+      new FileInputStream(new File (indexDirectoryName + "/postings"));
+    FileChannel postingsFileChannel = postingsInputStream.getChannel();
+    int sz = (int)postingsFileChannel.size();
+    this.postingsRaf = 
+      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+    this.postingsBuf = this.charset.decode(this.postingsRaf);
+    postingsInputStream.close();
+  }
+
+  public void setEncoding(Charset charset) {
+    this.charset = charset;
   }
 
   /**
@@ -263,7 +323,9 @@ public class MappedMultiKeyIndex {
     throws IOException, FileNotFoundException
   {
     List<String> resultList = new ArrayList<String>();
-    String termLengthString = Integer.toString(term.length());
+    // byte length of utf-8 string
+    int bytelength = term.getBytes(this.charset).length;
+    String termLengthString = Integer.toString(bytelength);
     String columnString = Integer.toString(column);
     String partitionKey = columnString + "|" + termLengthString;
     MappedByteBuffer termDictionaryRaf = this.getTermDictionaryFile(columnString, termLengthString);
@@ -274,9 +336,9 @@ public class MappedMultiKeyIndex {
     
     DictionaryEntry entry = 
       dictionaryBinarySearch(termDictionaryRaf, term, 
-					   term.length(), datalength, recordnum );
+			     bytelength, datalength, recordnum, this.charset );
     if (entry != null) {
-      readPostings(extentsRaf, this.postingsRaf, resultList, entry);
+      readPostings(extentsRaf, this.postingsRaf, resultList, entry, this.charset);
     } 
     return resultList;
   }
@@ -286,9 +348,9 @@ public class MappedMultiKeyIndex {
    * @param input input string
    * @return SHA1 digest generated from input string.
    */
-  public static String sha1(String input) throws NoSuchAlgorithmException {
+  public static String sha1(String input, Charset charset) throws NoSuchAlgorithmException {
     MessageDigest mDigest = MessageDigest.getInstance("SHA1");
-    byte[] result = mDigest.digest(input.getBytes());
+    byte[] result = mDigest.digest(input.getBytes(charset));
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < result.length; i++) {
       sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
@@ -320,14 +382,16 @@ public class MappedMultiKeyIndex {
    * @throws IOException
    * @throws NoSuchAlgorithmException 
    */
-  public static List<Record> loadTable(String tablefilename) 
+  public static List<Record> loadTable(String tablefilename, Charset charset) 
     throws FileNotFoundException, IOException, NoSuchAlgorithmException {
     List<Record> newList = new ArrayList<Record>();
-    BufferedReader br = new BufferedReader(new FileReader(tablefilename));
+    BufferedReader br =
+      new BufferedReader(new InputStreamReader(new FileInputStream(tablefilename),
+					       charset));
     String line;
     while ((line = br.readLine()) != null) {
       String[] fields = line.split("\\|");
-      String digest = sha1(line);
+      String digest = sha1(line, charset);
       newList.add(new Record(line, fields, digest));
     }
     return newList;
@@ -353,14 +417,14 @@ public class MappedMultiKeyIndex {
    */
   public static DictionaryEntry
     dictionaryBinarySearch(MappedByteBuffer bsfp, String word, 
-			   int wordlen, long datalen, long numrecs)
+			   int wordlen, long datalen, long numrecs, Charset charset)
     throws IOException
   {
     long low = 0;
     long high = numrecs;
     long cond;
     long mid;
-    byte[] wordbuf = new byte[wordlen];
+    byte[] tstwordbuf = new byte[wordlen];
     String tstword;
 
     // System.out.println("wordlen: " + wordlen + ", datalen: " + datalen + ", numrecs: " + numrecs);
@@ -368,10 +432,13 @@ public class MappedMultiKeyIndex {
       {
 	mid = low + (high- low) / 2;
 	bsfp.position((int)(mid * (wordlen+datalen)));
-	bsfp.get(wordbuf);
-	tstword = new String(wordbuf);
+	bsfp.get(tstwordbuf);
+	tstword = new String(tstwordbuf, charset);
 	// System.out.println("index: " + mid + ", address: " + (mid * (wordlen+datalen)) + ", tstword: " + tstword + ", word: " + word);
-	cond = word.compareTo(tstword);
+	// cond = word.compareTo(tstword);
+	ByteBuffer wordByteBuf = ByteBuffer.wrap(word.getBytes(charset));
+	ByteBuffer tstwordByteBuf = ByteBuffer.wrap(tstwordbuf);
+	cond = wordByteBuf.compareTo(tstwordByteBuf);
 	if (cond < 0) {
 	  high = mid;
 	} else if (cond > 0) {
@@ -400,17 +467,18 @@ public class MappedMultiKeyIndex {
   }
 
   public static void readPostings(MappedByteBuffer extentsRaf, MappedByteBuffer postingsRaf, 
-			   List<String> newList, DictionaryEntry entry) 
+				  List<String> newList, DictionaryEntry entry, Charset charset) 
     throws IOException
   {
     extentsRaf.position((int)entry.getAddress());
     for (int i = 0; i < entry.getNumberOfPostings(); i++) {
       long offset = extentsRaf.getLong();
       long length = extentsRaf.getLong();
-      byte[] buf = new byte[(int)length];
       postingsRaf.position((int)offset);
+      // Read encoded UTF-8 string 
+      byte[] buf = new byte[(int)length];
       postingsRaf.get(buf);
-      newList.add(new String(buf));
+      newList.add(new String(buf, charset));
     }
   }
 }

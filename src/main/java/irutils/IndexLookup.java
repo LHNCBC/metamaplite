@@ -50,7 +50,7 @@ public class IndexLookup {
    * @param indexName  name of index to search 
    * @param column column to search
    * @param query query terms
-   *
+   * @return results of lookup one result per string in list.
    * @throws FileNotFoundException file not found exception
    * @throws IOException IO exception
    * @throws NoSuchAlgorithmException no such algorithm exception 

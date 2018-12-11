@@ -1,4 +1,3 @@
-
 //
 package irutils;
 
@@ -14,9 +13,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.BufferedWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.nio.charset.Charset;
 
 /**
  * 
@@ -24,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class MultiKeyIndex {
 
+  Charset charset = Charset.forName("utf-8");
   String indexname;
   String indexDirectoryName;
   RandomAccessFile postingsRaf;
@@ -42,6 +45,17 @@ public class MultiKeyIndex {
       new RandomAccessFile(indexDirectoryName + "/postings", "r");
   }
 
+  public MultiKeyIndex(String indexDirectoryName, Charset charset)
+    throws FileNotFoundException
+  {
+    this.indexDirectoryName = indexDirectoryName;
+    String[] fields = indexDirectoryName.split("/");
+    this.indexname = fields[fields.length - 1];
+    this.postingsRaf = 
+      new RandomAccessFile(indexDirectoryName + "/postings", "r");
+    this.charset = charset;
+  }
+
   public MultiKeyIndex(String workingDirectoryName, String indexname)
     throws FileNotFoundException
   {
@@ -49,6 +63,16 @@ public class MultiKeyIndex {
     this.indexname = indexname;
     this.postingsRaf = 
       new RandomAccessFile(this.indexDirectoryName + "/postings", "r");
+  }
+
+  public MultiKeyIndex(String workingDirectoryName, String indexname, Charset charset)
+    throws FileNotFoundException
+  {
+    this.indexDirectoryName = workingDirectoryName +  "/indices/" + indexname ;
+    this.indexname = indexname;
+    this.postingsRaf = 
+      new RandomAccessFile(this.indexDirectoryName + "/postings", "r");
+    this.charset = charset;
   }
 
   public RandomAccessFile openRandomAccessFile(String filename) 
@@ -121,7 +145,10 @@ public class MultiKeyIndex {
     throws IOException, FileNotFoundException
   {
     List<String> resultList = new ArrayList<String>();
-    String termLengthString = Integer.toString(term.length());
+    // byte length of utf-8 string
+    int bytelength = term.getBytes(this.charset).length;
+
+    String termLengthString = Integer.toString(bytelength);
     String columnString = Integer.toString(column);
 
     RandomAccessFile termDictionaryRaf = this.openTermDictionaryFile(columnString, termLengthString);
@@ -134,9 +161,9 @@ public class MultiKeyIndex {
     
     DictionaryEntry entry = 
       dictionaryBinarySearch(termDictionaryRaf, term, 
-					   term.length(), datalength, recordnum );
+					   bytelength, datalength, recordnum );
     if (entry != null) {
-      readPostings(extentsRaf, postingsRaf, resultList, entry);
+      readPostings(extentsRaf, postingsRaf, resultList, entry, charset);
     } else {
       resultList.add("\"" + term + "\" entry is " + entry);
     }
@@ -146,12 +173,10 @@ public class MultiKeyIndex {
     return resultList;
   }
 
-  public static String sha1(String input) throws NoSuchAlgorithmException {
+  public static String sha1(String input, Charset charset) throws NoSuchAlgorithmException {
     MessageDigest mDigest = MessageDigest.getInstance("SHA1");
-    byte[] result = mDigest.digest(input.getBytes());
+    byte[] result = mDigest.digest(input.getBytes(charset));
     StringBuilder sb = new StringBuilder();
-    
-    
     for (int i = 0; i < result.length; i++) {
       sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
     }
@@ -170,10 +195,10 @@ public class MultiKeyIndex {
     /** @return line separated into fields */
     String [] getFields() { return this.line.split("\\|"); }
     /** @return checksum digest of line (currently sha1) */
-    String getDigest()
+    String getDigest(Charset charset)
     {
       try {
-	return sha1(this.line);
+	return sha1(this.line, charset);
       } catch (NoSuchAlgorithmException nsae) {
 	throw new RuntimeException(nsae);
       }
@@ -188,10 +213,11 @@ public class MultiKeyIndex {
    * @throws IOException
    * @throws NoSuchAlgorithmException 
    */
-  public static List<Record> loadTable(String tablefilename) 
+  public static List<Record> loadTable(String tablefilename, Charset charset) 
     throws FileNotFoundException, IOException, NoSuchAlgorithmException {
     List<Record> newList = new ArrayList<Record>();
-    BufferedReader br = new BufferedReader(new FileReader(tablefilename));
+    BufferedReader br =
+      new BufferedReader(new InputStreamReader(new FileInputStream(tablefilename), charset));
     String line;
     while ((line = br.readLine()) != null) {
       newList.add(new Record(line));
@@ -268,17 +294,18 @@ public class MultiKeyIndex {
   }
 
   public static void readPostings(RandomAccessFile extentsRaf, RandomAccessFile postingsRaf, 
-			   List<String> newList, DictionaryEntry entry) 
+				  List<String> newList, DictionaryEntry entry, Charset charset) 
     throws IOException
   {
     extentsRaf.seek(entry.getAddress());
     for (int i = 0; i < entry.getNumberOfPostings(); i++) {
       long offset = extentsRaf.readLong();
       long length = extentsRaf.readLong();
-      byte[] buf = new byte[(int)length];
       postingsRaf.seek(offset);
-      postingsRaf.read(buf);
-      newList.add(new String(buf));
+      // read encoded UTF-8 string
+      byte[] byteData = new byte[(int)length];
+      postingsRaf.read(byteData);
+      newList.add(new String(byteData, charset));
     }
   }
 }

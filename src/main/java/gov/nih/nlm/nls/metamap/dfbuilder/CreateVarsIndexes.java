@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.charset.Charset;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -35,6 +37,8 @@ import gov.nih.nlm.nls.utils.StringUtils;
  * @version 1.0
  */
 public class CreateVarsIndexes {
+
+  Charset charset = Charset.forName("utf-8");
 
   /**
    * Creates a new <code>CreateVarsIndexes</code> instance.
@@ -94,7 +98,7 @@ public class CreateVarsIndexes {
     }
   }
 
-  static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName)
+  static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName, Charset charset)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
     String[] tableFields = tableConfig.get(indexName);
@@ -108,14 +112,14 @@ public class CreateVarsIndexes {
     }
     
     System.out.println("loading table for " + indexName + " from file: " + tableFilename + ".");
-    List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename);
+    List<Record> recordTable = MultiKeyIndex.loadTable(workingDir + "/tables/" + tableFilename, charset);
     MappedMultiKeyIndexDiskBasedGeneration instance = new MappedMultiKeyIndexDiskBasedGeneration();
     System.out.println("writing partitions for columns " +
 		       MappedMultiKeyIndexDiskBasedGeneration.renderColumns(columns) ); 
     Set<String> columnLengthKeys =
-      MappedMultiKeyIndexDiskBasedGeneration.writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns);
+      MappedMultiKeyIndexDiskBasedGeneration.writeTemporaryPartitionsTables(workingDir, indexName, recordTable, columns, charset);
     System.out.println("writing final index");
-    MappedMultiKeyIndexDiskBasedGeneration.writeFinalIndex(workingDir, indexName, columnLengthKeys);
+    MappedMultiKeyIndexDiskBasedGeneration.writeFinalIndex(workingDir, indexName, columnLengthKeys, charset);
   }
 
   /**
@@ -150,7 +154,7 @@ public class CreateVarsIndexes {
 	tableConfig = generateTableConfig(ivfDir);
       }
       Config.saveConfig(configFilename, tableConfig);
-      createIndex(ivfDir, tableConfig, "vars");
+      createIndex(ivfDir, tableConfig, "vars", Charset.forName("utf-8"));
     } else {
       System.out.println("usage: gov.nih.nlm.nls.metamap.dfbuilder.CreateVarsIndexes <vars-txt-fn> <ivfdir>");
     }
