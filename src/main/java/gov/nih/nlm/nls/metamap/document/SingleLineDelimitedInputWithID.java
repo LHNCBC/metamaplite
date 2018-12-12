@@ -7,9 +7,11 @@ import bioc.BioCPassage;
 
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.Reader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ import org.apache.logging.log4j.Logger;
 
 public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
   private static final Logger logger = LogManager.getLogger(SingleLineDelimitedInputWithID.class);
+
+  Charset charset = Charset.forName("utf-8");
 
   /**
    * Instantiate BioCDocument document instance reading single-line
@@ -83,7 +87,9 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {

@@ -7,8 +7,10 @@ import java.util.Map;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.Reader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
 import bioc.BioCDocument;
 import bioc.BioCPassage;
 
@@ -23,6 +25,8 @@ import bioc.BioCPassage;
  */
 public class MedlineDocument
   implements BioCDocumentLoader {
+
+  Charset charset = Charset.forName("utf-8");
 
   /**
    * Instantiate Medline Document as a BioC document.
@@ -66,7 +70,7 @@ public class MedlineDocument
     String documentId = "";
     StringBuilder titleText = new StringBuilder();
     StringBuilder abstractText = new StringBuilder();
-    BufferedReader br = new BufferedReader(new FileReader(filename));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), this.charset));
     String line;
     String key = "";
     while ((line = br.readLine()) != null) {
@@ -98,7 +102,7 @@ public class MedlineDocument
     String documentId = "";
     StringBuilder titleText = new StringBuilder();
     StringBuilder abstractText = new StringBuilder();
-    BufferedReader br = new BufferedReader(new FileReader(filename));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), this.charset));
     String line;
     String key = "";
     while ((line = br.readLine()) != null) {

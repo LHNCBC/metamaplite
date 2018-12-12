@@ -3,11 +3,12 @@ package gov.nih.nlm.nls.metamap.document;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.Reader;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -51,11 +52,25 @@ public class FreeText implements BioCDocumentLoader
     return sb.toString();
   }
 
-  public static String loadFile(String inputFilename)
+  public static String loadFile(String inputFilename, Charset charset)
     throws FileNotFoundException, IOException
   {
     File inputFile  = new File(inputFilename);
-    BufferedReader br = new BufferedReader(new FileReader(inputFile));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
+    long fileLen = inputFile.length();
+    char[] buf = new char[(int)fileLen];
+    br.read(buf,0, (int)fileLen);
+    br.close();
+    String text = new String(buf);
+    return text;
+  }
+
+    public static String loadFile(String inputFilename)
+    throws FileNotFoundException, IOException
+  {
+    Charset charset = Charset.forName("utf-8");
+    File inputFile  = new File(inputFilename);
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
     long fileLen = inputFile.length();
     char[] buf = new char[(int)fileLen];
     br.read(buf,0, (int)fileLen);

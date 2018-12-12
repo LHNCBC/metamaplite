@@ -3,12 +3,13 @@
 package gov.nih.nlm.nls.metamap.document;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -21,6 +22,8 @@ import gov.nih.nlm.nls.types.Document;
  */
 
 public class NCBICorpusDocument implements BioCDocumentLoader {
+
+  Charset charset = Charset.forName("utf-8");
 
   public static String removeCategoryTags(String text) {
     return text.replaceAll("<category=\"[A-Za-z]+\">", "").replaceAll("</category>", "");
@@ -113,7 +116,9 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
   public static List<PubMedDocument> loadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<PubMedDocument> documentList = read(br);
     br.close();
     return documentList;
@@ -156,7 +161,8 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {

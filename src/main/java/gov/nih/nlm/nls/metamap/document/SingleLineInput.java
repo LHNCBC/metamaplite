@@ -3,10 +3,12 @@
 package gov.nih.nlm.nls.metamap.document;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.Reader;
+import java.nio.charset.Charset;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -21,6 +23,8 @@ import bioc.BioCPassage;
  */
 
 public class SingleLineInput implements BioCDocumentLoader {
+
+  Charset charset = Charset.forName("utf-8");
 
   public static List<String> read(Reader inputReader)
     throws IOException {
@@ -41,7 +45,8 @@ public class SingleLineInput implements BioCDocumentLoader {
   public static List<String> loadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<String> lineList = new ArrayList<String>();
     String line;
     while ((line = br.readLine()) != null) {
@@ -105,7 +110,8 @@ public class SingleLineInput implements BioCDocumentLoader {
   public static List<BioCDocument> bioCLoadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<BioCDocument> docList = new ArrayList<BioCDocument>();
     int i = 0;
     String line;

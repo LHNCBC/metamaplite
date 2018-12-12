@@ -2,11 +2,13 @@
 package gov.nih.nlm.nls.metamap.document;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -96,7 +98,8 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
   public static List<PubMedDocument> loadSLDIFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<PubMedDocument> documentList = new ArrayList<PubMedDocument>();
     String line;
     while ((line = br.readLine()) != null) {
@@ -139,7 +142,8 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
   public static List<BioCDocument> bioCLoadSLDIFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
-    BufferedReader br = new BufferedReader(new FileReader(inputFilename));
+    Charset charset = Charset.forName("utf-8");
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {

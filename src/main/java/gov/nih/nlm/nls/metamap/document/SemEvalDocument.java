@@ -20,7 +20,10 @@ import java.io.IOException;
 import java.io.File;
 import java.io.Reader;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
+
 import java.util.regex.Pattern;
 
 import bioc.BioCDocument;
@@ -228,8 +231,9 @@ public class SemEvalDocument implements BioCDocumentLoader {
   public static String loadFile(String inputFilename)
     throws FileNotFoundException, IOException
   {
+    Charset charset = Charset.forName("utf-8");
     File inputFile  = new File(inputFilename);
-    BufferedReader br = new BufferedReader(new FileReader(inputFile));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
     long fileLen = inputFile.length();
     char[] buf = new char[(int)fileLen];
     br.read(buf,0, (int)fileLen);

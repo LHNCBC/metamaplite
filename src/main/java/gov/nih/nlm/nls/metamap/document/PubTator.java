@@ -7,8 +7,10 @@ import java.util.Map;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import bioc.BioCDocument;
 import bioc.BioCPassage;
 
@@ -23,6 +25,8 @@ import bioc.BioCPassage;
  */
 public class PubTator
   implements BioCDocumentLoader {
+
+  Charset charset = Charset.forName("utf-8");
 
   public PubTator() {
 
@@ -65,7 +69,7 @@ public class PubTator
     String documentId = "";
     String titleText = "";
     String abstractText = "";
-    BufferedReader br = new BufferedReader(new FileReader(filename));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), this.charset));
     String line;
     while ((line = br.readLine()) != null) {
       String[] split = line.split("\\|");
@@ -89,7 +93,7 @@ public class PubTator
     String documentId = "";
     String titleText = "";
     String abstractText = "";
-    BufferedReader br = new BufferedReader(new FileReader(filename));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename), this.charset));
     String line;
     while ((line = br.readLine()) != null) {
       String[] split = line.split("\\|");
