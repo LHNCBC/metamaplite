@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.util.Span;
 
 import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.types.Annotation;
@@ -112,11 +113,11 @@ public class OpenNLPSentenceExtractor implements SentenceExtractor
     logger.debug("createSentenceList");
     int sentenceCount = 0;
     int offset = 0;
-    String[] sentenceArray = sentenceDetector.sentDetect(text);
+    Span[] sentencePosArray = sentenceDetector.sentPosDetect(text);
     List<Sentence> sentenceList = new ArrayList<Sentence>();
-    for (String sentenceText: sentenceArray) {
-      sentenceList.add(new SentenceImpl("", sentenceText, offset));
-      offset = offset + sentenceText.length();
+    for (Span sentenceSpan: sentencePosArray) {
+      String sentenceText = sentenceSpan.getCoveredText(text).toString();
+      sentenceList.add(new SentenceImpl("", sentenceText, offset + sentenceSpan.getStart()));
       sentenceCount++;
     }
     return sentenceList;
@@ -125,11 +126,11 @@ public class OpenNLPSentenceExtractor implements SentenceExtractor
   public List<Sentence> createSentenceList(String text, int offset) {
     logger.debug("createSentenceList");
     int sentenceCount = 0;
-    String[] sentenceArray = sentenceDetector.sentDetect(text);
+    Span[] sentencePosArray = sentenceDetector.sentPosDetect(text);
     List<Sentence> sentenceList = new ArrayList<Sentence>();
-    for (String sentenceText: sentenceArray) {
-      sentenceList.add(new SentenceImpl("", sentenceText, offset));
-      offset = offset + sentenceText.length();
+    for (Span sentenceSpan: sentencePosArray) {
+      String sentenceText = sentenceSpan.getCoveredText(text).toString();
+      sentenceList.add(new SentenceImpl("", sentenceText, offset + sentenceSpan.getStart()));
       sentenceCount++;
     }
     return sentenceList;
@@ -150,12 +151,15 @@ public class OpenNLPSentenceExtractor implements SentenceExtractor
     logger.debug("createSentenceList");
     int sentenceCount = 0;
     int offset = passage.getOffset();
-    String[] sentenceArray = sentenceDetector.sentDetect(passage.getText());
-    for (String sentenceText: sentenceArray) {
+    String text = passage.getText();
+    Span[] sentencePosArray = sentenceDetector.sentPosDetect(passage.getText());
+    for (Span sentenceSpan: sentencePosArray) {
       // If sentence contains a semi-colon then split the sentence
       // into two utterances and add each to the passage, preserving
       // whitespace.
+      String sentenceText = sentenceSpan.getCoveredText(text).toString();
       int semicolonIndex = sentenceText.indexOf(";");
+      offset = sentenceSpan.getStart();
       if (semicolonIndex > 3) {
 	String[] utteranceArray = sentenceText.split(";");
 	for (String utteranceText: utteranceArray) {
