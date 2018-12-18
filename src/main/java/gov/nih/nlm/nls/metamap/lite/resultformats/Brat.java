@@ -143,7 +143,7 @@ public class Brat implements ResultFormatter {
 
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
-    writer.println(annotationListToString(this.textLabel, entityList));
+    writer.print(annotationListToString(this.textLabel, entityList));
   }
 
   public String entityListFormatToString(List<Entity> entityList) {
