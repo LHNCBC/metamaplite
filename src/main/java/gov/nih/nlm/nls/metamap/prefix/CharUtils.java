@@ -23,6 +23,7 @@ public class CharUtils {
       case '_': case '+': case '-': case '=': case '|':
       case '\\': case '<': case '>': case '?': case '/':
       case ',': case '.': case '`': case '\'': case ';': case ':':
+      case '[': case ']': case '{': case '}': case '"':
 	return true;
       default:
 	return false;
