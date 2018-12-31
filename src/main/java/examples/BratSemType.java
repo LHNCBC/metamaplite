@@ -39,6 +39,14 @@ import java.util.Properties;
  * metamaplite.result.formatter.bratsemtype=examples.BratSemType
  * </pre>
  *
+ * or set it when invoking metamaplite:
+ * 
+ * <pre>
+ * ./metamaplite.sh --set_property=metamaplite.result.formatter.bratsemtype=examples.BratSemType \
+ *                  --outputformat=bratsemtype \
+ *                  --output_extension=.ann ...
+ *                 
+ * </pre>
  * or add it to the properties object passed to MetaMapLite constructor:
  *
  * <pre>
