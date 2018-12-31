@@ -39,9 +39,9 @@ public class Tokenize {
     for (int aptr = 0; aptr < term.length(); aptr++) 
       {
 	char ch = term.charAt(aptr);
-	if ( Character.isWhitespace(ch) || CharUtils.isPunct(ch) ) 
+	if ( Character.isWhitespace(ch) || Character.isSpaceChar(ch) || CharUtils.isPunct(ch) ) 
 	  {
-	    if (Character.isWhitespace(ch) || CharUtils.isPunct(ch))
+	    if (Character.isWhitespace(ch) || Character.isSpaceChar(ch) || CharUtils.isPunct(ch))
 	      {
 		if (currentWord.length() > 0)
 		  {
@@ -67,7 +67,8 @@ public class Tokenize {
 		  }
 	      }
 
-	    if ((tokenizeStyle == STRIP_WHITE_SPACE) && Character.isWhitespace(ch))
+	    if ((tokenizeStyle == STRIP_WHITE_SPACE) &&
+		(Character.isWhitespace(ch) || Character.isSpaceChar(ch)))
 	      {
 	      }
 	    else
@@ -116,9 +117,9 @@ public class Tokenize {
     for (int aptr = 0; aptr < term.length(); aptr++) 
       {
 	char ch = term.charAt(aptr);
-	if ( Character.isWhitespace(ch) || CharUtils.isPunct(ch) ) 
+	if ( Character.isWhitespace(ch) || Character.isSpaceChar(ch) || CharUtils.isPunct(ch) ) 
 	  {
-	    if (Character.isWhitespace(ch) || CharUtils.isPunct(ch))
+	    if (Character.isWhitespace(ch) || Character.isSpaceChar(ch) || CharUtils.isPunct(ch))
 	      {
 		if (currentWord.length() > 0)
 		  {
@@ -146,7 +147,8 @@ public class Tokenize {
 		  }
 	      }
 
-	    if ((tokenizeStyle == STRIP_WHITE_SPACE) && Character.isWhitespace(ch))
+	    if ((tokenizeStyle == STRIP_WHITE_SPACE) &&
+		(Character.isWhitespace(ch) || Character.isSpaceChar(ch)))
 	      {
 		position = aptr + 1;
 	      }
@@ -244,7 +246,8 @@ public class Tokenize {
     String text = token.getText();
     int i = 0;
     while (i < text.length()) {
-      if (! CharUtils.isWhiteSpace(text.charAt(i))) {
+      if (! (CharUtils.isWhiteSpace(text.charAt(i)) ||
+	     Character.isSpaceChar(text.charAt(i)))) {
 	return false;
       }
       i++;

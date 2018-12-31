@@ -23,6 +23,7 @@ public class CharUtils {
       case '_': case '+': case '-': case '=': case '|':
       case '\\': case '<': case '>': case '?': case '/':
       case ',': case '.': case '`': case '\'': case ';': case ':':
+      case '[': case ']': case '{': case '}': case '"':
 	return true;
       default:
 	return false;
@@ -105,8 +106,28 @@ public class CharUtils {
 
   public static boolean isWhiteSpace(char ch) {
     switch (ch) {
-    case ' ': case '\r': case '\t': case '\n':  /*others?*/
-      return true;
+    case ' ': case '\r': case '\t': case '\n':
+      /* utf-8 other spaces */
+    case '\u00A0': // U+00A0  NO-BREAK SPACE
+    case '\u1680': // U+1680  OGHAM SPACE MARK
+    case '\u180E': // U+180E  MONGOLIAN VOWEL SEPARATOR
+    case '\u2000': // U+2000  EN QUAD
+    case '\u2001': // U+2001  EN QUAD
+    case '\u2002': // U+2002  EN SPACE (nut)
+    case '\u2003': // U+2003  EM SPACE (mutton)
+    case '\u2004': // U+2004  THREE-PER-EM SPACE (thick space)
+    case '\u2005': // U+2005  FOUR-PER-EM SPACE (mid space)
+    case '\u2006': // U+2006  SIX-PER-EM SPACE
+    case '\u2007': // U+2007  FIGURE SPACE
+    case '\u2008': // U+2008  PUNCTUATION SPACE
+    case '\u2009': // U+2009  THIN SPACE
+    case '\u200A': // U+200A  HAIR SPACE
+    case '\u200B': // U+200B  ZERO WIDTH SPACE
+    case '\u202F': // U+202F  NARROW NO-BREAK SPACE
+    case '\u205F': // U+205F  MEDIUM MATHEMATICAL SPACE
+    case '\u3000': // U+3000  IDEOGRAPHIC SPACE
+    case '\uFEFF': // U+FEFF  ZERO WIDTH NO-BREAK SPACE
+      return true;	                                                                                                                                          
     default:
       return false;
     }
