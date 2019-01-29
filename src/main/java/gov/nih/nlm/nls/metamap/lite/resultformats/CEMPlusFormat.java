@@ -49,31 +49,31 @@ public class CEMPlusFormat implements ResultFormatter {
     scoreFormat.setMaximumFractionDigits(2);
   }
 
+  void entityFormatToString(StringBuilder sb, Entity entity) {
+    sb.append(entity.getDocid()).append("\t")
+      .append(entity.getFieldId() != null ? entity.getFieldId() : "F" ).append("\t")
+      .append(entity.getStart()).append("\t")
+      .append(entity.getStart()).append(entity.getLength()).append("\t")
+      .append(entity.getMatchedText()).append("\t")
+      .append("MetaMapLite\t")
+      .append(scoreFormat.format(entity.getScore())).append("\t")
+      .append(entity.getEvList().stream().map(i -> i.getConceptInfo().getCUI()).collect(Collectors.joining(",")));
+  }
+
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
     for (Entity entity: entityList) {
-      writer.println(entity.getDocid() + "\t" +
-		     entity.getFieldId() + "\t" +
-		     entity.getStart() + "\t" +
-		     entity.getStart() + entity.getLength() + "\t" +
-		     entity.getMatchedText() + "\t" +
-		     "MetaMapLite\t" +
-		     scoreFormat.format(entity.getScore()) + "\t" +
-		     entity.getEvList().stream().map(i -> i.getConceptInfo().getCUI()).collect(Collectors.joining(",")));
+      StringBuilder sb = new StringBuilder();
+      entityFormatToString(sb, entity);
+      writer.println(sb.toString());
     }
   }
   
   public String entityListFormatToString(List<Entity> entityList) {
     StringBuilder sb = new StringBuilder();
     for (Entity entity: entityList) {
-      sb.append(entity.getDocid()).append("\t")
-	.append(entity.getFieldId()).append("\t")
-	.append(entity.getStart()).append("\t")
-	.append(entity.getStart()).append(entity.getLength()).append("\t")
-	.append(entity.getMatchedText()).append("\t")
-	.append("MetaMapLite\t")
-	.append(scoreFormat.format(entity.getScore())).append("\t")
-	.append(entity.getEvList().stream().map(i -> i.getConceptInfo().getCUI()).collect(Collectors.joining(",")));
+      entityFormatToString(sb, entity);
+      sb.append("\n");
     }
     return sb.toString();
   }
