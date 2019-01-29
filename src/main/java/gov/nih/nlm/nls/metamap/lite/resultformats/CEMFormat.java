@@ -42,25 +42,28 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 
 public class CEMFormat implements ResultFormatter {
 
+  void entityFormatToString(StringBuilder sb, Entity entity) {
+    sb.append(entity.getDocid()).append("\t")
+      .append(entity.getFieldId() != null ? entity.getFieldId() : "F" ).append("\t")
+      .append(entity.getStart()).append("\t")
+      .append(entity.getStart()).append(entity.getLength()).append("\t")
+      .append(entity.getMatchedText())
+      .append("\n");
+  }
+
   public void entityListFormatter(PrintWriter writer,
 				  List<Entity> entityList) {
     for (Entity entity: entityList) {
-      writer.println(entity.getDocid() + "\t" +
-		     entity.getFieldId() + "\t" +
-		     entity.getStart() + "\t" +
-		     entity.getStart() + entity.getLength() + "\t" +
-		     entity.getMatchedText());
+      StringBuilder sb = new StringBuilder();
+      entityFormatToString(sb, entity);
+      writer.println(sb.toString());
     }
   }
   
   public String entityListFormatToString(List<Entity> entityList) {
     StringBuilder sb = new StringBuilder();
     for (Entity entity: entityList) {
-      sb.append(entity.getDocid()).append("\t")
-	.append(entity.getFieldId()).append("\t")
-	.append(entity.getStart()).append("\t")
-	.append(entity.getStart()).append(entity.getLength()).append("\t")
-	.append(entity.getMatchedText());
+      entityFormatToString(sb, entity);
     }
     return sb.toString();
   }
