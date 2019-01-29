@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,11 +77,15 @@ public class DirectLookupTermFile {
     if (args.length > 0) {
       String filename = args[0];
       DirectLookup instance = new DirectLookup();
-      BufferedReader br = new BufferedReader(new FileReader(filename));
+      BufferedReader br =
+	new BufferedReader(new InputStreamReader(new FileInputStream(filename),
+						 Charset.forName("utf-8")));
       String term;
       while ((term = br.readLine()) != null) {
 	System.out.println("term:" + term);
-	for (String[] hit: instance.lookup(Normalization.normalizeLiteString(term))) {
+	String normTerm = Normalization.normalizeUtf8AsciiString(term);
+	System.out.println("normalizated term:" + normTerm);
+	for (String[] hit: instance.lookup(normTerm)) {
 	  System.out.println(term + "|" + Arrays.toString(hit));
 	}
       }

@@ -121,11 +121,13 @@ public class TermConceptInfoCache {
     this.cuiSourceSetIndex = cuiSourceSetIndex;
   }
 
+  // why do test for this?
   public static boolean isLikelyMatch(String term, String normTerm, String docStr) {
     if (term.length() < 5) {
       return term.toLowerCase().equals(docStr.toLowerCase());
     } else {
-      return normTerm.equals(NormalizedStringCache.normalizeString(docStr));
+      boolean result = normTerm.equals(NormalizedStringCache.normalizeString(docStr));
+      return result;
     }
   }
 
