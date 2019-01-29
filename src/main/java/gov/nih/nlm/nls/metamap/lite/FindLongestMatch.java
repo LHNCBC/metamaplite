@@ -174,7 +174,7 @@ public class FindLongestMatch {
     return termInfoList;
   }
 
-  public static class SampleTermFilter {
+  public static class SampleTermFilter implements TermFilter {
     Set<String> allowedPartOfSpeechSet;
 
     public SampleTermFilter(Set<String> allowedPartOfSpeechSet) {

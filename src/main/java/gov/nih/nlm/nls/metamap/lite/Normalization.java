@@ -2,13 +2,71 @@
 //
 package gov.nih.nlm.nls.metamap.lite;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import gov.nih.nlm.nls.nlp.nlsstrings.NLSStrings;
+import gov.nih.nlm.nls.metamap.prefix.utf8.GreekCharacters;
+import gov.nih.nlm.nls.metamap.prefix.utf8.Ligatures;
 
 /**
  * Morphological string normalization functions.
  */
 
 public class Normalization {
+
+  /**
+   * Convert utf-8 greek characters to expanded representation.
+   *
+   * @param utfString string with utf-8 charcters
+   * @return sring with utf-8 characters expanded.
+   */
+  public static String greekToAscii(String utfString) 
+  {
+    StringBuilder sb = new StringBuilder();
+    
+    CharacterIterator iter = new StringCharacterIterator(utfString);
+    for (char c = iter.first(); c != CharacterIterator.DONE; c = iter.next()) {
+      Character character = new Character(c);
+      if (GreekCharacters.isGreek(character)) {
+	sb.append(GreekCharacters.getExpansion(character));
+      } else {
+	sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+  
+  /**
+   * Similar to normalize_meta_string except hyphens are not removed
+   * normalizeAstString(String) performs "normalization" on String to
+   * produce the resulting normalized string.  Also, syntactic
+   * uninversion is not done.  The purpose of normalization is to
+   * detect strings which are effectively the same.  The normalization
+   * process (also called lexical filtering) consists of the following
+   * steps:
+   *
+   * <ul>
+   *    <li>convert utf8 to ascii
+   *    <li> removal of (left []) parentheticals;
+   *    <li>conversion to lowercase;
+   *    <li>stripping of possessives.
+   * </ul>
+   * <p>
+   * @param astString string meta string to normalize.
+   * @return normalized AST string.
+   */
+  public static String normalizeUtf8AsciiString(String astString)
+  {
+    String asciiString = greekToAscii(astString);
+    String pstring = NLSStrings.removeLeftParentheticals(asciiString);
+    String lcUnPstring = pstring.toLowerCase();
+    String normString = NLSStrings.stripPossessives(lcUnPstring);
+    // System.out.println("normalizeUtf8AsciiString(\"" + astString + "\") -> \"" + normString +"\"");
+    return normString;
+  } 
+
   /**
    * Similar to normalize_meta_string except hyphens are not removed
    * normalizeAstString(String) performs "normalization" on String to
@@ -75,7 +133,7 @@ public class Normalization {
     return normString;
   }
 
- /**
+  /**
    * Normalize metathesaurus string.
    * <p>
    * normalizeMetaString(String) performs "normalization" on String to produce
@@ -144,5 +202,4 @@ public class Normalization {
     String normString = NLSStrings.stripPossessives(lcUnPstring);
     return normString;
   } 
-  
 }

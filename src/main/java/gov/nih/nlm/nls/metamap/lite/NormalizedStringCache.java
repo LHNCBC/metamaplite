@@ -45,14 +45,15 @@ public class NormalizedStringCache {
 	}
 	return result;
       } else {
-	String normalizedString = Normalization.normalizeLiteString(originalString);
+	// String normalizedString = Normalization.normalizeLiteString(originalString);
+	String normalizedString = Normalization.normalizeUtf8AsciiString(originalString);
 	synchronized (normalizeStringCache) {
 	  normalizeStringCache.put(originalString, normalizedString);
 	}
 	return normalizedString;
       }
     } else {
-      return Normalization.normalizeLiteString(originalString);
+      return Normalization.normalizeUtf8AsciiString(originalString);
     }
   }
 }

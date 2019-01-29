@@ -94,6 +94,7 @@ public class EntityLookup4 implements EntityLookup {
    * Treebank part of speech tags separated by commas. */
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {
+    this.allowedPartOfSpeechSet.add("CD"); // cardinal number (need this for chemicals)
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
     this.allowedPartOfSpeechSet.add("NN");
     this.allowedPartOfSpeechSet.add("NNS");
@@ -102,6 +103,7 @@ public class EntityLookup4 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("JJ");
     this.allowedPartOfSpeechSet.add("JJR");
     this.allowedPartOfSpeechSet.add("JJS");
+    this.allowedPartOfSpeechSet.add("LS"); // list item marker (need this for chemicals)
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
 
@@ -172,7 +174,7 @@ public class EntityLookup4 implements EntityLookup {
 							 this.cuiSemanticTypeSetIndex,
 							 this.cuiSourceSetIndex,
 							 this.excludedTerms);
-    this.variantLookup = new VariantLookupIVF(this.mmIndexes);
+    // this.variantLookup = new VariantLookupIVF(this.mmIndexes);
 
     // user defined acronyms
     if (properties.containsKey("metamaplite.uda.filename")) {
@@ -300,7 +302,7 @@ public class EntityLookup4 implements EntityLookup {
 	  // String query = term;
 	  normTerm = NormalizedStringCache.normalizeString(originalTerm);
 	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
-	  if (CharUtils.isAlpha(originalTerm.charAt(0))) {
+	  if (CharUtils.isAlphaNumeric(originalTerm.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
 
