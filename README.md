@@ -390,8 +390,15 @@ Or modify the configuration file config/metamap.properties:
 ## Adding custom input document formats
 
 New document loader class must conform to BioCDocumentLoader
-interface.  One can add a document loader class in MetaMapLite's
-classpath to MetaLite's list of document loaders by adding it to the
+interface.
+
+Example implementations of BioCDocumentLoader are available in
+public\_mm_lite/src/main/java/gov/nih/nlm/nls/metamap/document and on
+Github:
+https://github.com/lhncbc/metamaplite/tree/master/src/main/java/gov/nih/nlm/nls/metamap/document.
+
+One can add a document loader class in MetaMapLite's
+classpath to MetaMapLite's list of document loaders by adding it to the
 properties using System properties or modifying MetaMapLite's
 configuration file:
 
@@ -406,6 +413,20 @@ For example creating a loader with the name "qadocument":
 Or add it to config/metamaplite.properties:
 
     bioc.document.loader.qadocument: gov.nih.nlm.nls.metamap.document.QAKeyValueDocument
+
+
+An example of using the new custom document format through a properties:
+
+    -Dmetamaplite.document.inputtype=<name>
+
+For example:
+
+    -Dmetamaplite.document.inputtype=qadocument
+
+On the command line use the ‘inputformat=<formatname>’:
+
+    --inputformat=qadocument
+
 
 ## Adding custom result output formats
 

@@ -1,8 +1,8 @@
-(defproject gov.nih.nlm.nls/metamaplite "3.6.1p2"
+(defproject gov.nih.nlm.nls/metamaplite "3.6.2rc3"
   :description "Clojure code for exploring MetaMapLite in lieu of a debugger."
   :url "http://usa.gov/"
   :min-lein-version "2.0.0"
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/data.xml "0.0.8"]
                  [org.clojure/data.zip "0.1.1"]
                  [org.clojure/data.json "0.2.6"]
@@ -37,6 +37,7 @@
                  [org.functionaljava/functionaljava-java8 "4.7"]
                  [org.functionaljava/functionaljava-quickcheck "4.7"]
                  [org.functionaljava/functionaljava-java-core "4.7"]]
+  :repositories [["ii" "https://metamap.nlm.nih.gov/maven2/"]]
   :profiles {:dev
              {:dependencies
               [[org.clojure/java.classpath "0.2.2"]]}
