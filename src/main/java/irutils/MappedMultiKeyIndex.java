@@ -72,8 +72,6 @@ public class MappedMultiKeyIndex {
   String indexDirectoryName;
   /* MappedByteBuffer of posting file. */
   MappedByteBuffer postingsRaf = null;
-  /** Char Buffer refering to posting MappedByteBuffer */
-  CharBuffer postingsBuf = null;
   /** random access file name cache as Map, filename -&gt; random access file. */
   Map<String,MappedByteBuffer> byteBufCache = new HashMap<String,MappedByteBuffer>(); 
   /** map of term dictionary byte buffers for each partition, partitionName -&gt; StatsMap */
@@ -99,7 +97,6 @@ public class MappedMultiKeyIndex {
     int sz = (int)postingsFileChannel.size();
     this.postingsRaf = 
       postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
-    this.postingsBuf = this.charset.decode(this.postingsRaf);
     postingsInputStream.close();
   }
 
@@ -121,7 +118,6 @@ public class MappedMultiKeyIndex {
     int sz = (int)postingsFileChannel.size();
     this.postingsRaf = 
       postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
-    this.postingsBuf = this.charset.decode(this.postingsRaf);
     postingsInputStream.close();
   }
 
@@ -142,7 +138,6 @@ public class MappedMultiKeyIndex {
     int sz = (int)postingsFileChannel.size();
     this.postingsRaf = 
       postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
-    this.postingsBuf = this.charset.decode(this.postingsRaf);
     postingsInputStream.close();
   }
 
@@ -165,7 +160,6 @@ public class MappedMultiKeyIndex {
     int sz = (int)postingsFileChannel.size();
     this.postingsRaf = 
       postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
-    this.postingsBuf = this.charset.decode(this.postingsRaf);
     postingsInputStream.close();
   }
 
