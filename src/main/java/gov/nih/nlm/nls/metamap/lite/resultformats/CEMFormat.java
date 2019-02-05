@@ -46,7 +46,7 @@ public class CEMFormat implements ResultFormatter {
     sb.append(entity.getDocid()).append("\t")
       .append(entity.getFieldId() != null ? entity.getFieldId() : "F" ).append("\t")
       .append(entity.getStart()).append("\t")
-      .append(entity.getStart()).append(entity.getLength()).append("\t")
+      .append(entity.getStart() + entity.getLength()).append("\t")
       .append(entity.getMatchedText())
       .append("\n");
   }
