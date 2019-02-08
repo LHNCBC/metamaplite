@@ -106,13 +106,14 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
    * @return list string of part of speech corresponding to oridinal position of tokens.
    */
   public List<String> listPartOfSpeech(List<? extends Token> tokenList) {
-    String[] textArray = new String[tokenList.size()];
-    int i = 0;
+    List<String> textList = new ArrayList<String>();
     for (Token token: tokenList) {
-      textArray[i] = token.getText();
-      i++;
+      // remove whitespace tokens before calling OpenNLP POS tagger
+      if (! ((ERToken)token).getTokenClass().equals("ws")) {
+	textList.add(token.getText());
+      }
     }
-    String tags[] = this.posTagger.tag(textArray);
+    String tags[] = this.posTagger.tag(textList.toArray(new String[0]));
     return Arrays.asList(tags);
   }
 
@@ -120,18 +121,23 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
    * Add part of speech to tokens in tokenlist.
    * @param tokenList input token list
    */
-    public void addPartOfSpeech(List<ERToken> tokenList) {
-    String[] textArray = new String[tokenList.size()];
+  public void addPartOfSpeech(List<ERToken> tokenList) {
+    List<String> textList = new ArrayList<String>();
+    for (ERToken token: tokenList) {
+      // remove whitespace tokens before calling OpenNLP POS tagger
+      if (! token.getTokenClass().equals("ws")) {
+	textList.add(token.getText());
+      }
+    }
+    String tags[] = this.posTagger.tag(textList.toArray(new String[0]));
     int i = 0;
     for (ERToken token: tokenList) {
-      textArray[i] = token.getText();
-      i++;
-    }
-    String tags[] = this.posTagger.tag(textArray);
-    i = 0;
-    for (ERToken token: tokenList) {
-      token.setPartOfSpeech(tags[i]);
-      i++;
+      if (! token.getTokenClass().equals("ws")) {
+	token.setPartOfSpeech(tags[i]);
+        i++;
+      } else {
+        token.setPartOfSpeech("WS");
+      }
     }
   }
   
@@ -157,25 +163,28 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
    */
   public void addPartOfSpeech(BioCSentence sentence) {
     List<BioCAnnotation> tokenAnnotations = keepTokens(sentence.getAnnotations());
-    String[] textArray = new String[tokenAnnotations.size()];
+    List<String> textList = new ArrayList<String>();
     int i = 0;
     for (BioCAnnotation bioCToken: tokenAnnotations) {
-      textArray[i] = bioCToken.getText();
-      i++;
+      // remove whitespace tokens before calling OpenNLP POS tagger
+      if (bioCToken.getText().trim().length() > 0) {
+	textList.add(bioCToken.getText());
+      }
     }
-    String tags[] = this.posTagger.tag(textArray);
+    String tags[] = this.posTagger.tag(textList.toArray(new String[0]));
     i = 0;
-    for (String tag: tags) {
-      BioCAnnotation bioCPosTag = new BioCAnnotation();
-      bioCPosTag.setID("postag" + Integer.toString(i));
-      bioCPosTag.setText(tag);
-      bioCPosTag.setLocations(tokenAnnotations.get(i).getLocations());
-      bioCPosTag.putInfon("type", "postag");
-      sentence.addAnnotation(bioCPosTag);
-      i++;
+    for (BioCAnnotation bioCToken: tokenAnnotations) {
+      if (bioCToken.getText().trim().length() > 0) {
+	BioCAnnotation bioCPosTag = new BioCAnnotation();
+	bioCPosTag.setID("postag" + Integer.toString(i));
+	bioCPosTag.setText(tags[i]);
+	bioCPosTag.setLocations(bioCToken.getLocations());
+	bioCPosTag.putInfon("type", "postag");
+	sentence.addAnnotation(bioCPosTag);
+	i++;
+      }
     }
   }
-
 
   public List<ERToken> addPartOfSpeech(Sentence sentence) {
     List<ERToken> tokenList = Scanner.analyzeText(sentence);
