@@ -8,12 +8,12 @@ metamaplite.cuisemantictypeindex: @@basedir@@/data/lucenedb/strict/cui_st
 metamaplite.varsindex: @@basedir@@/data/lucenedb/strict/vars
 
 # Inverted Files
-metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/strict/indices/cuiconcept
-metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/strict/indices/first_words_of_one_WIDE
-metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/strict/indices/cuisourceinfo
-metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/strict/indices/cuist
-metamaplite.ivf.varsindex: @@basedir@@/data/ivf/strict/indices/vars
-metamaplite.ivf.meshtcrelaxedindex: @@basedir@@/data/ivf/strict/indices/meshtcrelaxed
+metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/cuiconcept
+metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/first_words_of_one_WIDE
+metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/cuisourceinfo
+metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/cuist
+metamaplite.ivf.varsindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/vars
+metamaplite.ivf.meshtcrelaxedindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/meshtcrelaxed
 
 # default semantic.type.list: if not defined is empty (all semantic types) 
 #   semantic type abbreviations separated by commas.
@@ -71,3 +71,6 @@ metamaplite.negation.detector: gov.nih.nlm.nls.metamap.lite.NegEx
 metamaplite.result.formatter.BC=gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate
 metamaplite.result.formatter.CEM=gov.nih.nlm.nls.metamap.lite.resultformats.CEMFormat
 metamaplite.result.formatter.CEMPlus=gov.nih.nlm.nls.metamap.lite.resultformats.CEMPlusFormat
+
+# full result formatter for debugging
+metamaplite.result.formatter.full=gov.nih.nlm.nls.metamap.lite.resultformats.Full
