@@ -263,10 +263,10 @@ public class Entity implements Annotation, Comparable<Entity>
     StringBuilder sb = new StringBuilder();
     
     sb.append(this.docid).append("|").append(this.id).append("|");
-    sb.append(this.matchedText).append("|");
+    sb.append(this.matchedText).append("|").append(this.fieldId);
     sb.append("|").append(this.start).append(":").append(this.length).append("|");
     for (Ev ev: this.evSet) {
-      sb.append(ev).append("|");
+      sb.append(ev.toString().replace("+","~").replace("|","+")).append("|");
     }
     sb.append(this.negationStatus ? "negated" : "affirmed");
     return sb.toString();
