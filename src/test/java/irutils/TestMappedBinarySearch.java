@@ -42,6 +42,7 @@ import org.junit.Before;
 // @Runwith(JUnit4.class)
 public class TestMappedBinarySearch {
 
+  String testdir = "/tmp/binsearchtest";
   Charset charset = Charset.forName("utf-8");
 
   String[] termList = new String[] { "firewood", "lifespan", "obstructive",
@@ -122,13 +123,13 @@ public class TestMappedBinarySearch {
     addEntry(entryListMap, "toroidal", 1, 30);
    try {
      for (Map.Entry<Integer,List<Entry>> slotEntry: entryListMap.entrySet()) {
-	RandomAccessFile ras = new RandomAccessFile("/tmp/binsearchtest" + slotEntry.getKey(), "rw");
+	RandomAccessFile ras = new RandomAccessFile(testdir + slotEntry.getKey(), "rw");
 	for (Entry entry: slotEntry.getValue()) {
 	  writeEntry(ras, entry.bytes, entry.count, entry.address);
 	}
 	ras.close();
 	PrintWriter statsfp =
-	  new PrintWriter(new FileWriter("/tmp/binsearchtest" + slotEntry.getKey() + ".stats"));
+	  new PrintWriter(new FileWriter(testdir + slotEntry.getKey() + ".stats"));
 	statsfp.println(slotEntry.getValue().size());
 	statsfp.close();
       }
@@ -160,7 +161,7 @@ public class TestMappedBinarySearch {
     if (indexMap.containsKey(slotKey)) {
       return indexMap.get(slotKey);
     } else {
-      RandomAccessFile raf = new RandomAccessFile("/tmp/binsearchtest" + slotKey, "r");
+      RandomAccessFile raf = new RandomAccessFile(testdir + slotKey, "r");
       indexMap.put(slotKey, raf);
       return raf;
     }
@@ -214,11 +215,11 @@ public class TestMappedBinarySearch {
       return indexMap.get(slotKey);
     } else {
       BufferedReader bw = 
-	new BufferedReader(new FileReader("/tmp/binsearchtest" + slotKey + ".stats"));
+	new BufferedReader(new FileReader(testdir + slotKey + ".stats"));
       String line = bw.readLine();
       bw.close();
       int arraylen = Integer.parseInt(line);
-      FileChannel fileChannel = (new FileInputStream("/tmp/binsearchtest" + slotKey)).getChannel();
+      FileChannel fileChannel = (new FileInputStream(testdir + slotKey)).getChannel();
       ByteBuffer byteBuffer =
 	fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int)fileChannel.size());
       fileChannel.close();
