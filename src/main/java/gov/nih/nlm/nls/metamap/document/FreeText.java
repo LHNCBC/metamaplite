@@ -87,7 +87,8 @@ public class FreeText implements BioCDocumentLoader
     passage.setOffset(0);
     passage.setText(docText);
     passage.putInfon("docid", "00000000.tx");
-    passage.putInfon("freetext", "freetext");
+    passage.putInfon("inputformat", "freetext");
+    passage.putInfon("section", "text");
     document.addPassage(passage);
     document.setID("00000000.tx");
     return document;

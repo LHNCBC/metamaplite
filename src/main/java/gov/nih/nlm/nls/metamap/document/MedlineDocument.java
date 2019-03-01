@@ -15,8 +15,8 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 
 /**
- * Describe class MedlineDocument here.
- *
+ * Convert a Medline Document into a BioC document preserving
+ * positional information.
  *
  * Created: Thu Aug 31 14:26:24 2017
  *

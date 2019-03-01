@@ -76,12 +76,12 @@ public class NCBICorpusDocument implements BioCDocumentLoader {
     title.setText(removeCategoryTags(docFields[1]));
     title.setOffset(0);
     title.putInfon("docid",docFields[0]);
-    title.putInfon("title","title");
+    title.putInfon("section","title");
     doc.addPassage(title);
     BioCPassage abstractPassage = new BioCPassage();
     abstractPassage.setText(removeCategoryTags(docFields[2]));
     abstractPassage.putInfon("docid",docFields[0]);
-    abstractPassage.putInfon("abstract","abstract");
+    abstractPassage.putInfon("section","abstract");
     abstractPassage.setOffset(0);
     doc.addPassage(abstractPassage);
     return doc;

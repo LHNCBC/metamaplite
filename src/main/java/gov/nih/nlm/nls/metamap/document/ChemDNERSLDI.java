@@ -2,11 +2,11 @@
 package gov.nih.nlm.nls.metamap.document;
 
 import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.FileInputStream;
 import java.nio.charset.Charset;
 
 import java.util.List;
@@ -63,8 +63,7 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
    * @return BioCDocument document instance
    */
   public static BioCDocument instantiateBioCSLDIDocument(String docText) 
-  {
-    
+  {    
     String[] docFields = docText.split("\\|");
     String docBody = docFields[1];
     String[] bodyFields = docBody.split("\t");
@@ -75,11 +74,13 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
       BioCPassage title = new BioCPassage();
       title.setText(bodyFields[0]);
       title.setOffset(0);
-      title.putInfon("title","title");
+      title.putInfon("docid", docFields[0]);
+      title.putInfon("section","title");
       doc.addPassage(title);
       BioCPassage abstractPassage = new BioCPassage();
       abstractPassage.setText(bodyFields[1]);
-      abstractPassage.putInfon("abstract","abstract");
+      abstractPassage.putInfon("docid", docFields[0]);
+      abstractPassage.putInfon("section","abstract");
       abstractPassage.setOffset(0);
       doc.addPassage(abstractPassage);
     } else {
@@ -99,7 +100,9 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     throws FileNotFoundException, IOException
   {
     Charset charset = Charset.forName("utf-8");
-    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
+    BufferedReader br =
+      new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename),
+					       charset));
     List<PubMedDocument> documentList = new ArrayList<PubMedDocument>();
     String line;
     while ((line = br.readLine()) != null) {
@@ -143,7 +146,9 @@ public class ChemDNERSLDI implements BioCDocumentLoader {
     throws FileNotFoundException, IOException
   {
     Charset charset = Charset.forName("utf-8");
-    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename), charset));
+    BufferedReader br =
+      new BufferedReader(new InputStreamReader(new FileInputStream(inputFilename),
+					       charset));
     List<BioCDocument> documentList = new ArrayList<BioCDocument>();
     String line;
     while ((line = br.readLine()) != null) {

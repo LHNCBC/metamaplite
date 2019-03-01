@@ -77,6 +77,7 @@ public class SingleLineInput implements BioCDocumentLoader {
       BioCPassage passage = new BioCPassage();
       passage.putInfon("docid", basename);
       passage.putInfon("inputformat", "sli");
+      passage.putInfon("section","text");
       passage.setText(docText);
       passage.setOffset(0);
       // passage.putInfon("docid", formatter.toString());

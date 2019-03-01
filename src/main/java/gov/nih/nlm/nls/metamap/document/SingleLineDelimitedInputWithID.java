@@ -52,7 +52,10 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
       BioCPassage textPassage = new BioCPassage();
       textPassage.setText(docFields[1]);
       textPassage.setOffset(0);
+      textPassage.putInfon("docid", docFields[0]);
       textPassage.putInfon("text","text");
+      textPassage.putInfon("section","text");
+      textPassage.putInfon("inputformat", "sldiwi");
       doc.addPassage(textPassage);
     } else {
       logger.warn("Too few fields in line: " + docText + ", returning an empty document.");

@@ -66,11 +66,14 @@ public class ChemDNER implements BioCDocumentLoader {
     BioCPassage title = new BioCPassage();
     title.setText(docFields[1]);
     title.setOffset(0);
-    title.putInfon("title","title");
+    title.putInfon("docid", docFields[0]);
+
+    title.putInfon("section","title");
     doc.addPassage(title);
     BioCPassage abstractPassage = new BioCPassage();
     abstractPassage.setText(docFields[2]);
-    abstractPassage.putInfon("abstract","abstract");
+    abstractPassage.putInfon("docid", docFields[0]);
+    abstractPassage.putInfon("section","abstract");
     abstractPassage.setOffset(0);
     doc.addPassage(abstractPassage);
     return doc;
