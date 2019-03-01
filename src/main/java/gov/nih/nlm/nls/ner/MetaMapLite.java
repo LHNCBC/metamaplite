@@ -49,6 +49,7 @@ import gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 import gov.nih.nlm.nls.metamap.lite.resultformats.CuiList;
 import gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate;
+import gov.nih.nlm.nls.metamap.lite.resultformats.FullJson;
 import gov.nih.nlm.nls.metamap.lite.BioCUtilities;
 import gov.nih.nlm.nls.metamap.lite.Phrase;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPChunker;
@@ -201,6 +202,7 @@ public class MetaMapLite {
     outputExtensionMap.put("mmi",".mmi");
     outputExtensionMap.put("cdi",".cdi");
     outputExtensionMap.put("cuilist",".cuis");
+    outputExtensionMap.put("json",".json");
   }
 
   Set<String> semanticGroup = new HashSet<String>(); // initially empty
@@ -302,6 +304,12 @@ public class MetaMapLite {
     ResultFormatterRegistry.register("brat",
 				     "BRAT Annotation format (.ann)",
 				     new Brat());
+    ResultFormatterRegistry.register("json",
+				     "JSON format (.json)",
+				     new FullJson());
+    ResultFormatterRegistry.register("fulljson",
+				     "JSON format (.json)",
+				     new FullJson());
     ResultFormatterRegistry.register("mmi",
 				     "Fielded MetaMap Indexing-like Output",
 				     new MMI());
@@ -964,6 +972,7 @@ public class MetaMapLite {
 				List<BioCDocument> documentList)
     throws IOException
   {
+    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     // output results for file
     // create output filename
     String basename = filename.substring(0,filename.lastIndexOf(".")); // 
