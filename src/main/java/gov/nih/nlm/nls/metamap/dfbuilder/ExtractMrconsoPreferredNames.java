@@ -47,7 +47,8 @@ public class ExtractMrconsoPreferredNames {
   /** message log */
   static PrintWriter log = new PrintWriter(new OutputStreamWriter(System.out));
   /** use only term from this language. */
-  String language = "ENG";
+  String language =
+    System.getProperty("extract.mrconso.sources.language", "ENG");
   /** true if you wish warnings to be displayed */
   boolean displayWarnings = false;
   /** if true display verbose messages: system property "filter.mrconso.verbose" */
@@ -149,6 +150,7 @@ public class ExtractMrconsoPreferredNames {
     String line = null;
     String cui0 = "C......";
     String preferredName = "X";
+    String synonym = "X";
     while ((line = infile.readLine()) != null)
       {
 	CuiInfo cuiInfo = this.parseLine(line);
@@ -157,22 +159,33 @@ public class ExtractMrconsoPreferredNames {
 	      cuiInfo.ts.equals("P") &&
 	      cuiInfo.stt.equals("PF")) {
 	    preferredName = cuiInfo.str;
+	  } else {
+	    synonym = cuiInfo.str;
 	  }
 	} else {
 	  if (! cui0.equals("C......")) {
+	    if (preferredName.equals("X")) {
+	      preferredName = synonym;
+	    }
 	    writeCuiInfo(outfile, cui0, preferredName);
+	    synonym = "X";
 	  }
 	  cui0 = cuiInfo.cui;
 	  if (cuiInfo.lat.equals(this.language) &&
 	      cuiInfo.ts.equals("P") &&
 	      cuiInfo.stt.equals("PF")) {
 	    preferredName = cuiInfo.str;
+	  } else {
+	    synonym = cuiInfo.str;
 	  }
-
 	}
       }
      if (! cui0.equals("C......")) {
+       if (preferredName.equals("X")) {
+	 preferredName = synonym;
+       }
        writeCuiInfo(outfile, cui0, preferredName);
+       synonym = "X";
      }
   }
 
@@ -227,7 +240,7 @@ public class ExtractMrconsoPreferredNames {
     boolean includeSuiInfo = false;
     boolean displayWarnings = false;
     String releaseFormat = "RRF";
-    String language = "ENG";
+    String language = "";
 
     System.out.println("\nextract mrconso preferred names (Java Prototype)\n");
     int i = 0;
