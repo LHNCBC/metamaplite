@@ -240,7 +240,7 @@ public class ExtractMrconsoPreferredNames {
     boolean includeSuiInfo = false;
     boolean displayWarnings = false;
     String releaseFormat = "RRF";
-    String language = "";
+    String language = "ENG";
 
     System.out.println("\nextract mrconso preferred names (Java Prototype)\n");
     int i = 0;
