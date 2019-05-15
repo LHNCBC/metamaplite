@@ -937,13 +937,18 @@ public class MetaMapLite {
    * @throws IOException i/o exception
    */
   void listSentences(String filename, 
-		     List<BioCDocument> documentList)
+		     List<BioCDocument> documentList,
+		     boolean overwritefile)
     throws IOException
   {
     // output results for file
     // create output filename
     String basename = filename.substring(0,filename.lastIndexOf(".")); // 
     String outputFilename = basename + ".sentences";
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFilename)));
@@ -954,11 +959,16 @@ public class MetaMapLite {
   }
 
   void listAcronyms(String filename, 
-		    List<BioCDocument> documentList)
+		    List<BioCDocument> documentList,
+		    boolean overwritefile)
     throws IOException
   {
     String basename = filename.substring(0,filename.lastIndexOf(".")); // 
     String outputFilename = basename + ".acronyms";
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFilename)));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
@@ -969,7 +979,8 @@ public class MetaMapLite {
   }
 
   void listSentencesWithPosTags(String filename, 
-				List<BioCDocument> documentList)
+				List<BioCDocument> documentList,
+				boolean overwritefile)
     throws IOException
   {
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
@@ -978,6 +989,10 @@ public class MetaMapLite {
     String basename = filename.substring(0,filename.lastIndexOf(".")); // 
     String outputFilename = basename + ".sentences";
     logger.info("outputing results to " + outputFilename);
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFilename)));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -1024,7 +1039,8 @@ public class MetaMapLite {
   }    
 
   void listChunks(String filename,
-		  List<BioCDocument> documentList)
+		  List<BioCDocument> documentList,
+		  boolean overwritefile)
     throws IOException
   {
     
@@ -1032,9 +1048,13 @@ public class MetaMapLite {
     // create output filename
     String basename = filename.substring(0,filename.lastIndexOf(".")); // 
     String outputFilename = basename + ".chunks";
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+				     (new FileWriter(outputFile)));
     listChunks(pw, documentList);
     pw.close();
   }
@@ -1042,7 +1062,8 @@ public class MetaMapLite {
   void listEntities(String filename, 
 		    List<BioCDocument> documentList,
 		    String outputExtension,
-		    String outputFormatOption)
+		    String outputFormatOption,
+		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
     String basename = "output";
@@ -1053,6 +1074,10 @@ public class MetaMapLite {
       basename = filename;
     }
     String outputFilename = basename + outputExtension;
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
@@ -1066,7 +1091,8 @@ public class MetaMapLite {
 		    List<BioCDocument> documentList,
 		    String outputExtension,
 		    String outputFormatOption,
-		    boolean indicateCitationEnd)
+		    boolean indicateCitationEnd,
+		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
     String basename = "output";
@@ -1077,6 +1103,10 @@ public class MetaMapLite {
       basename = filename;
     }
     String outputFilename = basename + outputExtension;
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
@@ -1092,11 +1122,16 @@ public class MetaMapLite {
   void listEntities(String outputFilename, 
 		    List<BioCDocument> documentList,
 		    String outputFormatOption,
-		    boolean indicateCitationEnd)
+		    boolean indicateCitationEnd,
+		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
     logger.info("outputing results to " + outputFilename);
     
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
+    }
     // output results for file
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFilename)));
@@ -1200,6 +1235,7 @@ public class MetaMapLite {
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
       Properties optionsConfiguration = new Properties();
       boolean fromScheduler = false;
+      boolean overwritefile = false;
       int i = 0;
       while (i < args.length) {
 	if (args[i].length() > 1) {
@@ -1324,6 +1360,8 @@ public class MetaMapLite {
 	      }
 	    } else if (args[i].equals("--scheduler")) { // files from scheduler
 	      fromScheduler = true;
+	    } else if ((args[i].equals("--overwritefile")) || (args[i].equals("--clobber"))) {
+	      overwritefile = true;
 	    } else if (args[i].equals("--verbose")) {
 	      verbose = true;
 	    } else if (args[i].equals("--help")) {
@@ -1451,7 +1489,7 @@ public class MetaMapLite {
 	if (filenameList.size() > 1) {
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filenameList.get(0));
 	  metaMapLiteInst.listEntities(filenameList.get(1), documentList,
-				       outputFormatOption, indicateCitationEnd);
+				       outputFormatOption, indicateCitationEnd, overwritefile);
 	} else {
 	  System.out.println("missing input or output filename arguments, check invocation.");
 	}
@@ -1464,17 +1502,17 @@ public class MetaMapLite {
 	  logger.info("Loading and processing " + filename);
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
 	  if (listSentencesOption) {
-	    metaMapLiteInst.listSentences(filename, documentList);
+	    metaMapLiteInst.listSentences(filename, documentList, overwritefile);
 	  } else if (listAcronymsOption) {
-	    metaMapLiteInst.listAcronyms(filename, documentList);
+	    metaMapLiteInst.listAcronyms(filename, documentList, overwritefile);
 	  } else if (listSentencesWithPosTags) {
-	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList);
+	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList, overwritefile);
 	  } else if (listChunks) {
-	    metaMapLiteInst.listChunks(filename, documentList);
+	    metaMapLiteInst.listChunks(filename, documentList, overwritefile);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
 					 outputExtension, outputFormatOption,
-					 indicateCitationEnd);
+					 indicateCitationEnd, overwritefile);
 	  }
 	} /*for filename */
       }
