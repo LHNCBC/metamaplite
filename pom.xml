@@ -171,13 +171,17 @@
       <artifactId>uimaj-core</artifactId>
       <version>2.3.1</version>
     </dependency>
-
+    <!-- https://mvnrepository.com/artifact/org.json/json -->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20180813</version>
+    </dependency>
     <dependency>
       <groupId>info.debatty</groupId>
       <artifactId>java-string-similarity</artifactId>
       <version>0.23</version>
     </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
