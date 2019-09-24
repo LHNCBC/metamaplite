@@ -23,11 +23,13 @@ public class SetOps {
   }
 
   /**
-   * Return intersection of two sets
+   * Return intersection of two sets, a new set containing the
+   * intersection is returned.
+   *
    * @param set1 a set of type T
    * @param set2 a set of type T
    * @param <T> element type of set
-   * @return set intersection of the two supplied sets
+   * @return a new set containing the intersection of the two supplied sets
    */
   public static <T> Set<T> intersection(Set<T> set1,Set<T> set2) {
     Set<T> intersectionSet = new HashSet<T>(set1);
@@ -40,7 +42,7 @@ public class SetOps {
    * @param set1 a set of type T
    * @param set2 a set of type T
    * @param <T> element type of set
-   * @return set union of the two supplied sets
+   * @return a new set containing the union of the two supplied sets
    */
   public static <T> Set<T> union(Set<T> set1,Set<T> set2) {
     Set<T> unionSet = new HashSet<T>(set1);
@@ -53,7 +55,7 @@ public class SetOps {
    * @param set1 a set of type T
    * @param set2 a set of type T
    * @param <T> element type of set
-   * @return set difference of the two supplied sets
+   * @return a new set containing the difference of the two supplied sets
    */
   public static <T> Set<T> difference(Set<T> set1,Set<T> set2) {
     Set<T> differenceSet = new HashSet<T>(set1);
@@ -69,7 +71,7 @@ public class SetOps {
    * @param set1 a set of type T
    * @param set2 a set of type T
    * @param <T> element type of set
-   * @return symmetric set difference of the two supplied sets
+   * @return a new set containing the symmetric difference of the two supplied sets
    */
 
   public static <T> Set<T> symmetric_difference(Set<T> set1,Set<T> set2) {
