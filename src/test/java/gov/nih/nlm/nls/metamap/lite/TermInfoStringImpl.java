@@ -11,23 +11,23 @@ import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 
-public class TermInfoImpl implements TermInfo, Comparable {
+public class TermInfoStringImpl implements TermInfo, Comparable {
   final String originalTerm;
   final String normTerm;
   final List<? extends Token>  tokenlist;
   String cui;
-  public TermInfoImpl(final String originalTerm, final String normTerm, final List<? extends Token>  tokenlist, String cui) {
+  public TermInfoStringImpl(final String originalTerm, final String normTerm, String cui, final List<? extends Token>  tokenlist) {
     this.originalTerm = originalTerm;
     this.normTerm = normTerm;
-    this.tokenlist = tokenlist;
     this.cui = cui;
+    this.tokenlist = tokenlist;
   }
 
-    public TermInfoImpl(final String originalTerm, final String normTerm, String cui) {
+    public TermInfoStringImpl(final String originalTerm, final String normTerm, String cui) {
     this.originalTerm = originalTerm;
     this.normTerm = normTerm;
-    this.tokenlist = new ArrayList<ERToken>();
     this.cui = cui;
+    this.tokenlist = new ArrayList<ERToken>();
   }
 
 
@@ -76,10 +76,10 @@ public class TermInfoImpl implements TermInfo, Comparable {
   public int compareTo(Object o) {
     return this.originalTerm.compareTo(((TermInfo)o).getOriginalTerm()) +
       this.normTerm.compareTo(((TermInfo)o).getNormTerm()) +
-      this.cui.compareTo(((TermInfoImpl)o).getDictionaryInfoAsString());
+      this.cui.compareTo(((TermInfoStringImpl)o).getDictionaryInfoAsString());
   }
 
-  public int compareTo(TermInfoImpl o) {
+  public int compareTo(TermInfoStringImpl o) {
     return this.originalTerm.compareTo(o.getOriginalTerm()) +
       this.normTerm.compareTo(o.getNormTerm()) +
       this.cui.compareTo(o.getDictionaryInfoAsString());

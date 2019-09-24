@@ -81,13 +81,16 @@ public class TestUserDefinedAcronyms {
     Map<String,UserDefinedAcronym<TermInfo>> udaMap =
       new HashMap<String,UserDefinedAcronym<TermInfo>>();
     for (Map.Entry<String,String> entry: uaMap.entrySet()) {
-      udaMap.put(entry.getKey(),
-		 new UserDefinedAcronym<TermInfo>(entry.getKey(),
-						  entry.getValue(),
-						  new IVFLookup.IVFTermInfo(entry.getValue(),
-									    entry.getKey(),
-									    new HashSet<ConceptInfo>(),
-									    Scanner.analyzeText(entry.getKey()))));
+      udaMap.put
+	(entry.getKey(),
+	 new UserDefinedAcronym<TermInfo>
+	 (entry.getKey(),
+	  entry.getValue(),
+	  new TermInfoImpl<Set<ConceptInfo>>
+	  (entry.getValue(),
+	   entry.getKey(),
+	   new HashSet<ConceptInfo>(),
+	   Scanner.analyzeText(entry.getKey()))));
     }
     
     /* initialize found entities */

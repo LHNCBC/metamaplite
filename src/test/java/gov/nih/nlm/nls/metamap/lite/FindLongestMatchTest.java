@@ -34,7 +34,7 @@ public class FindLongestMatchTest {
   Map<String,String> dictionary;
   
   List<ERToken> tokenlist0;
-  Set<TermInfo> refTermInfoSet0;
+  Set<TermInfo<String>> refTermInfoSet0;
   List<ERToken> tokenlist1;
   DictionaryLookup<TermInfo> dictionaryLookup;
   /**
@@ -69,8 +69,7 @@ public class FindLongestMatchTest {
    * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
    * @version 1.0
    */
-  static class HashMapDictionaryLookup implements DictionaryLookup<TermInfo> {
-    
+  static class HashMapDictionaryLookup implements DictionaryLookup<String> {
     
     Map<String,String> dictionary;
     /**
@@ -89,72 +88,65 @@ public class FindLongestMatchTest {
      * @param originalTerm a <code>String</code> value
      * @param normTerm a <code>String</code> value
      * @param tokenlist a <code>List</code> value
-     * @return a <code>TermInfo</code> value
+     * @return a <code>String</code> value
      */
-    public final TermInfo lookup(final String originalTerm, final String normTerm, final List<? extends Token>  tokenlist) {
-      String cui = this.dictionary.get(normTerm.toLowerCase());
+    public final String lookup(final String originalTerm) {
+      return this.dictionary.get(originalTerm.toLowerCase());
+    }
+  }
+
+  static class NormalizedDictionaryLookup implements DictionaryLookup<TermInfo> {
+    DictionaryLookup<String> baseDictionary;      
+    public NormalizedDictionaryLookup(DictionaryLookup<String> lookup)
+    {
+      this.baseDictionary = lookup;	
+    }
+    
+    public final TermInfo lookup(final String originalTerm) {
+      String normTerm = NormalizedStringCache.normalizeString(originalTerm);
+      String cui = this.baseDictionary.lookup(normTerm.toLowerCase());
       if (cui == null) {
-	cui = this.dictionary.get(originalTerm.toLowerCase());
+	cui = this.baseDictionary.lookup(originalTerm.toLowerCase());
       }
       if (cui != null) {
 	System.out.println("HashMapDictionary:lookup: cui: " + cui);
-	return new TermInfoImpl(originalTerm, normTerm, tokenlist, cui);
+	return new TermInfoStringImpl(originalTerm, normTerm, cui);
       } else {
 	return null;
       }
     }
-
-  /**
-   * Lookup term in <code>HashMap</code>
-   *
-   * @param originalTerm original term
-   * @param normTerm normalized form of term
-   * @return a <code>TermInfo</code> value associated with input term.
-   */
-    public final TermInfo lookup(final String originalTerm, final String normTerm) {
-      String cui = this.dictionary.get(normTerm.toLowerCase());
-      if (cui == null) {
-	cui = this.dictionary.get(originalTerm.toLowerCase());
-      }
-      if (cui != null) {
-	System.out.println("HashMapDictionary:lookup: cui: " + cui);
-	return new TermInfoImpl(originalTerm, normTerm, cui);
-      } else {
-	return null;
-      }
-    }    
   }
 
   @org.junit.Before public void setup() {
     // initialize tokenlists and term info sets
     tokenlist0 = Scanner.analyzeText("Papillary Thyroid Carcinoma is a Unique Clinical Entity");
 
-    refTermInfoSet0 = new TreeSet<TermInfo>();
+    refTermInfoSet0 = new TreeSet<TermInfo<String>>();
     
-    refTermInfoSet0.add(new TermInfoImpl("Papillary Thyroid Carcinoma",
-					"papillary thyroid carcinoma",
-					tokenlist0.subList(0,5),
-					 "C0238463"));
-    refTermInfoSet0.add(new TermInfoImpl("Thyroid Carcinoma",
-					 "thyroid carcinoma",
-					 tokenlist0.subList(2,5),
-					 "C0549473"));
-    refTermInfoSet0.add(new TermInfoImpl("Thyroid",
-					 "thyroid",
-					 tokenlist0.subList(2,3),
-					 "C0040132"));
-    refTermInfoSet0.add(new TermInfoImpl("Carcinoma",
-					 "carcinoma",
-					 tokenlist0.subList(4,5),
-					 "C0007097"));
-    refTermInfoSet0.add(new TermInfoImpl("Unique",
-					"unique",
-					tokenlist0.subList(10,11),
-					 "C1710548"));
-    refTermInfoSet0.add(new TermInfoImpl("Entity",
-					 "entity",
-					tokenlist0.subList(14,15),
-					 "C1551338"));
+    refTermInfoSet0.add(new TermInfoStringImpl("Papillary Thyroid Carcinoma",
+						 "papillary thyroid carcinoma",
+						 "C0238463",
+						 tokenlist0.subList(0,5)));
+    refTermInfoSet0.add(new TermInfoStringImpl("Thyroid Carcinoma",
+						 "thyroid carcinoma",
+						 "C0549473",
+						 tokenlist0.subList(2,5)));
+    refTermInfoSet0.add(new TermInfoStringImpl("Thyroid",
+						 "thyroid",
+						 "C0040132",
+						 tokenlist0.subList(2,3)));
+    refTermInfoSet0.add(new TermInfoStringImpl("Carcinoma",
+						 "carcinoma",
+						 "C0007097",
+						 tokenlist0.subList(4,5)));
+    refTermInfoSet0.add(new TermInfoStringImpl("Unique",
+						 "unique",
+						 "C1710548",
+						 tokenlist0.subList(10,11)));
+    refTermInfoSet0.add(new TermInfoStringImpl("Entity",
+						 "entity",
+						 "C1551338",
+						 tokenlist0.subList(14,15)));
     
     tokenlist1 = Scanner.analyzeText("Dimethyl fumarate attenuates 6-OHDA-induced neurotoxicity in SH-SY5Y cells and in animal model of Parkinson's disease by enhancing Nrf2 activity.");
 
@@ -173,7 +165,7 @@ public class FindLongestMatchTest {
     this.dictionary.put("animal model", "C0012644");
     this.dictionary.put("induced", "C0205263");
     this.dictionary.put("neurotoxicity", "C0235032");
-    this.dictionaryLookup = new HashMapDictionaryLookup(this.dictionary);
+    this.dictionaryLookup = new NormalizedDictionaryLookup(new HashMapDictionaryLookup(this.dictionary));
     this.defaultAllowedPartOfSpeech();
   }
 
