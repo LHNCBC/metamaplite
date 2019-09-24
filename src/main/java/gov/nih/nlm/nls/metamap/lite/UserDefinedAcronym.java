@@ -68,11 +68,10 @@ public class UserDefinedAcronym<T> {
 	String[] fields = line.split("\\|");
 	udaMap.put
 	  (fields[0],
-	   new UserDefinedAcronym<T>
-	   (fields[0],
-	    fields[1],
-	    lookupClass.lookup
-	    (fields[1],
+	   new UserDefinedAcronym<T> (fields[0], fields[1], lookupClass.lookup(fields[1])));
+	udaMap.put
+	  (fields[0],
+	   new UserDefinedAcronym<T> (fields[0], fields[1], lookupClass.lookup(
 	     NormalizedStringCache.normalizeString
 	     (fields[1]))));
       }
@@ -85,7 +84,7 @@ public class UserDefinedAcronym<T> {
     }
   }
 
-    /** Convert uda map to ua map 
+  /** Convert uda map to ua map 
    *@param udaMap uda Map with TermInfo
    * @return uda map just mapping short forms to long forms (no TermInfo)
    */
@@ -104,7 +103,7 @@ public class UserDefinedAcronym<T> {
     for (Map.Entry<String,UserDefinedAcronym<TermInfo>> entry: udaMap.entrySet()) {
       UserDefinedAcronym<TermInfo> uda = entry.getValue();
       TermInfo termInfo = uda.getInfo();
-      Set<ConceptInfo> conceptInfoSet = ((IVFLookup.IVFTermInfo)termInfo).getDictionaryInfo();
+      Set<ConceptInfo> conceptInfoSet = (Set<ConceptInfo>)termInfo.getDictionaryInfo();
       Set<Ev> evSet = new HashSet<Ev>();
       for (ConceptInfo conceptInfo: conceptInfoSet) {
 	Ev ev = new Ev(conceptInfo, uda.getShortForm(), conceptInfo.getConceptString(), 0, 0, 100.0, "");
@@ -124,7 +123,7 @@ public class UserDefinedAcronym<T> {
 	if (entry.getKey().equals(token.getText())) {
 	  UserDefinedAcronym<TermInfo> uda = entry.getValue();
 	  TermInfo termInfo = uda.getInfo();
-	  Set<ConceptInfo> conceptInfoSet = ((IVFLookup.IVFTermInfo)termInfo).getDictionaryInfo();
+	  Set<ConceptInfo> conceptInfoSet = (Set<ConceptInfo>)termInfo.getDictionaryInfo();
 	  Set<Ev> evSet = new HashSet<Ev>();
 	  for (ConceptInfo conceptInfo: conceptInfoSet) {
 	    Ev ev = new Ev(conceptInfo, 
