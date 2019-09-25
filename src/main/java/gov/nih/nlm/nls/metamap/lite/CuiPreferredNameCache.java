@@ -23,8 +23,7 @@ import gov.nih.nlm.nls.utils.LRUCache;
  * @version 1.0
  */
 public class CuiPreferredNameCache {
-  /** inverted file indexes */
-  public MetaMapIvfIndexes mmIndexes;
+  PreferredNameLookup lookupImpl;
 
   /** Set property
    * "metamaplite.entitylookup4.cui.preferredname.cache.enable" to
@@ -44,20 +43,20 @@ public class CuiPreferredNameCache {
   /**
    * Creates a new <code>CuiPreferredNameCache</code> instance.
    *
-   * @param mmIndexes set of inverted file indexes
+   * @param lookupImpl set of inverted file indexes
    */
-  public CuiPreferredNameCache(MetaMapIvfIndexes mmIndexes) {
-    this.mmIndexes = mmIndexes;
+  public CuiPreferredNameCache(PreferredNameLookup lookupImpl) {
+    this.lookupImpl = lookupImpl;
   }
 
   /**
    * Creates a new <code>CuiPreferredNameCache</code> instance.
    *
-   * @param mmIndexes set of inverted file indexes
+   * @param lookupImpl set of inverted file indexes
    * @param properties application properties
    */
-  public CuiPreferredNameCache(Properties properties, MetaMapIvfIndexes mmIndexes) {
-    this.mmIndexes = mmIndexes;
+  public CuiPreferredNameCache(PreferredNameLookup lookupImpl, Properties properties) {
+    this.lookupImpl = lookupImpl;
   }
 
   /**
@@ -79,16 +78,10 @@ public class CuiPreferredNameCache {
    * @throws FileNotFoundException File Not Found Exception
    * @throws IOException IO Exception
    */
-  public String lookupPreferredNameIVF(String cui)
+  public String lookupPreferredName(String cui)
     throws FileNotFoundException, IOException
   {
-    List<String> hitList = 
-      this.mmIndexes.cuiConceptIndex.lookup(cui, 0);
-    if (hitList.size() > 0) {
-      String[] fields = hitList.get(0).split("\\|");
-      return fields[1];
-    }
-    return null;
+    return this.lookupImpl.getPreferredName(cui);
   }
     
   /**
@@ -105,12 +98,12 @@ public class CuiPreferredNameCache {
       if (this.cuiPreferredNameCache.containsKey(cui)) {
 	return this.cuiPreferredNameCache.get(cui);
       } else {
-	String preferredName = lookupPreferredNameIVF(cui);
+	String preferredName = this.lookupImpl.getPreferredName(cui);
 	this.cachePreferredTerm(cui, preferredName);
 	return preferredName;
       }
     } else {
-      String preferredName = lookupPreferredNameIVF(cui);
+      String preferredName = this.lookupImpl.getPreferredName(cui);
       if (preferredName == null) {
 	return "";
       } else {
