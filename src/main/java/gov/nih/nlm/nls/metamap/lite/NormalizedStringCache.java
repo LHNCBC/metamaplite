@@ -35,7 +35,7 @@ public class NormalizedStringCache {
    * @param originalString input string 
    * @return normalized version of input string.
    */
-  static String normalizeString(String originalString) {
+  static public String normalizeString(String originalString) {
     if (enableCache) {
       /* in the name of premature optimization, I'm memoizing normalizeAstString */
       if (normalizeStringCache.containsKey(originalString)) {
