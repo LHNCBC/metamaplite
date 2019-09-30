@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -39,6 +40,7 @@ import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPSentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
+import gov.nih.nlm.nls.metamap.lite.IVFLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup4;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup5;
@@ -883,7 +885,7 @@ public class MetaMapLite {
 
   void listAcronyms(List<BioCDocument> documentList) {
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
       pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
 		 acronym.longForm.replace("\n", " ") + "|" + acronym.longFormIndex );
@@ -898,7 +900,7 @@ public class MetaMapLite {
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     logger.info("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> tokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
@@ -915,7 +917,7 @@ public class MetaMapLite {
   {
     logger.info("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     listChunks(pw, documentList);
     pw.close();
   }
@@ -927,13 +929,14 @@ public class MetaMapLite {
 
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
   }
 
   /** list entities using document list from stdin 
    * @param filename filename
    * @param documentList list of BioC documents
+   * @param overwritefile if true then overwrite output files if files already exist.
    * @throws IOException i/o exception
    */
   void listSentences(String filename, 
@@ -1010,8 +1013,8 @@ public class MetaMapLite {
 		  List<BioCDocument> documentList)
     throws IOException
   {
-    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-    this.chunkerMethod = new OpenNLPChunker(properties);
+    sentenceAnnotator = new OpenNLPPoSTagger(this.properties);
+    chunkerMethod = new OpenNLPChunker(this.properties);
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> sentenceTokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
@@ -1133,8 +1136,9 @@ public class MetaMapLite {
       throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
     }
     // output results for file
-    PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter
+				     (new FileOutputStream(outputFilename),
+				      Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
     if (indicateCitationEnd) {
       pw.println(eotString); // should this be in Prolog format? Will 'EOT' suffice?
@@ -1150,8 +1154,9 @@ public class MetaMapLite {
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
-    PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter
+				     (new FileOutputStream(outputFilename),
+				      Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
     pw.close();
   } /* processFile */
@@ -1161,16 +1166,21 @@ public class MetaMapLite {
    */
   void logCacheInfo() {
     if (entityLookup instanceof EntityLookup4) {
-      logger.info("cui -> preferred-name cache size: " +
-		  ((EntityLookup4)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
-      logger.info("term -> concept cache size: " +
-		  ((EntityLookup4)entityLookup).termConceptInfoCache.termConceptCache.size());
+      if (((EntityLookup4)entityLookup).dictionaryLookup instanceof IVFLookup) {
+	logger.info
+	  ("cui -> preferred-name cache size: " +
+	   ((IVFLookup)((EntityLookup4)entityLookup).dictionaryLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
+	logger.info
+	  ("term -> concept cache size: " +
+	   ((IVFLookup)((EntityLookup4)entityLookup).dictionaryLookup).termConceptInfoCache.termConceptCache.size());
+      }
     } else if (entityLookup instanceof EntityLookup5) {
-      logger.info("cui -> preferred-name cache size: " +
-		  ((EntityLookup5)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
-      logger.info("term -> concept cache size: " +
-		  ((EntityLookup5)entityLookup).termConceptInfoCache.termConceptCache.size());
-      
+	logger.info
+	  ("cui -> preferred-name cache size: " +
+	   ((IVFLookup)((EntityLookup5)entityLookup).dictionaryLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
+      logger.info
+	  ("term -> concept cache size: " +
+	   ((IVFLookup)((EntityLookup5)entityLookup).dictionaryLookup).termConceptInfoCache.termConceptCache.size());
     } 
     logger.info("string -> normalized string cache size: " +
 		gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
@@ -1360,7 +1370,9 @@ public class MetaMapLite {
 	      }
 	    } else if (args[i].equals("--scheduler")) { // files from scheduler
 	      fromScheduler = true;
-	    } else if ((args[i].equals("--overwritefile")) || (args[i].equals("--clobber"))) {
+	    } else if ((args[i].equals("--overwrite")) ||
+		       (args[i].equals("--overwritefile")) ||
+		       (args[i].equals("--clobber"))) {
 	      overwritefile = true;
 	    } else if (args[i].equals("--verbose")) {
 	      verbose = true;
@@ -1468,7 +1480,7 @@ public class MetaMapLite {
 	}
 	List<BioCDocument> documentList =
 	  docLoader.readAsBioCDocumentList(new InputStreamReader(System.in,
-					   Charset.forName("utf-8")));
+								 Charset.forName("utf-8")));
 	if (listSentencesOption) {
 	  metaMapLiteInst.listSentences(documentList);
 	} else if (listAcronymsOption) {
