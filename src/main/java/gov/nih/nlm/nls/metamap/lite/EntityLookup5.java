@@ -49,10 +49,14 @@ import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 import gov.nih.nlm.nls.metamap.prefix.Scanner;
 
+import gov.nih.nlm.nls.metamap.lite.mapdb.MapDbLookup;
+
 import gov.nih.nlm.nls.types.Sentence;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.utils.LRUCache;
+import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
+import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,34 +65,18 @@ import opennlp.tools.dictionary.serializer.Entry;
 import gov.nih.nlm.nls.metamap.evaluation.Scoring;
 
 /**
- *
+ * EntityLookup5 - Entity lookup of Chunked Phrases
  */
 
 public class EntityLookup5 implements EntityLookup {
   private static final Logger logger = LogManager.getLogger(EntityLookup5.class);
 
-  public MetaMapIvfIndexes mmIndexes;
   ChunkerMethod chunkerMethod;
   
-  /** string column for cuisourceinfo index*/
-  int strColumn = 3;		
-  /** cui column for semantic type and cuisourceinfo index */
-  int cuiColumn = 0;		
-  SpecialTerms excludedTerms = new SpecialTerms();
+  public MMLDictionaryLookup<TermInfo> dictionaryLookup;
   int MAX_TOKEN_SIZE =
     Integer.parseInt(System.getProperty("metamaplite.entitylookup4.maxtokensize","15"));
-
-  /** cui to preferred name index/cache */
-  public CuiPreferredNameCache cuiPreferredNameCache;
-  /** cui to semantic type set cache */
-  public CuiSemanticTypeSetIndex cuiSemanticTypeSetIndex;
-  /** cui to sourceset cache */
-  public CuiSourceSetIndex cuiSourceSetIndex;
-  /** term to concept info index/cache */
-  public TermConceptInfoCache termConceptInfoCache;
-  /** word to variant lookup */
-  VariantLookupIVF variantLookup;
-
+  SpecialTerms excludedTerms = new SpecialTerms();
   SentenceAnnotator sentenceAnnotator;
   NegationDetector negationDetector;
   boolean addPartOfSpeechTagsFlag =
@@ -102,7 +90,9 @@ public class EntityLookup5 implements EntityLookup {
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("CD"); // cardinal number (need this for chemicals)
+    this.allowedPartOfSpeechSet.add("FW"); // foreign word
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
+    this.allowedPartOfSpeechSet.add("IN"); // preposition, subordinating conjunction	(in, of, like) ?what?
     this.allowedPartOfSpeechSet.add("NN");
     this.allowedPartOfSpeechSet.add("NNS");
     this.allowedPartOfSpeechSet.add("NNP");
@@ -111,8 +101,11 @@ public class EntityLookup5 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("JJR");
     this.allowedPartOfSpeechSet.add("JJS");
     this.allowedPartOfSpeechSet.add("LS"); // list item marker (need this for chemicals)
+    // this.allowedPartOfSpeechSet.add("VB");
+    // this.allowedPartOfSpeechSet.add("."); // abbreviation? period?
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
   }
+
   /** short form to long form user defined acronym map */
   Map<String,UserDefinedAcronym<TermInfo>> udaMap =
     new HashMap<String,UserDefinedAcronym<TermInfo>>();
@@ -128,8 +121,16 @@ public class EntityLookup5 implements EntityLookup {
   public EntityLookup5(Properties properties) 
     throws IOException, FileNotFoundException
   {
-    this.mmIndexes = new MetaMapIvfIndexes(properties);
-    
+    MMLDictionaryLookupRegistry registry = new MMLDictionaryLookupRegistry();
+    registry.put("ivf", new IVFLookup());
+    registry.put("mapdb", new MapDbLookup());
+    String directoryPath = properties.getProperty("metamaplite.index.directory");
+    Map.Entry<String,MMLDictionaryLookup> entry = registry.determineImplementation(directoryPath);
+    this.dictionaryLookup = entry.getValue();
+    this.dictionaryLookup.init(properties);
+    this.MAX_TOKEN_SIZE =
+      Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
+						Integer.toString(MAX_TOKEN_SIZE)));
     this.addPartOfSpeechTagsFlag =
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
@@ -190,16 +191,49 @@ public class EntityLookup5 implements EntityLookup {
       Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
 					      Integer.toString(MAX_TOKEN_SIZE)));
 
-    this.cuiPreferredNameCache = new CuiPreferredNameCache(properties, mmIndexes);
-    this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
-    this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes);
-    this.termConceptInfoCache = new TermConceptInfoCache(properties,
-							 this.mmIndexes,
-							 this.cuiPreferredNameCache,
-							 this.cuiSemanticTypeSetIndex,
-							 this.cuiSourceSetIndex,
-							 this.excludedTerms);
-    this.variantLookup = new VariantLookupIVF(this.mmIndexes);
+    this.addPartOfSpeechTagsFlag =
+      Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
+						  Boolean.toString(addPartOfSpeechTagsFlag)));
+
+    if (this.addPartOfSpeechTagsFlag) {
+      this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+      if (allowedPartOfSpeechTaglist != null) {
+	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
+	  this.allowedPartOfSpeechSet.add(pos);
+	}
+	this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
+      } else {
+	this.defaultAllowedPartOfSpeech();
+      }
+    } else {
+      this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
+    }
+
+    // Instantiate user-specified negation detector if present,
+    // otherwise use ConText.
+    try {
+      this.negationDetector =
+	(NegationDetector)
+	Class.forName
+	(properties.getProperty
+	 ("metamaplite.negation.detector",
+	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).newInstance();
+      this.negationDetector.initProperties(properties);
+      // this.negationDetector = new ContextWrapper();
+    } catch (ClassNotFoundException cnfe) {
+      throw new RuntimeException(cnfe);
+    } catch (InstantiationException ie) {
+      throw new RuntimeException(ie);
+    } catch (IllegalAccessException iae) {
+      throw new RuntimeException(iae);
+    }
+
+    if (properties.containsKey("metamaplite.excluded.termsfile")) {
+      this.excludedTerms.addTerms(properties.getProperty("metamaplite.excluded.termsfile"));
+    } else if (System.getProperty("metamaplite.excluded.termsfile") != null) {
+      this.excludedTerms.addTerms(System.getProperty("metamaplite.excluded.termsfile"));
+    }
 
     // user defined acronyms
     if (properties.containsKey("metamaplite.uda.filename")) {
@@ -268,9 +302,12 @@ public class EntityLookup5 implements EntityLookup {
 
   /**
    * Given Example:
+   * <pre>
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
+   * </pre>
    * 
    * Check the following:
+   * <pre>
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
    *   "Papillary Thyroid Carcinoma is a Unique Clinical"
    *   "Papillary Thyroid Carcinoma is a Unique"
@@ -287,6 +324,7 @@ public class EntityLookup5 implements EntityLookup {
    *             "Thyroid Carcinoma"
    *             "Thyroid"
    *    ...
+   * </pre>
    * @param docid document id
    * @param fieldid id of field in document
    * @param sentenceNumber number of sentence in field
@@ -335,9 +373,25 @@ public class EntityLookup5 implements EntityLookup {
 	  if (CharUtils.isAlphaNumeric(originalTerm.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
-	    for (ConceptInfo concept: this.termConceptInfoCache.lookupTermConceptInfo(originalTerm,
-							    normTerm,
-							    tokenSubList)) {
+
+
+	    Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
+	    // TermInfo termInfo =
+	    //   dictionaryLookup.lookup(originalTerm, normTerm, tokenSubList);
+	    TermInfo termInfo = dictionaryLookup.lookup(originalTerm);
+	    if (termInfo != null) {
+	      for (ConceptInfo conceptInfo: (Collection<ConceptInfo>)termInfo.getDictionaryInfo()) {
+		conceptInfoSet.add(conceptInfo);
+	      }
+	    }
+	    termInfo = dictionaryLookup.lookup(normTerm);
+	    if (termInfo != null) {
+	      for (ConceptInfo conceptInfo: (Collection<ConceptInfo>)termInfo.getDictionaryInfo()) {
+		conceptInfoSet.add(conceptInfo);
+	      }
+	    }
+
+	    for (ConceptInfo concept: conceptInfoSet) {
 	      //   if (this.termConceptCache.containsKey(normTerm)) {
 	      //     for (ConceptInfo concept: this.termConceptCache.get(normTerm)) {
 	      String cui = concept.getCUI();
@@ -542,7 +596,7 @@ public class EntityLookup5 implements EntityLookup {
       isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, matchedTermOffset) ? 1.0 : 0.0;
     // double variation = 4.0/(variantLookup.lookupVariant(matchedText, metaTerm) + 4.0 );
     double variation = Scoring.computeVariation(matchedText, metaTerm,
-						matchTokenList, variantLookup);
+						matchTokenList, (VariantLookup)this.dictionaryLookup);
     // coverage steps:
     //  1. extract components
     // extractComponents();
@@ -642,17 +696,18 @@ public class EntityLookup5 implements EntityLookup {
    * token extents with in sentence. 
    *
    * What actually happens is this:
-   *
-   *   1. Query the cui &lt;--&gt; sourceinfo index using the prefix of the term.
-   *   2. Given the hitlist from the query, keep any matches that are
+   * <ul>
+   *   <li> Query the cui &lt;--&gt; sourceinfo index using the prefix of the term.</li>
+   *   <li>Given the hitlist from the query, keep any matches that are
    *      a subset of the token list that has the prefix at the head of
-   *      the tokenlist.
+   *      the tokenlist.</li>
+   * </ul>
    *
-   *
-   *  Organization of cui &lt;--&gt; sourceinfo table: cui|sui|seqno|str|src|tty
+   *  Organization of cui &lt;--&gt; sourceinfo table: <code>cui|sui|seqno|str|src|tty</code>
    *
    * Example from Experimental Factor Ontology [non-UMLS]:
    *
+   * <pre>
    *   BTO_0001033|S00044858|1|prostate cancer cell line|obo|PT
    *   BTO_0001038|S00044209|1|peritrophic membrane|obo|PT
    *   BTO_0001093|S00034929|1|WEHI-231 cell|obo|PT
@@ -660,6 +715,7 @@ public class EntityLookup5 implements EntityLookup {
    *   BTO_0001202|S00045431|1|saliva|obo|PT
    *   BTO_0001205|S00029779|1|RT4-D6P2T cell|obo|PT
    *   BTO_0001383|S00036387|1|alveolar bone|obo|PT
+   * </pre>
    * 
    * To generate, see extract_mrconso_sources.perl in Public MM repository:
    *  http://indlx1.nlm.nih.gov:8000/cgi-bin/cgit.cgi/public_mm/tree/bin/extract_mrconso_sources.perl
@@ -767,7 +823,6 @@ public class EntityLookup5 implements EntityLookup {
     return newEntitySet;
   }
 
-  static EntityStartComparator entityComparator = new EntityStartComparator();
 
   /**
    * Apply negation detection to sentence using entity set.
@@ -805,6 +860,7 @@ public class EntityLookup5 implements EntityLookup {
 				     Set<String> semTypeRestrictSet,
 				     Set<String> sourceRestrictSet) 
   {
+    EntityStartComparator entityComparator = new EntityStartComparator();
     String fieldid = passage.getInfon("section");
     if (fieldid == null) {
       fieldid = "text";
@@ -866,6 +922,7 @@ public class EntityLookup5 implements EntityLookup {
 				       Set<String> sourceRestrictSet)
     throws IOException, FileNotFoundException, Exception
   {
+    EntityStartComparator entityComparator = new EntityStartComparator();
     String fieldid = "text";
     Set<Entity> entitySet0 = new HashSet<Entity>();
     int i = 0;

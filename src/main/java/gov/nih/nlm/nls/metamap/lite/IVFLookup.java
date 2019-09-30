@@ -27,7 +27,7 @@ import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public class IVFLookup implements MMLDictionaryLookup<TermInfo> {
+public class IVFLookup implements MMLDictionaryLookup<TermInfo>, VariantLookup {
   private static final Logger logger = LogManager.getLogger(IVFLookup.class);
 
   /** string column for cuisourceinfo index*/
@@ -129,6 +129,16 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo> {
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
+  }
+
+  public VariantLookup getVariantLookup() {
+    return this.variantLookup;
+  }
+  public int lookupVariant(String term, String word) {
+    return this.variantLookup.lookupVariant(term, word);
+  }
+  public int lookupVariant(String term) {
+    return this.variantLookup.lookupVariant(term);
   }
 
   /**
