@@ -124,7 +124,9 @@ public class Entity implements Annotation, Comparable<Entity>
 
   public Entity(Entity entity) {
     this.docid = entity.getDocid();
-    this.matchedText = getMatchedText();
+    this.fieldId = entity.getFieldId();
+    this.lexicalCategory = entity.getLexicalCategory();
+    this.matchedText = entity.getMatchedText();
     this.score = entity.getScore();
     this.start = entity.getStart();
     this.length = entity.getLength();    
