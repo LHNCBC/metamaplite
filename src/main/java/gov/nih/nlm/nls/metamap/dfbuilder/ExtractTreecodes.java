@@ -58,6 +58,7 @@ public class ExtractTreecodes {
 	  mrconsoList.add(record);
 	}
       }
+      br.close();
     } catch (FileNotFoundException fnfe) {
       throw new RuntimeException(fnfe);
     } catch (IOException ioe) {
@@ -85,6 +86,7 @@ public class ExtractTreecodes {
 	  }
 	}
       }
+      br.close();
     } catch (FileNotFoundException fnfe) {
       throw new RuntimeException(fnfe);
     } catch (IOException ioe) {
@@ -170,7 +172,7 @@ public class ExtractTreecodes {
     List<Mrconso> meshMrconsoRecords = inst.loadMeshMrconsoRecords(mrconsoFilename);
     System.out.println("size of MeSH MRCONSO list: " + meshMrconsoRecords.size());
     List<Mrsat> mrsatRecords = inst.loadMeshMnRecords(mrsatFilename);
-    System.out.println("size of MRSAT list: " + mrsatRecords.size());
+    System.out.println("size of MeSH MRSAT list: " + mrsatRecords.size());
     System.out.flush();
     Map<String,List<String>> cuiTreecodeMap = inst.generateCuiToTreecodeMap(mrsatRecords);
     System.out.println("size of cui -> treecode dictionary: " + cuiTreecodeMap.size());
