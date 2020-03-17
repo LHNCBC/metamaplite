@@ -61,7 +61,10 @@ public class Brat implements ResultFormatter {
 	referenceSet.add(new NormalizationAnnotation("N0","T0", "ConceptId", cui, preferredName));
       }
       for (String semtype: ev.getConceptInfo().getSemanticTypeSet()) {
-	referenceSet.add(new NormalizationAnnotation("N0","T0", "SemanticType", semtype, semtype));
+	referenceSet.add(new NormalizationAnnotation("N0","T0", "SemanticType", cui + ":" + semtype, semtype));
+      }
+      for (String source: ev.getConceptInfo().getSourceSet()) {
+	referenceSet.add(new NormalizationAnnotation("N0","T0", "Source", cui + ":" + source, source));
       }
       if (entity.isNegated()) {
 	referenceSet.add(new NormalizationAnnotation("N0","T0", "Negated", ev.getMatchedText(), ev.getMatchedText()));
