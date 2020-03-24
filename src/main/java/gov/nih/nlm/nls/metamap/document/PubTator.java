@@ -82,6 +82,7 @@ public class PubTator
   	}
       }
     }
+    br.close();
     return instantiateBioCDocument(documentId, titleText, abstractText);
   }
 
@@ -105,6 +106,7 @@ public class PubTator
   	  abstractText = split[2];
   	}
       }
+      br.close();
       documentList.add(instantiateBioCDocument(documentId, titleText, abstractText));
     }
     return documentList;
