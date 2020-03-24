@@ -43,37 +43,14 @@ import gov.nih.nlm.nls.metamap.dfbuilder.Mrconso;
 public class ExtractTreecodes {
 
   /**
-   * Load MRCONSO table, keeping only MeSH records
-   * @param mrconsoFilename name of UMLS MRCONSO file 
-   * @return list of MeSH MRCONSO records
+   * Given list of Mesh MRSAT records with ATN field = "MN", create a
+   * map of treecodes (in ATV field) by cui
+   * @param mrsatFilename
+   * @return Map of treecodelists by cui
    */
-  List<Mrconso> loadMeshMrconsoRecords(String mrconsoFilename) {
-    List<Mrconso> mrconsoList = new ArrayList<Mrconso>();
-    try {
-      BufferedReader br = new BufferedReader(new FileReader(mrconsoFilename));
-      String line;
-      while ((line = br.readLine()) != null) {
-	Mrconso record = new Mrconso(line.split("\\|"));
-	if (record.getSab().equals("MSH")) {
-	  mrconsoList.add(record);
-	}
-      }
-      br.close();
-    } catch (FileNotFoundException fnfe) {
-      throw new RuntimeException(fnfe);
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
-    return mrconsoList;
-  }
-  
-  /**
-   * Load MRSAT table, keeping only MeSH records with ATN field with value "MN"
-   * @param mrsatFilename name of UMLS MRSAT file 
-   * @return list of MeSH MRSAT records
-   */
-  List<Mrsat> loadMeshMnRecords(String mrsatFilename) {
-    List<Mrsat> mrsatList = new ArrayList<Mrsat>();
+  Map<String,List<String>> generateCuiToTreecodeMap(String mrsatFilename) {
+    int mrsatRecordCnt = 0;
+    Map<String,List<String>> cuiToAtvMap = new HashMap<String,List<String>>();
     try {
       BufferedReader br = new BufferedReader(new FileReader(mrsatFilename));
       String line;
@@ -81,76 +58,64 @@ public class ExtractTreecodes {
 	String[] fieldlist = line.split("\\|");
 	if (fieldlist.length > 11) {
 	  Mrsat record = new Mrsat(fieldlist);
-	  if (record.getSab().equals("MSH") /*&& record.getAtn().equals("MN")*/) {
-	    mrsatList.add(record);
+	  if (record.getAtn().equals("MN")) {
+	    mrsatRecordCnt++;
+	    if (cuiToAtvMap.containsKey(record.getCui())) {
+	      cuiToAtvMap.get(record.getCui()).add(record.getAtv());
+	    } else {
+	      List<String> treecodeList = new ArrayList();
+	      treecodeList.add(record.getAtv());
+	      cuiToAtvMap.put(record.getCui(), treecodeList);
+	    }
 	  }
 	}
       }
-      br.close();
+    System.out.println("size of MeSH MRSAT list: " + mrsatRecordCnt);
     } catch (FileNotFoundException fnfe) {
       throw new RuntimeException(fnfe);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
-    return mrsatList;
-  }
-
-  /**
-   * Given list of Mesh MRSAT records with ATN field = "MN", create a
-   * map of treecodes (in ATV field) by cui
-   * @param mrsatRecordlist list of mrost records
-   * @return Map of treecodelists by cui
-   */
-  Map<String,List<String>> generateCuiToTreecodeMap(List<Mrsat> mrsatRecordlist) {
-    Map<String,List<String>> cuiToAtvMap = new HashMap<String,List<String>>();
-    for (Mrsat record: mrsatRecordlist) {
-      if (record.getAtn().equals("MN")) {
-	if (cuiToAtvMap.containsKey(record.getCui())) {
-	  cuiToAtvMap.get(record.getCui()).add(record.getAtv());
-	} else {
-	  List<String> treecodeList = new ArrayList();
-	  treecodeList.add(record.getAtv());
-	  cuiToAtvMap.put(record.getCui(), treecodeList);
-	}
-      }
-    }
     return cuiToAtvMap;
-  }
-
-  /** 
-   * Generate strings of form: "term|treecode", mesh terms without
-   * treecodes have treecode value "x.x.x.x".
-   * @param meshMrconsoRecords list of MeSH MRCONSO records
-   * @param cuiTreecodeMap cui to MeSH Treecode Map
-   * @return list of term 
-   */
-  List<String> generateTermToTreecodeList(List<Mrconso> meshMrconsoRecords,
-					  Map<String,List<String>> cuiTreecodeMap) {
-    List<String> termTreecodeList = new ArrayList<String>();
-    for (Mrconso mrconso: meshMrconsoRecords) {
-      if (cuiTreecodeMap.containsKey(mrconso.getCui())) {
-	for (String treecode: cuiTreecodeMap.get(mrconso.getCui())) {
-	  termTreecodeList.add(mrconso.getStr() + "|" + treecode);
-	}
-      } else {
-	termTreecodeList.add(mrconso.getStr() + "|" + "x.x.x.x");
-      }
-    }
-    return termTreecodeList;
   }
 
   /**
    * Write term|treecode list to file.
    * @param filename name of term|treecode output file
-   * @param termTreecodeList term|treecode list 
+   * @param mrconsoFilename name of UMLS MRCONSO file 
+   * @param cuiTreecodeMap cui to MeSH Treecode Map
    */
-  void writeTermTreecodeListToFile(String filename, List<String> termTreecodeList) {
+  public void writeTermTreecodeListToFile(String treecodeFilename, 
+					  String mrconsoFilename,
+					  Map<String,List<String>> cuiTreecodeMap)
+  {
     try {
-      PrintWriter pw = new PrintWriter(new FileWriter(filename));
-      for (String entry: termTreecodeList) {
-	pw.println(entry);
+      PrintWriter pw = new PrintWriter(new FileWriter(treecodeFilename));
+      BufferedReader br = new BufferedReader(new FileReader(mrconsoFilename));
+      int meshMrconsoRecordCnt = 0;
+      int termTreecodeRecordCnt = 0;
+      String line;
+      while ((line = br.readLine()) != null) {
+	Mrconso mrconso = new Mrconso(line.split("\\|"));
+	if (mrconso.getSab().equals("MSH")) {
+	  meshMrconsoRecordCnt++;
+	  if (cuiTreecodeMap.containsKey(mrconso.getCui())) {
+	    for (String treecode: cuiTreecodeMap.get(mrconso.getCui())) {
+	      String entry = mrconso.getStr() + "|" + treecode;
+	      pw.println(entry);
+	      termTreecodeRecordCnt++;
+	    }
+	  } else {
+	    String entry = mrconso.getStr() + "|" + "x.x.x.x";
+	    pw.println(entry);
+	    termTreecodeRecordCnt++;
+	  }
+	}
       }
+      br.close();
       pw.close();
+      System.out.println("size of MeSH MRCONSO list: " + meshMrconsoRecordCnt);
+      System.out.println("size of term -> treecode list: " + termTreecodeRecordCnt);
     } catch (FileNotFoundException fnfe) {
       throw new RuntimeException(fnfe);
     } catch (IOException ioe) {
@@ -167,25 +132,19 @@ public class ExtractTreecodes {
   public static void process(String mrconsoFilename,
 			     String mrsatFilename,
 			     String treecodeFilename)
+    
   {
     ExtractTreecodes inst = new ExtractTreecodes();
-    List<Mrconso> meshMrconsoRecords = inst.loadMeshMrconsoRecords(mrconsoFilename);
-    System.out.println("size of MeSH MRCONSO list: " + meshMrconsoRecords.size());
-    List<Mrsat> mrsatRecords = inst.loadMeshMnRecords(mrsatFilename);
-    System.out.println("size of MeSH MRSAT list: " + mrsatRecords.size());
-    System.out.flush();
-    Map<String,List<String>> cuiTreecodeMap = inst.generateCuiToTreecodeMap(mrsatRecords);
+    Map<String,List<String>> cuiTreecodeMap = inst.generateCuiToTreecodeMap(mrsatFilename);
     System.out.println("size of cui -> treecode dictionary: " + cuiTreecodeMap.size());
-    List<String> termTreecodeList =
-      inst.generateTermToTreecodeList(meshMrconsoRecords, cuiTreecodeMap);
-    System.out.println("size of term -> treecode list: " + termTreecodeList.size());
-    inst.writeTermTreecodeListToFile(treecodeFilename, termTreecodeList);
+    inst.writeTermTreecodeListToFile(treecodeFilename, mrconsoFilename, cuiTreecodeMap);
   }
+
   
   /**
-   * Describe <code>main</code> method here.
+   * Main - handle command line arguments and run process.
    *
-   * @param args a <code>String</code> value
+   * @param args command line arguments, a <code>String</code> value
    */
   public static final void main(final String[] args) {
     if (args.length > 2) {
