@@ -177,7 +177,6 @@
       <groupId>gov.nih.nlm.nls.lvg</groupId>
       <artifactId>lvgdist</artifactId>
       <version>2020.0</version>
-      <type>pom</type>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.json/json -->
