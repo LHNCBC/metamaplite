@@ -62,7 +62,7 @@ public class DirectLookupTermFile {
     return hitList;
   }
 
-    /**
+  /**
    * Describe <code>main</code> method here.
    *
    * @param args a <code>String</code> value
@@ -89,6 +89,7 @@ public class DirectLookupTermFile {
 	  System.out.println(term + "|" + Arrays.toString(hit));
 	}
       }
+      br.close();
     } else {
       System.err.println("examples.DirectLookup filename");
       System.err.println(" Lookup term in file, one term per line.");
