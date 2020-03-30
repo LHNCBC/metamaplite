@@ -54,6 +54,25 @@ public class CreateIndexes {
 
 
   /**
+   *  Does file exist and is not empty?
+   * @param filename name of file to be checked.
+   * @return true if file exists and is not empty, false otherwise. 
+   */
+  public static boolean fileExistsAndIsNotEmpty(String filename) {
+    File file = new File(filename);
+    return (file.exists() && (file.length() > 0));
+  }
+
+  /** 
+   * Skip message.
+   * @param filename name of file
+   */
+  public static void skipMessage(String filename) {
+    System.out.println("The table file " + filename + 
+		       " exists and has a length greater than zero, skipping table generation for this file");
+  }
+
+  /**
    * Create MetaMapLite Tables from MRCONSO.RRF and MRSTY.RRF UMLS files
    *
    * @param mrconsofilename MRCONSO filename
@@ -61,20 +80,52 @@ public class CreateIndexes {
    * @param ivfDir inverted file directory
    * @throws Exception general exception
    */
-  static void createTables(String mrconsofilename, String mrstyfilename, String ivfDir)
+  static void createTables(String mrconsofilename,
+			   String mrstyfilename,
+			   String mrsatfilename,
+			   String ivfDir)
     throws Exception
   {
     System.out.println("Creating tables from:\nmrconso: " + mrconsofilename +
 		       "\nmrsty: " + mrstyfilename);
     String cuiConceptFilename = ivfDir + "/tables/cuiconcept.txt";
-    ExtractMrconsoPreferredNames.createTable(mrconsofilename, cuiConceptFilename,
-					     "ENG", true, "RRF");
+    if (fileExistsAndIsNotEmpty(cuiConceptFilename)) {
+      skipMessage(cuiConceptFilename);
+    } else {
+      ExtractMrconsoPreferredNames.createTable(mrconsofilename, cuiConceptFilename,
+					       "ENG", true, "RRF");
+    }
     String cuiSourceInfoFilename = ivfDir + "/tables/cuisourceinfo.txt";
-    ExtractMrconsoSources.createTable(mrconsofilename, cuiSourceInfoFilename,
-				      true, true, true, "RRF");
+    if (fileExistsAndIsNotEmpty(cuiSourceInfoFilename)) {
+      skipMessage(cuiSourceInfoFilename);
+    } else {
+      ExtractMrconsoSources.createTable(mrconsofilename, cuiSourceInfoFilename,
+					true, true, true, "RRF");
+    }
     String cuiSemanticTypesFilename = ivfDir + "/tables/cuist.txt";
-    ExtractMrstySemanticTypes.createTable(mrstyfilename, cuiSemanticTypesFilename,
-					  true, "RRF", null);
+    if (fileExistsAndIsNotEmpty(cuiSemanticTypesFilename)) {
+      skipMessage(cuiSemanticTypesFilename);
+    } else {
+      ExtractMrstySemanticTypes.createTable(mrstyfilename, cuiSemanticTypesFilename,
+					    true, "RRF", null);
+    }
+    String meshTreecodesFilename = ivfDir + "/tables/mesh_tc_relaxed.txt";
+    if (fileExistsAndIsNotEmpty(meshTreecodesFilename)) {
+      skipMessage(meshTreecodesFilename);
+    } else {
+      ExtractTreecodes.process(mrconsofilename, mrsatfilename, meshTreecodesFilename);
+    }
+
+    System.gc();
+
+    // add variant generation
+    String varsfilename = ivfDir + "/tables/vars.txt";
+    if (fileExistsAndIsNotEmpty(varsfilename)) {
+      skipMessage(varsfilename);
+    } else {
+      GenerateVariants inst = new GenerateVariants();
+      inst.process(mrconsofilename, varsfilename);
+    }
   }
 
    /**
@@ -83,7 +134,7 @@ public class CreateIndexes {
    * @param ivfDir inverted file directory
    * @return map of dbname to associated configuration fields
    */
-  static Map<String,String[]> generateTableConfig(String ivfDir)
+  public static Map<String,String[]> generateTableConfig(String ivfDir)
   {
     Map<String,String[]> tableConfig = new HashMap<String,String []>();
     String configFilename = ivfDir + "/tables/ifconfig";
@@ -208,6 +259,7 @@ public class CreateIndexes {
 	instance.generateMaps(recordTable, columns);
 	Map<String,Extent> digestExtentMap = instance.writePostings(workingDir, indexName);
 	instance.writePartitions(workingDir, indexName, digestExtentMap);
+	System.gc();
       } else {
 	System.out.println("warning: table for " + indexName + " from file: " + tableFilename + " is not present, skipping table.");
       }
@@ -235,9 +287,10 @@ public class CreateIndexes {
     if (args.length > 2) {
       String mrconsoFile = args[0];
       String mrstyFile = args[1];
-      String ivfDir = args[2];
+      String mrsatFile = args[2];
+      String ivfDir = args[3];
       prepareDirectories(ivfDir);
-      createTables(mrconsoFile, mrstyFile, ivfDir);
+      createTables(mrconsoFile, mrstyFile, mrsatFile, ivfDir);
       Map<String,String[]> tableConfig = generateTableConfig(ivfDir);
       saveTableConfig(ivfDir + "/tables/ifconfig", tableConfig);
       createIndices(ivfDir, tableConfig, charset);
