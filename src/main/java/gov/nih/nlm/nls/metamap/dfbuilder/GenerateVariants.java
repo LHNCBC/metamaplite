@@ -168,7 +168,13 @@ public class GenerateVariants {
    *   term|term-categories|term-variant|variant-categories|varlevel|history|
    */
   public void process(String mrconsoFilename, String varsFilename) {
-    String wordsFilename = "/tmp/words.txt";
+    
+    String wordsFilename = System.getProperty("gv.words.temp.filename",
+					      "/tmp/words.txt.tmp");
+
+    System.out.println("Processing " + mrconsoFilename + " --> " +
+		       varsFilename + ".");
+
     GleanMrconso gleanMrconsoInst = new GleanMrconso();
     gleanMrconsoInst.process(mrconsoFilename, wordsFilename);
     this.processWords(wordsFilename, varsFilename);
