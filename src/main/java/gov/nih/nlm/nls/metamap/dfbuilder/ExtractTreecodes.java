@@ -134,6 +134,11 @@ public class ExtractTreecodes {
 			     String treecodeFilename)
     
   {
+    System.out.println("Processing " +
+		       mrconsoFilename + " + " +
+		       mrsatFilename + " --> " +
+		       treecodeFilename + ".");
+
     ExtractTreecodes inst = new ExtractTreecodes();
     Map<String,List<String>> cuiTreecodeMap = inst.generateCuiToTreecodeMap(mrsatFilename);
     System.out.println("size of cui -> treecode dictionary: " + cuiTreecodeMap.size());
