@@ -103,6 +103,7 @@ public class SingleLineInput implements BioCDocumentLoader {
       formatter.format("%08d.TX", i);
       doc.putInfon("docid", formatter.toString());
       docList.add(doc);
+      formatter.close();
       i++;
     }
     return docList;
@@ -123,6 +124,7 @@ BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream
       formatter.format("%08d.TX", i);
       doc.putInfon("docid", formatter.toString());
       docList.add(doc);
+      formatter.close();
       i++;
     }
     br.close();
