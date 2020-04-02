@@ -6,8 +6,10 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.ArrayList;
@@ -32,8 +34,7 @@ import gov.nih.nlm.nls.lvg.Lib.LexItem;
  */
 public class GenerateVariants {
 
-  String configFilename =
-    System.getProperty("gv.lvg.config.file", "config/lvg.properties");
+  String configFilename = null;
   LvgApi lvgApi;
   Connection conn;
   RamTrie trieI;
@@ -43,11 +44,35 @@ public class GenerateVariants {
    * Creates a new <code>GenerateVariants</code> instance.
    */
   public GenerateVariants() {
-    // System.out.println("this.configFilename: " + this.configFilename);
-    this.lvgApi = new LvgApi(this.configFilename);
-    this.conn = this.lvgApi.GetConnection();
-    this.trieI = this.lvgApi.GetInflectionTrie();
-    this.trieD = this.lvgApi.GetDerivationTrie();
+
+    String lvgDirname = System.getenv("LVG_DIR");
+    if (lvgDirname != null) {
+      this.configFilename = lvgDirname + "/data/config/lvg.properties";
+    }
+    String lvgDirnameProperty = System.getProperty("gv.lvg.dirname");
+    if (lvgDirnameProperty != null) {
+      this.configFilename = lvgDirnameProperty;
+    }
+    String lvgConfigName = System.getenv("LVG_CONFIG");
+    if (lvgConfigName != null) {
+      this.configFilename = lvgConfigName;
+    }
+    if (this.configFilename == null) {
+      this.configFilename =
+	System.getProperty("gv.lvg.config.file", "config/lvg.properties");
+    }
+    if (new File(this.configFilename).exists()) {
+      System.out.println("using LVG config at " + this.configFilename);
+      this.lvgApi = new LvgApi(this.configFilename);
+      this.conn = this.lvgApi.GetConnection();
+      this.trieI = this.lvgApi.GetInflectionTrie();
+      this.trieD = this.lvgApi.GetDerivationTrie();
+    } else {
+      System.err.println("Warning: specified LVG configuration file: " +
+			 this.configFilename + "does not exist!");
+      System.err.println("LVG will not be used.");
+      this.lvgApi = null;
+    }
   }
 
   /** 
@@ -168,10 +193,17 @@ public class GenerateVariants {
    *   term|term-categories|term-variant|variant-categories|varlevel|history|
    */
   public void process(String mrconsoFilename, String varsFilename) {
-    
-    String wordsFilename = System.getProperty("gv.words.temp.filename",
-					      "/tmp/words.txt.tmp");
-
+    if (this.lvgApi == null)
+      return; // abort if LVG is not available.
+    String wordsFilename = null;
+    String wordFileEnv = System.getenv("GV_WORDS_FILE");
+    if (wordFileEnv != null) {
+      wordsFilename = wordFileEnv;
+    }
+    if (wordsFilename == null) {
+      wordsFilename = System.getProperty("gv.words.temp.filename",
+					 "/tmp/words.txt.tmp");
+    }
     System.out.println("Processing " + mrconsoFilename + " --> " +
 		       varsFilename + ".");
 
