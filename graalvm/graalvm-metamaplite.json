@@ -120,6 +120,12 @@
 	]
     },
     {
+	"name" : "gov.nih.nlm.nls.metamap.document.PubMedRISFormat",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
 	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate",
 	"methods" : [
 	    { "name" : "<init>", "parameterTypes" : [] }
