@@ -33,8 +33,10 @@ mvn install:install-file  -Dfile=lib/nlp-2.4.C.jar ^
                           -Dversion=2.4.C ^
                           -Dpackaging=jar
 
-mvn install:install-file  -Dfile=lib/irutils-2.0-SNAPSHOT.jar ^
-                          -DgroupId=irutils ^
-                          -DartifactId=irutils ^
-                          -Dversion=2.0-SNAPSHOT ^
+mvn install:install-file  -Dfile=lib/lvgdist-2020.0.jar ^
+                          -DgroupId=gov.nih.nlm.nls.lvg ^
+                          -DartifactId=lvgdist ^
+                          -Dversion=2020.0 ^
                           -Dpackaging=jar
+
+
