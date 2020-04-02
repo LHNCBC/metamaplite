@@ -783,6 +783,7 @@ public class MetaMapLite {
 				     "gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI");
     defaultConfiguration.setProperty("metamaplite.negation.detector",
 				     "gov.nih.nlm.nls.metamap.lite.NegEx");
+    defaultConfiguration.setProperty("metamaplite.disable.chunker","true");
     return defaultConfiguration;
   }
 
@@ -1199,6 +1200,12 @@ public class MetaMapLite {
       List<String> filenameList = new ArrayList<String>();
       String propertiesFilename = System.getProperty("metamaplite.propertyfile", "config/metamaplite.properties");
       Properties optionsConfiguration = new Properties();
+      // if MML_INDEXDIR environment variable is set then use it to
+      // overide property "metamaplite.index.directory"
+      String mmlIndexDirEnv = System.getenv("MML_INDEXDIR");
+      if (mmlIndexDirEnv != null) {
+	optionsConfiguration.setProperty ("metamaplite.index.directory", mmlIndexDirEnv);
+      } 
       boolean fromScheduler = false;
       int i = 0;
       while (i < args.length) {
