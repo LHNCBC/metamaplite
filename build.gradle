@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'gov.nih.nlm.nls'
-version = '3.6.2rc4'
+version = '3.6.2rc5'
 
 description = """metamaplite"""
 

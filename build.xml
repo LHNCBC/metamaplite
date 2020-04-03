@@ -79,7 +79,7 @@
   <!-- ==================== Administrative targets ======================= -->
   <target name="jar" depends="compile">
     <mkdir dir="${project.lib}" />
-    <jar jarfile="${project.lib}/metamaplite-3.6.2rc4-SNAPSHOT.jar"
+    <jar jarfile="${project.lib}/metamaplite-3.6.2rc5-SNAPSHOT.jar"
          basedir="${project.classes}"/>
 
   </target>

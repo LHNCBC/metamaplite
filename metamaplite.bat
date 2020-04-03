@@ -3,7 +3,7 @@ echo off
 
 set projectdir=%cd%
 
-set MML_VERSION=3.6.2rc4
+set MML_VERSION=3.6.2rc5
 
 set OPENNLP_MODELS=$PROJECTDIR/data/models
 set CONFIGDIR=$PROJECTDIR/config
