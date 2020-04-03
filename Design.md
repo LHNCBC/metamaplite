@@ -320,7 +320,18 @@ current tables:
     cuisourceinfo
     cuist
 
-### Generating Tables
+### Generating Tables and Indexes
+
+The CreateIndexes class generates tables cuiconcept, cuisourceinfo,
+cuist, meshtcrelaxed, and vars from MRCONSO.RRF, MRSTY.RRF, and MRSTY
+and then produces corresponding indexes for tables.
+
+Usage: 
+
+     java -cp target/metamaplite-1.0-SNAPSHOT.jar \
+      gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <mrsatfile> <ivfdir>
+
+### The Previous Method for Generating Tables Only
 
 #### cuiconcept
 
@@ -397,17 +408,61 @@ example of running program:
 	data/ivf/2015AA/mrsty.rrf \
 	data/ivf/2015AA/strict/tables/cuist.txt
 
-### Building the inverted file indexes
 
-The CreateIndexes class generates tables cuiconcept, cuisourceinfo,
-and cuist from MRCONSO.RRF and MRSTY.RRF and then produces
-corresponding indexes for tables.
+#### meshtcrelaxed
 
-Usage: 
+(131)I-Macroaggregated Albumin|x.x.x.x
+(131)I-MAA|x.x.x.x
+1,2-Dipalmitoylphosphatidylcholine|D10.570.755.375.760.400.800.224
+1,2 Dipalmitoylphosphatidylcholine|D10.570.755.375.760.400.800.224
+1,2-Dihexadecyl-sn-Glycerophosphocholine|D10.570.755.375.760.400.800.224
+1,2 Dihexadecyl sn Glycerophosphocholine|D10.570.755.375.760.400.800.224
+1,2-Dipalmitoyl-Glycerophosphocholine|D10.570.755.375.760.400.800.224
+1,2 Dipalmitoyl Glycerophosphocholine|D10.570.755.375.760.400.800.224
+Dipalmitoylphosphatidylcholine|D10.570.755.375.760.400.800.224
+Dipalmitoylglycerophosphocholine|D10.570.755.375.760.400.800.224
 
-     java -cp target/metamaplite-1.0-SNAPSHOT.jar \
-      gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
+program: gov.nih.nlm.nls.metamap.dfbuilder.ExtractTreecodes
 
+    MRCONSO.RRF + MRSAT -> ExtractTreecodes -> mesh_tc_relaxed.txt
+
+example of running program:
+
+    $ java -cp $CLASSPATH \
+    gov.nih.nlm.nls.metamap.dfbuilder.ExtractTreecodes \
+    data/ivf/2015AA/mrconso.eng
+	data/ivf/2015AA/mrsat.rrf \
+	data/ivf/2015AA/strict/mesh_tc_relaxed.txt
+
+#### vars
+
+A10|all|A10|noun|G|128|1|n|0|3|
+A10|noun|A-10|noun|G|128|1|n+s|0|3|
+A11|all|A11|noun|G|128|1|n|0|3|
+A1ATD|all|A1ATD|noun|G|128|1|n|0|3|
+A1ATD|noun|A1ATD's|noun|G|128|1|n+i|1|3|
+A1ATD|noun|A1ATDs|noun|G|128|1|n+i|1|3|
+A1ATD|noun|alpha 1 antitrypsin deficiencies|noun|G|128|1|n+a+s+i|3|1|
+A1ATD|noun|alpha 1 antitrypsin deficiency|noun|G|128|1|n+a+s|2|1|
+A1ATD|noun|alpha 1-antitrypsin deficiencies|noun|G|128|1|n+a+s+i|3|1|
+A1ATD|noun|alpha 1-antitrypsin deficiency|noun|G|128|1|n+a+s|2|1|
+
+program: gov.nih.nlm.nls.metamap.dfbuilder.GenerateVariants
+
+    MRCONSO.RRF + LVG2020 -> GenerateVariants -> vars.txt
+
+NOTE: The GenerateVariants program requires the Lexical Variant
+Generator library and database to work.  LVG is available from the
+Lexical Tools Page:
+https://lexsrv3.nlm.nih.gov/LexSysGroup/Projects/lvg/current/web/index.html
+
+example of running program:
+
+    $ export LVG_DIR=/opt/lvg2020
+    $ java -cp $CLASSPATH \
+    gov.nih.nlm.nls.metamap.dfbuilder.ExtractTreecodes \
+    data/ivf/2015AA/mrconso.eng
+	data/ivf/2015AA/strict/vars.txt
 
 ### Trie based
 
@@ -429,20 +484,28 @@ is in current implementation.
 + FreeText
 + Single Line Input (SLI)
 + Single Line Delimited Input (SLDI)
++ Medline
++ PubMedXML
++ PubMedRIS
 + ChemDNER
 + ChemDNERSLDI
 + NCBICorpus
 
-### Future
+# Future
 
-+ Medline 
-+ XML (Medline, user-specified)
 + JSON 
 + EDN
 
-# Pipeline
+## output formats
 
-# Pipeline Definition
++ MMI
++ BRAT (Stanoff Format)
++ JSON
+
+
+## Pipeline
+
+### Pipeline Definition
 
 YAML versus Java Properties versus XML
 
@@ -451,7 +514,7 @@ YAML versus Java Properties versus XML
 + JSON is more versatile but not human readable.
 + YAML
 
-## Example YAML configuration file
+#### Example YAML configuration file
 
     tokenizesentence:
        description: tokenize sentence
@@ -483,33 +546,33 @@ YAML versus Java Properties versus XML
        - displayentityset
 
 
-# Pipeline Protocols
+### Pipeline Protocols
 
 object based
 
-# Pipeline Wrapper Modules
+## Pipeline Wrapper Modules
 
 
-# Plugins
+## Plugins
 
 Should use OSGi or JPF (Java Plugin Framework)  
 
-## chunkers
+### chunkers
 
-## full parsers
+### full parsers
 
-## dictionary lookup
+### dictionary lookup
 
-## normalization
+### normalization
 
-## Filtering for Other
+### Filtering for Other
 
 The term "Other" is ignored in MetaMapLite if it's the first token in
 candidate token list.  (It is a stop_phrase in MetaMap)
 
-# Java Interfaces
+## Java Interfaces
 
-## Current
+### Current
 
 ChunkerMethod
 EntityLookup
@@ -517,23 +580,20 @@ NegationDetector
 VariantLookup
 Phrase
 
-## Future
+## Other Future
 
 Tokenization
 SentenceExtractor (SentenceBreaker?)
 FullParser
 
 
-# outputs
-
-
-# MRCONSO file 
+### MRCONSO file 
 
     /nfsvol/nls/specialist/module/metawordindex/data.Base.2014AA/mrconso.suppressed
 
 5365358
 
-# Evaluation
+### Evaluation
 
 Similarity Measures
 
