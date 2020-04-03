@@ -197,6 +197,45 @@ Usually, there are several records for each UMLS concept:
     C0000084|aapp
     C0000084|bacs
 
+#### meshtcrelaxed
+
+This table maps terms to MeSH treecodes for terms that are present in
+MeSH. Each record contains the term and its associated treecode.  Term
+that do not have a treecode are mapped to "x.x.x.x".
+
+    term|treecode
+
+Sample records are below:
+
+    (131)I-Macroaggregated Albumin|x.x.x.x
+    (131)I-MAA|x.x.x.x
+    1,2-Dipalmitoylphosphatidylcholine|D10.570.755.375.760.400.800.224
+    1,2 Dipalmitoylphosphatidylcholine|D10.570.755.375.760.400.800.224
+    1,2-Dihexadecyl-sn-Glycerophosphocholine|D10.570.755.375.760.400.800.224
+    1,2 Dihexadecyl sn Glycerophosphocholine|D10.570.755.375.760.400.800.224
+    1,2-Dipalmitoyl-Glycerophosphocholine|D10.570.755.375.760.400.800.224
+    1,2 Dipalmitoyl Glycerophosphocholine|D10.570.755.375.760.400.800.224
+
+#### vars
+
+This table maps a term to their associated lexical variants and
+lexical variants to their associated terms.
+
+    original term|source category|target term|target category|flow history|mutate info
+
+Sample records are below:
+
+    A10|all|A10|noun|G|128|1|n|0|3|
+    A10|noun|A-10|noun|G|128|1|n+s|0|3|
+    A11|all|A11|noun|G|128|1|n|0|3|
+    A1ATD|all|A1ATD|noun|G|128|1|n|0|3|
+    A1ATD|noun|A1ATD's|noun|G|128|1|n+i|1|3|
+    A1ATD|noun|A1ATDs|noun|G|128|1|n+i|1|3|
+    A1ATD|noun|alpha 1 antitrypsin deficiencies|noun|G|128|1|n+a+s+i|3|1|
+    A1ATD|noun|alpha 1 antitrypsin deficiency|noun|G|128|1|n+a+s|2|1|
+    A1ATD|noun|alpha 1-antitrypsin deficiencies|noun|G|128|1|n+a+s+i|3|1|
+    A1ATD|noun|alpha 1-antitrypsin deficiency|noun|G|128|1|n+a+s|2|1|
+
 ## Dictionary and Postings File Organization
 
 The dictionary is constructed as several partitions, each partition
@@ -271,22 +310,6 @@ for each partition:
  + write dictionary and extents after postings are written.
  + term to checksum map is discarded after partition is saved, checksum to extent map is preserved. 
 
-
-## Feature Requests
-
-1. add support for exclusion of some cui/term combination (see MetaMap's special terms file) [done?]
-2. support entity lookup using two separate dataset (UMLS and custom, etc.) 
-
-## Known bugs
-
-1. Semantic Type filter does not always filter out all excluded types
-2. Abbreviation detector doesn't always work
-
-## Packaging
-
-See file dist_metamap_lite_2015.tcl in repository:
-
-    ${II_WORKAREA}/II_source_repositories/packagingv2.git.
 
 ### Required files
 
@@ -781,5 +804,14 @@ These are related to the use of Antonio Jimeno Yepes' WSD library.
     monq:monq:jar:1.1.1                | bioinformatics.ua.pt/maven/content/groups/public
     org.w3c.xml:thirdparty:jar:1.2.0   | ?
     com.sleepycat.db:db:jar:4.1        | ?
+
+## Feature Requests
+
+1. Support entity lookup using two separate dataset (UMLS and custom, etc.) 
+
+## Known bugs
+
+1. Semantic Type filter does not always filter out all excluded types
+2. Abbreviation detector doesn't always work
 
 
