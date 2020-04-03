@@ -126,6 +126,20 @@ public class GenerateVariants {
   }
 
   /**
+   * Transform mutate information string
+   * 
+   * 128|1|n+dd+y|8|2| -&gt; 8|n+dd+y|2|128|1
+   * 
+   * @param mutateInfoString information string
+   * @return modified mutate information string
+   */
+  public String transformMutateInformation(String mutateInfoString) {
+    String[] fields = mutateInfoString.split("\\|");
+    return fields[3] + "|" + fields[2] + "|" +
+      fields[4] + "|" + fields[0] + "|" + fields[1];
+  }
+
+  /**
    * Generate piped representation of variant information for lexical
    * item.
    * @param item lexical item
@@ -137,8 +151,8 @@ public class GenerateVariants {
       item.GetSourceCategory().GetName() + "|" +
       item.GetTargetTerm() + "|" +
       item.GetTargetCategory().GetName() + "|" +
-      item.GetFlowHistory() + "|" +
-      item.GetMutateInformation();
+      transformMutateInformation(item.GetMutateInformation()) + "|" +
+      item.GetFlowHistory();
   }
 
   /** 
