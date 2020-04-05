@@ -436,8 +436,9 @@ public class MMI implements ResultFormatter {
 				   entity.isNegated() ? 1 : 0, // neg?
 				   posInfo); 
 	  tupleSet.add(tuple);
+	  String preferredName = ev.getConceptInfo().getPreferredName();
 	  termFreqMap.put(tfKey,
-			  new TermFrequency(ev.getConceptInfo().getPreferredName(),
+			  new TermFrequency(preferredName,
 					    new ArrayList<String>(ev.getConceptInfo().getSemanticTypeSet()),
 					    tupleSet, 
 					    entity.getFieldId() == null ? false :
@@ -447,7 +448,7 @@ public class MMI implements ResultFormatter {
 					    cui,
 					    1,
 					    ev.getScore(),
-					    getTreecodes(conceptString)));
+					    getTreecodes(preferredName)));
 	}
       }
     }
