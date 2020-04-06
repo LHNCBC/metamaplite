@@ -1,5 +1,8 @@
 package gov.nih.nlm.nls.metamap.prefix.utf8;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * Maps for converting UTF-8  Diacritic characters to expanded equivalents in ASCII.
  *
@@ -21,21 +24,21 @@ public class Diacritics {
    */
   static {
 
-    stringToStringMap.put("a\u300","a"); // a grave accent
-    stringToStringMap.put("a\u301","a"); // a acute accent
-    stringToStringMap.put("a\u302","a"); // a circumflex accent
-    stringToStringMap.put("a\u303","a"); // a tilde
-    stringToStringMap.put("a\u304","a"); // a macron
-    stringToStringMap.put("a\u305","a"); // a overline
-    stringToStringMap.put("a\u306","a"); // a breve
-    stringToStringMap.put("a\u307","a"); // a dot above
-    stringToStringMap.put("a\u308","a"); // a 
-    stringToStringMap.put("a\u309","a"); // a 
-    stringToStringMap.put("a\u30A","a"); // a 
-    stringToStringMap.put("a\u30B","a"); // a 
-    stringToStringMap.put("a\u30C","a"); // a caron
-    stringToStringMap.put("a\u301","a"); // a tilde
-    stringToStringMap.put("a\u301","a"); // a tilde
+    stringToStringMap.put("a\u0300","a"); // a grave accent
+    stringToStringMap.put("a\u0301","a"); // a acute accent
+    stringToStringMap.put("a\u0302","a"); // a circumflex accent
+    stringToStringMap.put("a\u0303","a"); // a tilde
+    stringToStringMap.put("a\u0304","a"); // a macron
+    stringToStringMap.put("a\u0305","a"); // a overline
+    stringToStringMap.put("a\u0306","a"); // a breve
+    stringToStringMap.put("a\u0307","a"); // a dot above
+    stringToStringMap.put("a\u0308","a"); // a 
+    stringToStringMap.put("a\u0309","a"); // a 
+    stringToStringMap.put("a\u030A","a"); // a 
+    stringToStringMap.put("a\u030B","a"); // a 
+    stringToStringMap.put("a\u030C","a"); // a caron
+    stringToStringMap.put("a\u0301","a"); // a tilde
+    stringToStringMap.put("a\u0301","a"); // a tilde
     stringToStringMap.put("\u0198","AE"); // 
     stringToStringMap.put("\u0339","oe"); // 
     stringToStringMap.put("\u0339","oe"); // 
