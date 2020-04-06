@@ -14,7 +14,7 @@ MRSTY=$2
 MRSAT=$3
 IVFDIR=$4
 
-MML_VERSION=3.6.2rc4
+MML_VERSION=3.6.2rc5
 
 # IMPORTANT NOTE: Location of LVG properties file must be defined
 # before running this script:
