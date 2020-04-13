@@ -4,7 +4,7 @@
 #
 # usage: create_indices.bat mrconso mrsty mrsat ivfdir
 #
-if [ $# = 0 ]; then
+if [ $# -lt 4 ]; then
     echo "usage: $0 mrconso mrsty mrsat ivfdir"
     exit 0
 fi
@@ -14,6 +14,26 @@ MRSTY=$2
 MRSAT=$3
 IVFDIR=$4
 
+if [ ! -f $MRCONSO ]; then
+    echo "MRCONSO file $MRCONSO not found! aborting!"
+    exit 1
+fi
+
+if [ ! -f $MRSTY ]; then
+    echo "MRSTY file $MRSTY not found! aborting!"
+    exit 1
+fi
+
+if [ ! -f $MRSAT ]; then
+    echo "MRSAT file $MRSAT not found! aborting!"
+    exit 1
+fi
+
+echo "MRCONSO file: $MRCONSO"
+echo "MRSTY file: $MRSTY"
+echo "MRSAT file: $MRSAT"
+echo "Inverted file database directory: $IVFDIR"
+    
 MML_VERSION=3.6.2rc5
 
 # IMPORTANT NOTE: Location of LVG properties file must be defined
@@ -77,19 +97,19 @@ fi
 
 # build index $IVFDIR/indices/cuiconcept
 #
-java -Xmx4g \
+java -Xmx6g \
       -cp $PROJECTDIR/target/metamaplite-${MML_VERSION}-standalone.jar \
       gov.nih.nlm.nls.metamap.dfbuilder.BuildIndex \
       $IVFDIR cuiconcept
 
 # build index $IVFDIR/indices/cuisourceinfo
-java -Xmx7g \
+java -Xmx10g \
       -cp $PROJECTDIR/target/metamaplite-${MML_VERSION}-standalone.jar \
       gov.nih.nlm.nls.metamap.dfbuilder.BuildIndex \
       $IVFDIR cuisourceinfo
 
 # build index $IVFDIR/indices/cuist
-java -Xmx5g \
+java -Xmx7g \
       -cp $PROJECTDIR/target/metamaplite-${MML_VERSION}-standalone.jar \
       gov.nih.nlm.nls.metamap.dfbuilder.BuildIndex \
       $IVFDIR cuist
