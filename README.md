@@ -1,6 +1,6 @@
 # MetaMapLite: A lighter named-entity recognizer
 
-The primary goal of MetaMapLite to provide a near real-time
+The primary goal of MetaMapLite is to provide a near real-time
 named-entity recognizer which is not a rigorous as MetaMap but much
 faster while allowing users to customize and augment its behavior for
 specific purposes.
@@ -65,7 +65,54 @@ __public_mm__ directory:
           --modelsdir=data/models \
           --specialtermsfile=data/specialterms.txt  [options] [<input file>|--]
 
-Current options are:
+### Reading from standard input
+
+    echo "asymptomatic patient populations" | ./metamaplite.sh --pipe
+
+or
+
+    cat file | ./metamaplite.sh --pipe
+
+Output will be sent to standard output.
+
+### Restricting to a set of semantic types
+
+The list of concepts returned can be restricted to a only those that
+refer to a subset of the UMLS semantic types by semantic type
+abbreviations:
+
+    ./metamaplite.sh --restrict_to_sts=abbrev,abbrev
+
+The following option restricts to concepts that have the semantic types
+disease or syndrome (dsyn) and hazardous or poisonous substance (hops):
+
+    ./metamaplite.sh --restrict_to_sts=dsyn,hops
+
+A full list of semantic types and their abbreviations is at:
+
+https://metamap.nlm.nih.gov/Docs/SemanticTypes_2018AB.txt
+
+### Restricting to a set of source vocabularies
+
+The follows option specifies that only concepts that appear in the
+MeSH (MSH), and NCBI Taxonomy (NCBI) vocabularies will be returned:
+
+    ./metamaplite.sh --restrict_to_sources=MSH,NCBI
+
+A full list of the current source vocabularies and their abbreviations
+can be found at:
+
+https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
+
+
+### Annotating a brat directory
+
+To create annotation files (.ann) in a directory from the associated text files (.txt)
+
+     ./metamaplite.sh --brat directory/*.txt
+
+
+### Current options
 
   input options:
 
@@ -90,24 +137,36 @@ configuration file is not present:
 
   document processing options:
 
-    --freetext      Text with no markup.
-    --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
-    --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
-    --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id |t title \t abstract
-	--inputformat=<loadername>
-	                Use input format specified by loader name.
+    --freetext                  Text with no markup. (default)
+    --inputformat=<loadername>	Use input format specified by loader name.
+    --inputformat=pubmed        PubMed XML format
+    --inputformat=medline       Medline format
+    --inputformat=ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
+    --inputformat=chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
+    --inputformat=chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id |t title \t abstract
 
   output options:
 
+    --mmilike|mmi               similar to MetaMap Fielded MMI output (default)
     --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
-    --mmilike|mmi               similar to MetaMap Fielded MMI output
     --brat                      BRAT annotation format
-	--outputformat=<format>      
+	--outputformat=<format>       
+    --outputformat=json         JSON output format
 
   processing options:
 
     --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
+
+          Restrict output to concepts that have at least one member
+          in the list of user-specified semantic-types. The list of
+          supported semantic type short forms used by this program is
+          available at https://metamap.nlm.nih.gov/Docs/SemanticTypes_2018AB.txt
+
     --restrict_to_sources=<source>[,<source>...]
+          Restrict output to concepts that belong to the list of specified vocabularies.
+          A full list of the current source vocabularies and their abbreviations
+          can be found at https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
+
     --segmentation_method=SENTENCES|BLANKLINES|LINES
                            Set method for text segmentation
 	--segment_sentences    Segment text by sentence
@@ -174,7 +233,6 @@ These properties can be set using a System property
 	| metamaplite.postaglist                | List of part-of-speech tags to use for term lookup
 	                                        | (each Penn Treebank part-of-speech tag is separated by commas.)
 	| metamaplite.enable.scoring            | turn on chunker (currently OpenNLP's chunker) and score concepts.
-
 
 ## Using MetaMapLite from Java
 
@@ -281,7 +339,7 @@ Add the following dependency to your webapps pom.xml:
       <version>3.0-SNAPSHOT</version>
     </dependency>
 
-# irutils indexes
+# Irutils Indexes
 
 ## Tables and Indexes
 
@@ -532,7 +590,6 @@ https://lexsrv3.nlm.nih.gov/LexSysGroup/Projects/lvg/current/web/index.html
 ## Future Work
 
 + Add support for composite phrases from chunked phrases
-+ Create a ReSTful interface for MetaMapLite.
 + Create a pipeline using a full parser.
 + Add a mechanism to use custom user-supplied segmenters.
 
