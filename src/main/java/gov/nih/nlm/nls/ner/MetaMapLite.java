@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -39,6 +40,7 @@ import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPSentenceExtractor;
 import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
+import gov.nih.nlm.nls.metamap.lite.IVFLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup4;
 import gov.nih.nlm.nls.metamap.lite.EntityLookup5;
@@ -569,7 +571,7 @@ public class MetaMapLite {
       if (! passageInfons.containsKey("docid")) {
 	passageInfons.put("docid", document.getID());
       }
-      entityList.addAll(processPassage(passage));
+      entityList.addAll(this.processPassage(passage));
     }
     return entityList;
   }
@@ -611,7 +613,10 @@ public class MetaMapLite {
     for (BioCDocument document: documentList) {
       for (BioCPassage passage: document.getPassages()) {
 	for (Sentence sentence: this.sentenceExtractor.createSentenceList(passage.getText())) {
-	  infos.addAll(extractAbbr.extractAbbrPairsString(sentence.getText()));
+	  for (AbbrInfo abbrInfo: extractAbbr.extractAbbrPairsString(sentence.getText())) {
+	    infos.add(new AbbrInfo(abbrInfo.shortForm.replace("\n", " "), abbrInfo.shortFormIndex,
+				   abbrInfo.longForm.replace("\n", " "), abbrInfo.longFormIndex));
+	  }
 	}
       }
     }
@@ -884,13 +889,12 @@ public class MetaMapLite {
 
   void listAcronyms(List<BioCDocument> documentList) {
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
       pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
-		 acronym.longForm.replace("\n", " ") + "|" + acronym.longFormIndex );
+		 acronym.longForm + "|" + acronym.longFormIndex );
     }
     pw.flush();
-    pw.close();
   }
 
   void listSentencesWithPosTags(List<BioCDocument> documentList)
@@ -899,7 +903,7 @@ public class MetaMapLite {
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     logger.info("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> tokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
@@ -908,7 +912,7 @@ public class MetaMapLite {
       }
       pw.println();
     }
-    pw.close();
+    pw.flush();
   }
 
   void listChunks(List<BioCDocument> documentList)
@@ -916,9 +920,9 @@ public class MetaMapLite {
   {
     logger.info("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     listChunks(pw, documentList);
-    pw.close();
+    pw.flush();
   }
 
   void listEntities(List<BioCDocument> documentList, String outputFormatOption)
@@ -928,26 +932,63 @@ public class MetaMapLite {
 
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
-				     Charset.forName("utf-8")));
+							    Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
+    pw.flush();
+  }
+
+  /**
+   * Return basename of file, essentially the filename without the
+   * extension.
+   * @param filename filename of file including extension (if present)
+   * @return filename with extension removed, or just the filename if extension was not present
+   */
+  public String getBasename(String filename) {
+    String basename = "sentences";
+    if (filename.lastIndexOf(".") >= 0) {
+      basename = filename.substring(0,filename.lastIndexOf("."));
+    } else {
+      basename = filename;
+    }
+    return basename;
+  }
+
+  /**
+   * Check if specified file exists, if so then throw run time
+   * exception saying the file exists. Continue if file does not
+   * exist, returning File object for specified file.
+   * @param filename filename of file to be checked.
+   * @return file object of specified file
+   */
+  public File throwExceptionIfFileExists(String outputFilename, boolean overwritefile) {
+    File outputFile = new File(outputFilename);
+    if (outputFile.exists() && (overwritefile == false)) {
+      throw new RuntimeException
+	("File " + outputFile.getPath() +
+	 " exists aborting, use --overwrite to overwrite output files.");
+    }
+    return outputFile;
   }
 
   /** list entities using document list from stdin 
    * @param filename filename
    * @param documentList list of BioC documents
+   * @param overwritefile if true then overwrite output files if files already exist.
    * @throws IOException i/o exception
    */
   void listSentences(String filename, 
-		     List<BioCDocument> documentList)
+		     List<BioCDocument> documentList,
+                     boolean overwritefile)
     throws IOException
   {
     // output results for file
     // create output filename
-    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String basename = getBasename(filename);
     String outputFilename = basename + ".sentences";
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+				     (new FileWriter(outputFile)));
     for (Sentence sent: this.getSentenceList(documentList)) {
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
     }
@@ -955,13 +996,15 @@ public class MetaMapLite {
   }
 
   void listAcronyms(String filename, 
-		    List<BioCDocument> documentList)
+		    List<BioCDocument> documentList,
+		    boolean overwritefile)
     throws IOException
   {
-    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String basename = getBasename(filename);
     String outputFilename = basename + ".acronyms";
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+				     (new FileWriter(outputFile)));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
       pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
 		 acronym.longForm + "|" + acronym.longFormIndex );
@@ -970,17 +1013,19 @@ public class MetaMapLite {
   }
 
   void listSentencesWithPosTags(String filename, 
-				List<BioCDocument> documentList)
+				List<BioCDocument> documentList,
+				boolean overwritefile)
     throws IOException
   {
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
     // output results for file
     // create output filename
-    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String basename = getBasename(filename);
     String outputFilename = basename + ".sentences";
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+				     (new FileWriter(outputFile)));
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> tokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
@@ -996,8 +1041,8 @@ public class MetaMapLite {
 		  List<BioCDocument> documentList)
     throws IOException
   {
-    this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-    this.chunkerMethod = new OpenNLPChunker(properties);
+    this.sentenceAnnotator = new OpenNLPPoSTagger(this.properties);
+    this.chunkerMethod = new OpenNLPChunker(this.properties);
     for (Sentence sent: this.getSentenceList(documentList)) {
       List<ERToken> sentenceTokenList = sentenceAnnotator.addPartOfSpeech(sent);
       pw.println(sent.getOffset() + "|" + sent.getText().length() + "|" + sent.getText());
@@ -1022,20 +1067,22 @@ public class MetaMapLite {
       pw.println("-----------");
       pw.println();
     }
+    pw.flush();
   }    
 
   void listChunks(String filename,
-		  List<BioCDocument> documentList)
+		  List<BioCDocument> documentList,
+		  boolean overwritefile)
     throws IOException
   {
-    
     // output results for file
     // create output filename
-    String basename = filename.substring(0,filename.lastIndexOf(".")); // 
+    String basename = getBasename(filename);
     String outputFilename = basename + ".chunks";
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+				     (new FileWriter(outputFile)));
     listChunks(pw, documentList);
     pw.close();
   }
@@ -1043,22 +1090,18 @@ public class MetaMapLite {
   void listEntities(String filename, 
 		    List<BioCDocument> documentList,
 		    String outputExtension,
-		    String outputFormatOption)
+		    String outputFormatOption,
+		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
-    String basename = "output";
     // create output filename
-    if (filename.lastIndexOf(".") >= 0) {
-      basename = filename.substring(0,filename.lastIndexOf(".")); //
-    } else {
-      basename = filename;
-    }
+    String basename = getBasename(filename);
     String outputFilename = basename + outputExtension;
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
-    
     // output results for file
     PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+				     (new FileWriter(outputFile)));
     listEntities(documentList, pw, outputFormatOption);
     pw.close();
   } /* processFile */
@@ -1067,17 +1110,14 @@ public class MetaMapLite {
 		    List<BioCDocument> documentList,
 		    String outputExtension,
 		    String outputFormatOption,
-		    boolean indicateCitationEnd)
+		    boolean indicateCitationEnd,
+		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
-    String basename = "output";
     // create output filename
-    if (filename.lastIndexOf(".") >= 0) {
-      basename = filename.substring(0,filename.lastIndexOf(".")); //
-    } else {
-      basename = filename;
-    }
+    String basename = getBasename(filename);
     String outputFilename = basename + outputExtension;
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
@@ -1088,24 +1128,29 @@ public class MetaMapLite {
       pw.println(eotString); // should this be in Prolog format? Will 'EOT' suffice?
       pw.flush();
     }
+    pw.close();
   } /* processFile */
 
   void listEntities(String outputFilename, 
 		    List<BioCDocument> documentList,
 		    String outputFormatOption,
-		    boolean indicateCitationEnd)
+		    boolean indicateCitationEnd,
+		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
+    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
-    PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter
+				     (new FileOutputStream(outputFilename),
+				      Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
     if (indicateCitationEnd) {
       pw.println(eotString); // should this be in Prolog format? Will 'EOT' suffice?
       pw.flush();
     }
+    pw.close();
   } /* processFile */
 
   void listEntities(String outputFilename, 
@@ -1116,8 +1161,9 @@ public class MetaMapLite {
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
-    PrintWriter pw = new PrintWriter(new BufferedWriter
-				     (new FileWriter(outputFilename)));
+    PrintWriter pw = new PrintWriter(new OutputStreamWriter
+				     (new FileOutputStream(outputFilename),
+				      Charset.forName("utf-8")));
     listEntities(documentList, pw, outputFormatOption);
     pw.close();
   } /* processFile */
@@ -1125,7 +1171,7 @@ public class MetaMapLite {
   /**
    * log information about caches.
    */
-  void logCacheInfo() {
+    void logCacheInfo() {
     if (entityLookup instanceof EntityLookup4) {
       logger.info("cui -> preferred-name cache size: " +
 		  ((EntityLookup4)entityLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
@@ -1207,6 +1253,7 @@ public class MetaMapLite {
 	optionsConfiguration.setProperty ("metamaplite.index.directory", mmlIndexDirEnv);
       } 
       boolean fromScheduler = false;
+      boolean overwritefile = false;
       int i = 0;
       while (i < args.length) {
 	if (args[i].length() > 1) {
@@ -1293,23 +1340,23 @@ public class MetaMapLite {
 	      optionsConfiguration.setProperty("metamaplite.disable.chunker","true");
 	    } else if (fields[0].equals("--brat_type_name")) {
 	      optionsConfiguration.setProperty("metamaplite.brat.typename", fields[1]);
-	    } else if (args[i].equals("--filelist")) {
+	    } else if (fields[0].equals("--filelist")) {
 	      if (fields.length < 2) {
-		System.err.println("missing argument in \"" + args[i] + "\" option");
+		System.err.println("missing argument in \"" + fields[0] + "\" option");
 	      } else {
 		optionsConfiguration.setProperty("metamaplite.inputfilelist", fields[1]);
 	      }
 	    } else if (fields[0].equals("--filelistfn") ||
 		       fields[0].equals("--filelistfilename")) {
 	      if (fields.length < 2) {
-		System.err.println("missing argument in \"" + args[i] + "\" option");
+		System.err.println("missing argument in \"" + fields[0] + "\" option");
 	      } else {
 		optionsConfiguration.setProperty("metamaplite.inputfilelist.filename", fields[1]);
 	      }
 	    } else if (fields[0].equals("--UDA") ||
 		       fields[0].equals("--uda")) {
 	      if (fields.length < 2) {
-		System.err.println("missing argument in \"" + args[i] + "\" option");
+		System.err.println("missing argument in \"" + fields[0] + "\" option");
 	      } else {
 		optionsConfiguration.setProperty("metamaplite.uda.filename", fields[1]);
 	      }
@@ -1325,12 +1372,16 @@ public class MetaMapLite {
 	      optionsConfiguration.setProperty("metamaplite.outputextension", fields[1]);
 	    } else if (fields[0].equals("--set_property")) {
 	      if (fields.length < 3) {
-		System.err.println("not enough arguments in \"" + args[i] + "\" option");
+		System.err.println("not enough arguments in \"" + fields[0] + "\" option");
 	      } else {
 		optionsConfiguration.setProperty(fields[1],fields[2]);
 	      }
 	    } else if (args[i].equals("--scheduler")) { // files from scheduler
 	      fromScheduler = true;
+	    } else if ((args[i].equals("--overwrite")) ||
+		       (args[i].equals("--overwritefile")) ||
+		       (args[i].equals("--clobber"))) {
+	      overwritefile = true;
 	    } else if (args[i].equals("--verbose")) {
 	      verbose = true;
 	    } else if (args[i].equals("--help")) {
@@ -1386,10 +1437,10 @@ public class MetaMapLite {
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
       boolean listAcronymsOption =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.acronyms","false"));
-      boolean listSentencesWithPosTags =
+      boolean listSentencesWithPosTagsOption =
 	Boolean.parseBoolean(properties.getProperty
 			     ("metamaplite.list.sentences.with.postags", "false"));
-      boolean listChunks = 
+      boolean listChunksOption = 
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.chunks", "false"));
             
       // turn on input from standard input if indicate citation end is on.
@@ -1437,14 +1488,14 @@ public class MetaMapLite {
 	}
 	List<BioCDocument> documentList =
 	  docLoader.readAsBioCDocumentList(new InputStreamReader(System.in,
-					   Charset.forName("utf-8")));
+								 Charset.forName("utf-8")));
 	if (listSentencesOption) {
 	  metaMapLiteInst.listSentences(documentList);
 	} else if (listAcronymsOption) {
 	  metaMapLiteInst.listAcronyms(documentList);
-	} else if (listSentencesWithPosTags) {
+	} else if (listSentencesWithPosTagsOption) {
 	  metaMapLiteInst.listSentencesWithPosTags(documentList);
-	} else if (listChunks) {
+	} else if (listChunksOption) {
 	  metaMapLiteInst.listChunks(documentList);
 	} else {
 	  metaMapLiteInst.listEntities(documentList,outputFormatOption);
@@ -1458,7 +1509,7 @@ public class MetaMapLite {
 	if (filenameList.size() > 1) {
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filenameList.get(0));
 	  metaMapLiteInst.listEntities(filenameList.get(1), documentList,
-				       outputFormatOption, indicateCitationEnd);
+				       outputFormatOption, indicateCitationEnd, overwritefile);
 	} else {
 	  System.out.println("missing input or output filename arguments, check invocation.");
 	}
@@ -1471,17 +1522,17 @@ public class MetaMapLite {
 	  logger.info("Loading and processing " + filename);
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
 	  if (listSentencesOption) {
-	    metaMapLiteInst.listSentences(filename, documentList);
+	    metaMapLiteInst.listSentences(filename, documentList, overwritefile);
 	  } else if (listAcronymsOption) {
-	    metaMapLiteInst.listAcronyms(filename, documentList);
-	  } else if (listSentencesWithPosTags) {
-	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList);
-	  } else if (listChunks) {
-	    metaMapLiteInst.listChunks(filename, documentList);
+	    metaMapLiteInst.listAcronyms(filename, documentList, overwritefile);
+	  } else if (listSentencesWithPosTagsOption) {
+	    metaMapLiteInst.listSentencesWithPosTags(filename, documentList, overwritefile);
+	  } else if (listChunksOption) {
+	    metaMapLiteInst.listChunks(filename, documentList, overwritefile);
 	  } else {
 	    metaMapLiteInst.listEntities(filename, documentList,
 					 outputExtension, outputFormatOption,
-					 indicateCitationEnd);
+					 indicateCitationEnd, overwritefile);
 	  }
 	} /*for filename */
       }
