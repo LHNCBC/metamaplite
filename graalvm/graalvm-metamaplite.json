@@ -1,0 +1,241 @@
+[
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.EntityLookup4",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [ "java.util.Properties" ] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.EntityLookup5",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [ "java.util.Properties" ] }
+	]
+    },
+    {
+	"name" : "opennlp.tools.sentdetect.SentenceDetectorFactory",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [] }
+	]
+    },
+    {
+	"name" : "opennlp.tools.postag.POSTaggerFactory",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [] }
+	]
+    },
+    {
+	"name" : "opennlp.tools.chunker.ChunkerFactory",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.NCBICorpusDocument",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.SingleLineInput",
+	"methods": [
+	    { "name": "<init>", "parameterTypes": [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderImpl",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.BioCDocumentLoaderRegistry",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.ChemDNER",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.ChemDNERSLDI",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.FreeText",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.MedlineDocument",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.NCBICorpusDocument",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.PubMedXMLDocument",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.PubTator",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.SemEvalDocument",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.SingleLineDelimitedInputWithID",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.SingleLineInput",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.document.PubMedRISFormat",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.BcEvaluate",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.Brat",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.CEMFormat",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.CEMPlusFormat",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.CuiList",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.Full",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.FullJson",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.Json",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.resultformats.mmi.MMI",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+
+    { "name" : "org.apache.logging.log4j.message.ParameterizedMessageFactory",
+      	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "org.apache.logging.log4j.core.async.AsyncLogger",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "com.sun.xml.internal.stream.XMLInputFactoryImpl",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "gov.nih.nlm.nls.metamap.lite.NegEx",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "com.sun.org.apache.xerces.internal.parsers.SAXParser",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "org.apache.logging.log4j.simple.SimpleLogger",
+	"methods" : [
+	    { "name" : "<init>",
+	      "parameterTypes" : ["java.lang.String",
+				  "org.apache.logging.log4j.Level",
+				  "boolean",
+				  "boolean",
+				  "boolean",
+				  "boolean",
+				  "java.lang.String",
+				  "org.apache.logging.log4j.message.MessageFactory",
+				  "org.apache.logging.log4j.util.PropertiesUtil",
+				  "java.io.PrintStream"] }
+	]
+    },
+    {
+	"name" : "org.apache.logging.log4j.simple.SimpleLoggerContext",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    },
+    {
+	"name" : "org.apache.logging.log4j.simple.SimpleLoggerContextFactory",
+	"methods" : [
+	    { "name" : "<init>", "parameterTypes" : [] }
+	]
+    }
+]
+

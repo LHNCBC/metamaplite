@@ -4,6 +4,8 @@ PROJECTDIR=$PWD
 
 PROJECTDIR=$(dirname $0)
 
+MML_VERSION=3.6.2rc5
+
 BIOC=$PROJECTDIR/lib/bioc-1.0.1.jar
 LOG4JAPI=$PROJECTDIR/lib/log4j-api-2.1.jar
 ANALYZERS=$PROJECTDIR/lib/lucene-analyzers-common-4.10.0.jar
@@ -18,7 +20,7 @@ OPENNLPMAXENT=$PROJECTDIR/lib/opennlp-maxent-3.0.3.jar
 OPENCSV=$PROJECTDIR/lib/opencsv-2.3.jar
 IRUTILS=$PROJECTDIR/lib/irutils-2.0-SNAPSHOT.jar
 STRINGSIM=$HOME/.m2/repository/info/debatty/java-string-similarity/0.23/java-string-similarity-0.23.jar
-METAMAPLITE=$PROJECTDIR/target/metamaplite-3.4.jar
+METAMAPLITE=$PROJECTDIR/target/metamaplite-${MML_VERSION}-standalone.jar
 JARSPATH=$ANALYZERS:$CORE:$QUERYPARSER:$OPENNLPTOOLS:$OPENNLPMAXENT:$BIOC:$NLP:$LOG4JAPI:$LOG4JCORE:$CONTEXT:$OPENCSV:$IRUTILS:$STRINGSIM:$METAMAPLITE
 
 # OPENNLP_MODELS=/usr/local/pub/nlp/opennlp/models

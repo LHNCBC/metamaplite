@@ -15,15 +15,22 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 
 /**
- * Convert a Medline Document into a BioC document preserving
- * positional information.
- *
+ * Convert a PubMed RIS (Research Information Systems, Inc.) Format
+ * Document into a BioC document preserving positional information.
+ * See Also:
+ * <dl>
+ * <dt>Wikipedia article on RIS file format<dd><a href="https://en.wikipedia.org/wiki/RIS_(file_format)">
+https://en.wikipedia.org/wiki/RIS_(file_format)</a>
+ * 
+ * <dt>RIS Format Specification
+ * <dd><a href="https://jira.sakaiproject.org/secure/attachment/21845/RIS+Format+Specifications.pdf">https://jira.sakaiproject.org/secure/attachment/21845/RIS+Format+Specifications.pdf (PDF file)</a>
+ * </dl>
  * Created: Thu Aug 31 14:26:24 2017
  *
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public class MedlineDocument
+public class PubMedRISFormat
   implements BioCDocumentLoader {
 
   Charset charset = Charset.forName("utf-8");
@@ -62,8 +69,8 @@ public class MedlineDocument
     return doc;
   }
   
-  String ID_LABEL = "PMID";
-  String TITLE_LABEL = "TI";
+  String ID_LABEL = "U1";
+  String TITLE_LABEL = "T1";
   String ABSTRACT_LABEL = "AB";
 
   @Override
@@ -84,7 +91,7 @@ public class MedlineDocument
       }
       if (key.length() > 0) {
 	if (key.equals(ID_LABEL)) {
-	  documentId = content;
+	  documentId = content.replace("[pmid]","");
 	} else if (key.equals(TITLE_LABEL)) {
 	  titleText.append(content).append(" ");
 	} else if (key.equals(ABSTRACT_LABEL)) {
@@ -120,21 +127,21 @@ public class MedlineDocument
     String line;
     String key = "";
     while ((line = br.readLine()) != null) {
-      if (line.trim().length() == 0) { // end of document
+      String header = line.substring(0,4);
+      String content = line.substring(6);
+      if (header.trim().length() > 0) {
+	key = header.trim();
+      }
+      if (key.equals("ER")) { // end of document
 	documentList.add(instantiateBioCDocument(documentId,
 						 titleText.toString(),
 						 abstractText.toString()));
 	titleText.setLength(0);
 	abstractText.setLength(0);
       } else {
-	String header = line.substring(0,4);
-	String content = line.substring(6);
-	if (header.trim().length() > 0) {
-	  key = header.trim();
-	}
 	if (key.length() > 0) {
 	  if (key.equals(ID_LABEL)) {
-	    documentId = content;
+	    documentId = content.replace("[pmid]","");
 	  } else if (key.equals(TITLE_LABEL)) {
 	    titleText.append(content).append(" ");
 	  } else if (key.equals(ABSTRACT_LABEL)) {

@@ -317,16 +317,18 @@ n   * <pre>
 	      //   if (this.termConceptCache.containsKey(normTerm)) {
 	      //     for (ConceptInfo concept: this.termConceptCache.get(normTerm)) {
 	      String cui = concept.getCUI();
-	      Ev ev = new Ev(concept,
-			     originalTerm,
-			     normTerm,
-			     ((PosToken)tokenSubList.get(0)).getOffset(),
-			     termLength,
-			     0.0,
-			     ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
-	      if (! evSet.contains(ev)) {
-		logger.debug("add ev: " + ev);
-		evSet.add(ev);
+	      if (! this.excludedTerms.isExcluded(cui,normTerm)) {
+		Ev ev = new Ev(concept,
+			       originalTerm,
+			       normTerm,
+			       ((PosToken)tokenSubList.get(0)).getOffset(),
+			       termLength,
+			       0.0,
+			       ((ERToken)tokenSubList.get(0)).getPartOfSpeech());
+		if (! evSet.contains(ev)) {
+		  logger.debug("add ev: " + ev);
+		  evSet.add(ev);
+		}
 	      }
 	      //   } else {
 	      //     // if not in cache then lookup term 

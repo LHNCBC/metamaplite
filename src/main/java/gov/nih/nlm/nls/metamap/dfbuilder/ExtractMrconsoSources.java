@@ -278,8 +278,8 @@ public class ExtractMrconsoSources
     String inFilename = null;
     String outFilename = null;
     boolean firstOfEachSourceOnly = true;
-    boolean includeSuiInfo = false;
-    boolean displayWarnings = false;
+    boolean includeSuiInfo = true;
+    boolean displayWarnings = true;
     String releaseFormat = "RRF";
 
     System.out.println("\nextract mrconso sources (Java Prototype)\n");

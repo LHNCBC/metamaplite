@@ -1,6 +1,6 @@
 # MetaMapLite: A lighter named-entity recognizer
 
-The primary goal of MetaMapLite to provide a near real-time
+The primary goal of MetaMapLite is to provide a near real-time
 named-entity recognizer which is not a rigorous as MetaMap but much
 faster while allowing users to customize and augment its behavior for
 specific purposes.
@@ -43,7 +43,8 @@ What is missing:
 ### For Development
 
 * Java 1.8 JDK
-* Maven or Ant or Gradle
+* Maven primarily.  Ant and Gradle build scripts are provided but are
+  not supported.
 
 ## Command Line Usage
 
@@ -64,7 +65,54 @@ __public_mm__ directory:
           --modelsdir=data/models \
           --specialtermsfile=data/specialterms.txt  [options] [<input file>|--]
 
-Current options are:
+### Reading from standard input
+
+    echo "asymptomatic patient populations" | ./metamaplite.sh --pipe
+
+or
+
+    cat file | ./metamaplite.sh --pipe
+
+Output will be sent to standard output.
+
+### Restricting to a set of semantic types
+
+The list of concepts returned can be restricted to a only those that
+refer to a subset of the UMLS semantic types by semantic type
+abbreviations:
+
+    ./metamaplite.sh --restrict_to_sts=abbrev,abbrev
+
+The following option restricts to concepts that have the semantic types
+disease or syndrome (dsyn) and hazardous or poisonous substance (hops):
+
+    ./metamaplite.sh --restrict_to_sts=dsyn,hops
+
+A full list of semantic types and their abbreviations is at:
+
+https://metamap.nlm.nih.gov/Docs/SemanticTypes_2018AB.txt
+
+### Restricting to a set of source vocabularies
+
+The follows option specifies that only concepts that appear in the
+MeSH (MSH), and NCBI Taxonomy (NCBI) vocabularies will be returned:
+
+    ./metamaplite.sh --restrict_to_sources=MSH,NCBI
+
+A full list of the current source vocabularies and their abbreviations
+can be found at:
+
+https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
+
+
+### Annotating a brat directory
+
+To create annotation files (.ann) in a directory from the associated text files (.txt)
+
+     ./metamaplite.sh --brat directory/*.txt
+
+
+### Current options
 
   input options:
 
@@ -89,23 +137,36 @@ configuration file is not present:
 
   document processing options:
 
-    --freetext      Text with no markup.
-    --ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
-    --chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
-    --chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id |t title \t abstract
-	--inputformat=<loadername>
-	                Use input format specified by loader name.
+    --freetext                  Text with no markup. (default)
+    --inputformat=<loadername>	Use input format specified by loader name.
+    --inputformat=pubmed        PubMed XML format
+    --inputformat=medline       Medline format
+    --inputformat=ncbicorpus    NCBI Disease Corpus: tab separated fields: id \t title \t abstract
+    --inputformat=chemdner      CHEMDNER document: tab separated fields: id \t title \t abstract
+    --inputformat=chemdnersldi  CHEMDNER document: id with pipe followed by tab separated fields: id |t title \t abstract
 
   output options:
 
+    --mmilike|mmi               similar to MetaMap Fielded MMI output (default)
     --bioc|cdi|bc|bc-evaluate   output compatible with evaluation program bc-evaluate
-    --mmilike|mmi               similar to MetaMap Fielded MMI output
     --brat                      BRAT annotation format
+	--outputformat=<format>       
+    --outputformat=json         JSON output format
 
   processing options:
 
     --restrict_to_sts=<semtype>[,<semtype>,<semtype>...]
+
+          Restrict output to concepts that have at least one member
+          in the list of user-specified semantic-types. The list of
+          supported semantic type short forms used by this program is
+          available at https://metamap.nlm.nih.gov/Docs/SemanticTypes_2018AB.txt
+
     --restrict_to_sources=<source>[,<source>...]
+          Restrict output to concepts that belong to the list of specified vocabularies.
+          A full list of the current source vocabularies and their abbreviations
+          can be found at https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
+
     --segmentation_method=SENTENCES|BLANKLINES|LINES
                            Set method for text segmentation
 	--segment_sentences    Segment text by sentence
@@ -173,7 +234,6 @@ These properties can be set using a System property
 	                                        | (each Penn Treebank part-of-speech tag is separated by commas.)
 	| metamaplite.enable.scoring            | turn on chunker (currently OpenNLP's chunker) and score concepts.
 
-
 ## Using MetaMapLite from Java
 
 Creating properties for configuring MetaMapLite Instance:
@@ -232,50 +292,6 @@ Add each term as a single document:
     BioCDocument document = FreeText.instantiateBioCDocument(term);
 
 
-## Adding MetaMapLite to a webapp (servlet).
-
-#### WebApp Local Configuration
-
-A extensive example of providing a servlet complete with data and
-configuration files in the war (web archive) file is available on the
-MetaMap website on the MetaMapLite web page
-(https://metamap.nlm.nih.gov/MetaMapLite.shtml).
-
-#### Alternate Configuration
-
-Below is an alternate configuration for users who don't want to place
-the configuration and data in webapp deployment archive file (war).
-
-Place the "metamaplite.properties" file in the tomcat "conf/"
-directory and specify that in servlet:
-
-    public class SampleWebApp extends HttpServlet {
-      /** location of metamaplite.properties configuration file */
-      static String configPropertyFilename =
-        System.getProperty("metamaplite.property.file", "conf/metamaplite.properties");
-      Properties properties;
-      MetaMapLite metaMapLiteInst;
-    
-      public SampleWebApp() {
-        try {
-          this.properties = new Properties();
-          // default properties that can be overriden 
-          this.properties.setProperty("metamaplite.ivf.cuiconceptindex","data/ivf/strict/indices/cuiconcept");
-          ...
-          // load user properties
-          this.properties.load(new FileReader(configPropertyFilename));
-          this.metaMapLiteInst = new MetaMapLite(this.properties);
-		  ...
-      	} catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-      ...
-    }
-    
-The absolute locations of indexes and model files can be specified in
-"metamaplite.properties".
-
 ### Using Maven
 
 #### Installing metamaplite and dependencies into local Maven repository
@@ -302,6 +318,13 @@ From public\_mm\_lite directory install Context, BioC, and NLS NLP libraries
 	     -Dversion=2.4.C \
          -Dpackaging=jar
 
+    $ mvn install:install-file  \
+         -Dfile=lib/lvgdist-2020.0.jar \
+         -DgroupId=gov.nih.nlm.nls.lvg \
+         -DartifactId=lvgdist \
+         -Dversion=2020.0 \
+         -Dpackaging=jar
+
 Then install metamaplite into your local Maven repository:
 
     $ mvn install
@@ -316,15 +339,17 @@ Add the following dependency to your webapps pom.xml:
       <version>3.0-SNAPSHOT</version>
     </dependency>
 
-# irutils indexes
+# Irutils Indexes
 
 ## Tables and Indexes
 
-Currently, three tables are used:
+Currently, five tables are used:
 
 * cuisourceinfo
 * cuisemantictype (cuist)
 * cuiconcept
+* meshtcrelaxed (MeSH treecodes)
+* vars (lexical variants)
 
 ## New indexes used for MetaMap-like scoring and MMI ranked output
 
@@ -344,16 +369,52 @@ to a custom dataset.
 
 ## Generating indexes from UMLS tables
 
-The CreateIndexes class generates tables cuiconcept, cuisourceinfo,
-and cuist from MRCONSO.RRF and MRSTY.RRF and then produces
-corresponding indexes for tables.  If the variants file, vars.txt, and
-the treecodes file, mesh\_tc\_relaxed.txt, are present in the directory
-{ivfdir}/tables then those files will be indexed as well.
+The CreateIndexes class generates the tables needed by MetaMapLite for
+a particular UMLS release.  The tables cuiconcept, cuisourceinfo,
+cuist, meshtcrelaxed, and vars are derived from the UMLS tables
+MRCONSO.RRF, MRSAT.RRF, and MRSTY.RRF and then CreateIndexes produces
+the associated indexes for derived tables.  To produce the vars table
+you will need to install the Lexical Variant Generator (LVG) which is
+available from the Lexical Tools Page:
+https://lexsrv3.nlm.nih.gov/LexSysGroup/Projects/lvg/current/web/index.html
+.  LVG is used when generating the vars table from MRCONSO.RRF.
 
 Usage: 
 
-     java -Xmx5g -cp target/metamaplite-<version>-standalone.jar \
-      gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>
+    java -Xmx15g -cp target/metamaplite-<version>-standalone.jar \
+       gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes \
+	   <mrconsofile> <mrstyfile> <mrsatfile> <ivfdir>
+
+When running CreateIndexes must be provided the location of LVG
+configuration file by one of two mechanisms: Setting an environment
+variable __LVG_DIR__ or __LVG_CONFIG__ or setting a system property when
+invoking java.  The simplest way of doing this by setting LVG_DIR to
+the location of LVG and CreateIndexes program will infer the location
+of the properties file:
+
+on windows:
+
+     set LVG_DIR=<location of lvg2020>
+
+in bash on MacOS or Linux:
+
+     export LVG_DIR=<location of lvg2020>
+
+If you have a modified lvg.property file in an custom location you can
+set the variable __LVG_CONFIG__ to the location of your custom lvg
+property file.
+
+Alternatively, you can set system property gv.lvg.dirname to the
+location of LVG or setting the property gv.lvg.config.file to the
+location of lvg.properties, usually
+lvg2020/data/config/lvg.properties:
+
+     -Dgv.lvg.dirname={location of lvg}
+
+or:
+
+     -Dgv.lvg.config.file={location of lvg.properties}
+
 
 The resulting indices are in <ivfdir>/indices.  The tables the indexes
 are generated from are in <ivfdir>/tables.
@@ -384,8 +445,10 @@ Use the --indexdir=<directory> option:
 Or modify the configuration file config/metamap.properties:
 
     metamaplite.ivf.cuiconceptindex: <ivfdir>/indices/cuiconcept
-    mmetamaplite.ivf.cuisourceinfoindex: <ivfdir>/indices/cuisourceinfo
+    metamaplite.ivf.cuisourceinfoindex: <ivfdir>/indices/cuisourceinfo
     metamaplite.ivf.cuisemantictypeindex: <ivfdir>/indices/cuist
+	metamaplite.ivf.varsindex: <ivfdir>/indices/vars
+    metamaplite.ivf.meshtcrelaxedindex: <ivfdir>/indices/meshtcrelaxed
 
 ## Adding custom input document formats
 
@@ -451,53 +514,50 @@ Source code for the BratSemType result formatter is provided in the directory
 public\_mm_lite/src/main/java/examples/BratSemType.java.
 
 
-## A BioC XML to A BioC XML implementation of MetaMapLite
+## Adding MetaMapLite to a webapp (servlet).
 
-The class gov.nih.nlm.nls.metamap.lite.BioCProcess allows MetaMapLite
-to process BioC XML input and write the results in BioC XML.
+#### WebApp Local Configuration
 
-### Using from Java
+A extensive example of providing a servlet complete with data and
+configuration files in the war (web archive) file is available on the
+MetaMap website on the MetaMapLite web page
+(https://metamap.nlm.nih.gov/MetaMapLite.shtml).
 
-Below is an example using BioC Processing with MetaMapLite
+#### Alternate Configuration
 
-    // Initialize MetaMapLite
-    Properties defaultConfiguration = getDefaultConfiguration();
-	String configPropertiesFilename =
-		System.getProperty("metamaplite.propertyfile",
-		                   "config/metamaplite.properties");
-    Properties configProperties = new Properties();
-    // set any in-line properties here.
-	configProperties.load(new FileReader(configPropertiesFilename));
-	configProperties.setProperty("metamaplite.semanticgroup",
-	"acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy");
-	Properties properties =
-	  Configuration.mergeConfiguration(configProperties,
-					   defaultConfiguration);
-	BioCProcess process = new BioCProcess(properties);
+Below is an alternate configuration for users who don't want to place
+the configuration and data in webapp deployment archive file (war).
 
-	// read BioC XML collection
-	Reader inputReader = new FileReader(inputFile);
-	BioCFactory bioCFactory = BioCFactory.newFactory("STANDARD");
-	BioCCollectionReader collectionReader =
-	bioCFactory.createBioCCollectionReader(inputReader);
-	BioCCollection collection = collectionReader.readCollection();
+Place the "metamaplite.properties" file in the tomcat "conf/"
+directory and specify that in servlet:
 
-	// Run named entity recognition on collection
-	BioCCollection newCollection = process.processCollection(collection);
+    public class SampleWebApp extends HttpServlet {
+      /** location of metamaplite.properties configuration file */
+      static String configPropertyFilename =
+        System.getProperty("metamaplite.property.file", "conf/metamaplite.properties");
+      Properties properties;
+      MetaMapLite metaMapLiteInst;
+    
+      public SampleWebApp() {
+        try {
+          this.properties = new Properties();
+          // default properties that can be overriden 
+          this.properties.setProperty("metamaplite.ivf.cuiconceptindex","data/ivf/strict/indices/cuiconcept");
+          ...
+          // load user properties
+          this.properties.load(new FileReader(configPropertyFilename));
+          this.metaMapLiteInst = new MetaMapLite(this.properties);
+		  ...
+      	} catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+      ...
+    }
+    
+The absolute locations of indexes and model files can be specified in
+"metamaplite.properties".
 
-    // write out the annotated collection
-    File outputFile = new File(outputFilename);
-	Writer outputWriter = new PrintWriter(outputFile, "UTF-8");
-	BioCCollectionWriter collectionWriter = bioCFactory.createBioCCollectionWriter(outputWriter);
-	collectionWriter.writeCollection(newCollection);
-	outputWriter.close();
-
-This process attempts to preserve any annotation present in the
-original BioC XML input.    Some annotations applied to BioC
-structures before entity lookup, including `tokenization and
-part-of-speech-tagging, are discarded before the writing out the final
-annotated collection.   This occurs in the entity lookup class
-BioCEntityLookup (java package: gov.nih.nlm.nls.metamap.lite).
 
 ### Command Line Usage:
 
@@ -511,17 +571,25 @@ config/metamaplite.properties file to set any custom properties or
 place the properties in another custom file and use the system
 property "metamaplite.propertyfile" to refer to the custom file.
 
-### Omissions in BioC version
+### Files in which sources are not included
 
-The current version of the BioCProcess class does not call the
-abbreviation detector or the negation detector.   This should be
-relatively simple to add (particularly the abbreviation detector) and
-will probably be added in the next release.
+The following java archive files have sources available from NLM but
+the sources are not provided by this distribution.
+
++ archive: https://metamap.nlm.nih.gov/maven2/gov/nih/nlm/nls/nlp/2.4.C/nlp-2.4.C.jar
++ archive: https://metamap.nlm.nih.gov/maven2/gov/nih/nlm/nls/lvg/lvgdist/2020.0/lvgdist-2020.0.jar
++ archive: https://metamap.nlm.nih.gov/maven2/gov/nih/nlm/nls/mps/medpostskr/1.0/medpostskr-1.0.jar
+
+The sources are available at the following locations:
+
++  nlp-2.4.C.jar is available at MetaMapLite Download Page at:  https://metamap.nlm.nih.gov/download/old/nls-rel-2-4-C.tar.bz2
++ Sources for lvg-2020.0.jar are available from the Lexical Tools Page:
+https://lexsrv3.nlm.nih.gov/LexSysGroup/Projects/lvg/current/web/index.html
++ Sources for MedPost/SKR tagger are available at: https://metamap.nlm.nih.gov/MedPostSKRTagger.shtml
 
 ## Future Work
 
 + Add support for composite phrases from chunked phrases
-+ Create a ReSTful interface for MetaMapLite.
 + Create a pipeline using a full parser.
 + Add a mechanism to use custom user-supplied segmenters.
 

@@ -313,14 +313,20 @@ public class MMI implements ResultFormatter {
     List<AATF> aatfList = Ranking.processTF(tfList, 1000);
     Collections.sort(aatfList);
     for (AATF aatf: aatfList) {
+      Set<String> fieldSet =
+	aatf.getTuplelist()
+	.stream()
+	.map(tuple -> tuple.getField())
+	.collect(Collectors.toCollection(LinkedHashSet::new));
       pw.println(docid + "|MMI|" +
 		 scoreFormat.format(-10000 *aatf.getNegNRank()) + "|" +
 		 aatf.getConcept() +"|" +
 		 aatf.getCui() +"|" +
 		 aatf.getSemanticTypes() +"|" +
 		 aatf.getTuplelist().stream().map(i -> this.renderTupleInfo(i)).collect(Collectors.joining(","))  + "|" +
+		 fieldSet.stream().map(i -> i).collect(Collectors.joining(";")) + "|" +
 		 aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(";"))  + "|" +
-		 aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(";")));
+		 aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(";")) + "|" );
     }
   }
   
@@ -368,11 +374,17 @@ public class MMI implements ResultFormatter {
     List<AATF> aatfList = Ranking.processTF(tfList, 1000);
     Collections.sort(aatfList);
     for (AATF aatf: aatfList) {
+      Set<String> fieldSet =
+	aatf.getTuplelist()
+	.stream()
+	.map(tuple -> tuple.getField())
+	.collect(Collectors.toCollection(LinkedHashSet::new));
       sb.append(docid).append("|MMI|").append(scoreFormat.format(-10000 * aatf.getNegNRank())).append("|")
 	.append(aatf.getConcept()).append("|")
 	.append(aatf.getCui()).append("|")
 	.append(aatf.getSemanticTypes()).append("|")
 	.append(aatf.getTuplelist().stream().map(i -> this.renderTupleInfo(i)).collect(Collectors.joining(","))).append("|")
+	.append(fieldSet.stream().map(i -> i).collect(Collectors.joining(";"))).append("|")
 	.append(aatf.getTuplelist().stream().map(i -> this.renderPositionInfo(i)).collect(Collectors.joining(";"))).append("|")
 	.append(aatf.getTreeCodes().stream().map(i -> i.toString()).collect(Collectors.joining(";"))).append("\n");
     }
@@ -424,8 +436,9 @@ public class MMI implements ResultFormatter {
 				   entity.isNegated() ? 1 : 0, // neg?
 				   posInfo); 
 	  tupleSet.add(tuple);
+	  String preferredName = ev.getConceptInfo().getPreferredName();
 	  termFreqMap.put(tfKey,
-			  new TermFrequency(ev.getConceptInfo().getPreferredName(),
+			  new TermFrequency(preferredName,
 					    new ArrayList<String>(ev.getConceptInfo().getSemanticTypeSet()),
 					    tupleSet, 
 					    entity.getFieldId() == null ? false :
@@ -435,7 +448,7 @@ public class MMI implements ResultFormatter {
 					    cui,
 					    1,
 					    ev.getScore(),
-					    getTreecodes(conceptString)));
+					    getTreecodes(preferredName)));
 	}
       }
     }

@@ -1,19 +1,19 @@
 # MetaMap Lite configuration 
 #
 # Lucene indexes
-metamaplite.cuiconceptindex: @@basedir@@/data/lucenedb/strict/cuiconcept
-metamaplite.firstwordsofonewideindex: @@basedir@@/data/lucenedb/strict/first_words_of_one_WIDE
-metamaplite.cuisourceinfoindex: @@basedir@@/data/lucenedb/strict/cui_sourceinfo
-metamaplite.cuisemantictypeindex: @@basedir@@/data/lucenedb/strict/cui_st
-metamaplite.varsindex: @@basedir@@/data/lucenedb/strict/vars
+metamaplite.cuiconceptindex: @@basedir@@/data/lucenedb/cuiconcept
+metamaplite.firstwordsofonewideindex: @@basedir@@/data/lucenedb/first_words_of_one_WIDE
+metamaplite.cuisourceinfoindex: @@basedir@@/data/lucenedb/cui_sourceinfo
+metamaplite.cuisemantictypeindex: @@basedir@@/data/lucenedb/cui_st
+metamaplite.varsindex: @@basedir@@/data/lucenedb/vars
 
 # Inverted Files
-metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/cuiconcept
-metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/first_words_of_one_WIDE
-metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/cuisourceinfo
-metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/cuist
-metamaplite.ivf.varsindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/vars
-metamaplite.ivf.meshtcrelaxedindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/strict/indices/meshtcrelaxed
+metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/cuiconcept
+metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/first_words_of_one_WIDE
+metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/cuisourceinfo
+metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/cuist
+metamaplite.ivf.varsindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/vars
+metamaplite.ivf.meshtcrelaxedindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/meshtcrelaxed
 
 # default semantic.type.list: if not defined is empty (all semantic types) 
 #   semantic type abbreviations separated by commas.

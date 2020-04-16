@@ -9,10 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.security.NoSuchAlgorithmException;
 
 import irutils.BSPIndexCreateException;
@@ -86,6 +88,14 @@ public class BuildIndex {
     }
   }
 
+  /**
+   * Create inverted file index for indexname using associated table.
+   *
+   * @param ivfDir
+   * @param tableConfig
+   * @param indexName 
+   * @param charset character set to use (iso8859-1, utf-8, etc.)
+   */
   static void createIndex(String ivfDir, Map<String,String[]> tableConfig, String indexName, Charset charset)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
@@ -137,6 +147,9 @@ public class BuildIndex {
       String configFilename = ivfDir + "/tables/ifconfig";
       if ((new File(configFilename)).exists()) {
 	tableConfig = Config.loadConfig(configFilename);
+	for (Map.Entry<String,String[]> entry: tableConfig.entrySet()) {
+	  System.out.println(entry.getKey() + " -> " + Arrays.stream(entry.getValue()).map(i -> i.toString()).collect(Collectors.joining("|")));
+	}
 	if (tableConfig.containsKey(indexname)) {
 	  System.out.println("Building index " + indexname + ":" + StringUtils.join(tableConfig.get(indexname), " "));
 	  createIndex(ivfDir, tableConfig, indexname, charset);
