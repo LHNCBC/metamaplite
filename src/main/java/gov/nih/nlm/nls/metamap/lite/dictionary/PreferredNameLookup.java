@@ -1,8 +1,8 @@
-package gov.nih.nlm.nls.metamap.lite;
+package gov.nih.nlm.nls.metamap.lite.dictionary;
 
 /**
- * Describe interface PreferredNameLookup here.
- *
+ * Interface PreferredNameLookup - must be implemented by classes that
+ * support lookup of preferred names in knowledge source dictionaries.
  *
  * Created: Tue Jun 11 12:28:27 2019
  *

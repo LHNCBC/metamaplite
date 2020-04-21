@@ -15,7 +15,9 @@ import org.apache.logging.log4j.Logger;
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
+import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
+import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
 
 /**
  * Describe class IVFTermInfoLookup here.
@@ -121,6 +123,16 @@ public class IVFTermInfoLookup implements MMLDictionaryLookup<TermInfo> {
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
+  }
+
+  public VariantLookup getVariantLookup() {
+    return this.variantLookup;
+  }
+  public int lookupVariant(String term, String word) {
+    return this.variantLookup.lookupVariant(term, word);
+  }
+  public int lookupVariant(String term) {
+    return this.variantLookup.lookupVariant(term);
   }
 
   /**

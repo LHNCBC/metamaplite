@@ -10,6 +10,7 @@ import java.util.Set;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
+import gov.nih.nlm.nls.metamap.lite.dictionary.PreferredNameLookup;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 import gov.nih.nlm.nls.utils.LRUCache;
 

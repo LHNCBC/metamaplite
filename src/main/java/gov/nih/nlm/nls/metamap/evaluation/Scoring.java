@@ -1,7 +1,7 @@
 package gov.nih.nlm.nls.metamap.evaluation;
 
 import java.util.List;
-import gov.nih.nlm.nls.metamap.lite.VariantLookup;
+import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
 /**

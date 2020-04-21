@@ -50,11 +50,13 @@ import gov.nih.nlm.nls.metamap.prefix.Scanner;
 import gov.nih.nlm.nls.metamap.lite.mapdb.MapDbLookup;
 
 import gov.nih.nlm.nls.types.Sentence;
+import gov.nih.nlm.nls.utils.NameIdListMap;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.utils.LRUCache;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
+import gov.nih.nlm.nls.metamap.lite.dictionary.AugmentedDictionary;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -112,8 +114,18 @@ public class EntityLookup4 implements EntityLookup {
     registry.put("mapdb", new MapDbLookup());
     String directoryPath = properties.getProperty("metamaplite.index.directory");
     Map.Entry<String,MMLDictionaryLookup> entry = registry.determineImplementation(directoryPath);
-    this.dictionaryLookup = entry.getValue();
-    this.dictionaryLookup.init(properties);
+    if (properties.containsKey("metamaplite.cuitermlistfile.filename")) {
+      MMLDictionaryLookup persistantLookup = entry.getValue();
+      Map<String,List<String>> strCuiListMap =
+	NameIdListMap.loadNameIdListMap
+	(properties.getProperty("metamaplite.cuitermlistfile.filename"));
+      this.dictionaryLookup =
+	new AugmentedDictionary(persistantLookup, strCuiListMap);
+      this.dictionaryLookup.init(properties);
+    } else {
+      this.dictionaryLookup = entry.getValue();
+      this.dictionaryLookup.init(properties);
+    }
     this.MAX_TOKEN_SIZE =
       Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
 						Integer.toString(MAX_TOKEN_SIZE)));

@@ -10,10 +10,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
@@ -23,6 +25,9 @@ import gov.nih.nlm.nls.metamap.lite.TermInfoImpl;
 import gov.nih.nlm.nls.metamap.lite.SpecialTerms;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.NormalizedStringCache;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Describe class MapDbDictionaryLookup here.
@@ -34,10 +39,14 @@ import gov.nih.nlm.nls.metamap.lite.NormalizedStringCache;
  * @version 1.0
  */
 public class MapDbLookup implements MMLDictionaryLookup<TermInfo> {
+  private static final Logger logger = LogManager.getLogger(MapDbLookup.class);
+  
   HTreeMap cuiConceptCuiMap;
   HTreeMap cuiSourceInfoStrMap;
   HTreeMap cuiSourceInfoCuiMap;
   HTreeMap cuiSemanticTypeCuiMap;
+  HTreeMap variantMap;
+  HTreeMap treecodeMap;
   SpecialTerms excludedTerms;
 
   public final String defaultDbFilename = "data/mapdb/strict.db";
@@ -121,6 +130,44 @@ public class MapDbLookup implements MMLDictionaryLookup<TermInfo> {
       semTypeSet.add(fields[4]);
     }
     return semTypeSet;
+  }
+
+  public int lookupVariant(String term, String word) {
+    /* lookup term variants */
+    /* if word is in variant list return varlevel (column 4)*/
+    int variance = 9;		// maximum variance (should this value be larger?)
+    for (String[] varFields: (List<String[]>)this.variantMap.get(term.toLowerCase())) {
+      if ((varFields[2].toLowerCase().equals(word.toLowerCase())) ||
+	  (varFields[2].toLowerCase().equals(term.toLowerCase()))) {
+	variance = Integer.parseInt(varFields[4]); // use varlevel field
+	logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      } else {
+	logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      }
+    }
+    return variance;
+  }
+
+  public int lookupVariant(String term) {
+    int variance = 9;		// maximum variance (should this value be larger?)
+    logger.debug("term: " + term);
+    for (String[] varFields: (List<String[]>)this.variantMap.get(term)) {
+      if ((varFields[2].toLowerCase().equals(term.toLowerCase()))) {
+	variance = Integer.parseInt(varFields[4]); // use varlevel field
+	logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      } else {
+	logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      }
+    }
+    return variance;
+  }
+
+  public List<String> lookupTreecodes(String term) {
+    List<String> treecodeList = new ArrayList<String>();
+    for (String[] fields: (List<String[]>)this.treecodeMap.get(term)) {
+      treecodeList.add(fields[1]);
+    }
+    return treecodeList;
   }
 
   // Implementation of gov.nih.nlm.nls.metamap.lite.DictionaryLookup

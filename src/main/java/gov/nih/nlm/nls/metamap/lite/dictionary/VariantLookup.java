@@ -1,4 +1,4 @@
-package gov.nih.nlm.nls.metamap.lite;
+package gov.nih.nlm.nls.metamap.lite.dictionary;
 
 /**
  * Describe interface VariantLookup here.

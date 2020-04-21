@@ -15,8 +15,10 @@ import org.apache.logging.log4j.Logger;
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
+import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
+import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
 
 /**
  * Describe class IVFLookup here.
@@ -27,7 +29,8 @@ import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
  */
-public class IVFLookup implements MMLDictionaryLookup<TermInfo>, VariantLookup {
+public class IVFLookup implements MMLDictionaryLookup<TermInfo>
+{
   private static final Logger logger = LogManager.getLogger(IVFLookup.class);
 
   /** string column for cuisourceinfo index*/

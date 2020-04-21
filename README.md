@@ -109,7 +109,34 @@ https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
 
 To create annotation files (.ann) in a directory from the associated text files (.txt)
 
-     ./metamaplite.sh --brat directory/*.txt
+    ./metamaplite.sh --brat directory/*.txt
+
+### User defined acronyms
+
+    ./metamaplite.sh --uda=acronymfile
+
+The acronym file is the form "acronym|long form", for example:
+
+     LAD|Left anterior descending coronary artery
+     SVG|Saphenous Vein Graft
+     PLB|Posterior lateral branch
+     PDA|Patent Ductus Arteriosus
+     IM|Intramuscular
+
+
+### User defined concepts
+
+    ./metamaplite.sh --cuitermlistfile=concepfile
+
+The  file is the form "cui|term", for example:
+
+     C5203670|COVID-19
+     C5203671|Suspected COVID-19
+     C5203672|SARS-CoV-2 vaccination
+     C5203673|Antigen of SARS-CoV-2
+     C5203674|Antibody to SARS-CoV-2
+     C5203675|Exposure to SARS-CoV-2
+     C5203676|severe acute respiratory syndrome coronavirus 2
 
 
 ### Current options
@@ -127,6 +154,8 @@ To create annotation files (.ann) in a directory from the associated text files 
     --filelistfn=<filename>        file containing a list of files to processed, one line per file
     --filelist=<file0,file1,...>   list of files to processed separated by commas
 
+    --uda=<filename>               user defined acronyms file.
+    --cuitermlistfile=<filename>   user defined concepts file.
 
 Options that can be used to override configuration file or when
 configuration file is not present:
@@ -233,6 +262,9 @@ These properties can be set using a System property
 	| metamaplite.postaglist                | List of part-of-speech tags to use for term lookup
 	                                        | (each Penn Treebank part-of-speech tag is separated by commas.)
 	| metamaplite.enable.scoring            | turn on chunker (currently OpenNLP's chunker) and score concepts.
+
+	| metamaplite.uda.filename              | user defined acronyms file.
+	| metamaplite.cuitermlistfile.filename  | user defined concepts file.
 
 ## Using MetaMapLite from Java
 

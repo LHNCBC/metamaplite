@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import gov.nih.nlm.nls.metamap.lite.FindLongestMatch;
+import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.prefix.Scanner;

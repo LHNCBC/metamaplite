@@ -23,7 +23,7 @@ import gov.nih.nlm.nls.metamap.lite.OpenNLPPoSTagger;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.resultformats.Brat;
 import gov.nih.nlm.nls.metamap.lite.FindLongestMatch;
-import gov.nih.nlm.nls.metamap.lite.DictionaryLookup;
+import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.Normalization;
 import gov.nih.nlm.nls.metamap.lite.TermInfo;
 import gov.nih.nlm.nls.metamap.prefix.Tokenize;
@@ -129,7 +129,7 @@ public class UsingFindLongestMatch {
    * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
    * @version 1.0
    */
-  public static class InMemoryLookup implements gov.nih.nlm.nls.metamap.lite.DictionaryLookup<TermInfo> {
+  public static class InMemoryLookup implements DictionaryLookup<TermInfo> {
 
     Map<String,String> termMap = new HashMap<String,String>();
 

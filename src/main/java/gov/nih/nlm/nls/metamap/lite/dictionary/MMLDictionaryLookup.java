@@ -1,9 +1,7 @@
 package gov.nih.nlm.nls.metamap.lite.dictionary;
 
-import gov.nih.nlm.nls.metamap.lite.DictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.MMLInstantiate;
 import gov.nih.nlm.nls.metamap.lite.MMLValidate;
-import gov.nih.nlm.nls.metamap.lite.PreferredNameLookup;
 
 /**
  * MMLDictionaryLookup  - Interface for implementations of DictionaryLookup with
@@ -15,6 +13,8 @@ import gov.nih.nlm.nls.metamap.lite.PreferredNameLookup;
  * @version 1.0
  */
 public interface MMLDictionaryLookup<T>
-  extends DictionaryLookup<T>, MMLInstantiate, MMLValidate, PreferredNameLookup
+  extends DictionaryLookup<T>, MMLInstantiate, MMLValidate,
+	  PreferredNameLookup, VariantLookup, 
+	  SemanticTypeLookup, SourceLookup
 {
 }

@@ -15,6 +15,7 @@ import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
+import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 
 /**
  * Describe class UserDefinedAcronyms here.
@@ -66,14 +67,21 @@ public class UserDefinedAcronym<T> {
       String line;
       while ((line = br.readLine()) != null) {
 	String[] fields = line.split("\\|");
-	udaMap.put
-	  (fields[0],
-	   new UserDefinedAcronym<T> (fields[0], fields[1], lookupClass.lookup(fields[1])));
-	udaMap.put
-	  (fields[0],
-	   new UserDefinedAcronym<T> (fields[0], fields[1], lookupClass.lookup(
-	     NormalizedStringCache.normalizeString
-	     (fields[1]))));
+	if (fields.length > 1) {
+	  T ti = lookupClass.lookup(fields[1].toLowerCase());
+	  if (! ((Set<ConceptInfo>)((TermInfo)ti).getDictionaryInfo()).isEmpty()) {
+	    udaMap.put
+	      (fields[0],
+	       new UserDefinedAcronym<T> (fields[0], fields[1], ti));
+	  } else {
+	    udaMap.put
+	      (fields[0],
+	       new UserDefinedAcronym<T> (fields[0], fields[1],
+					  lookupClass.lookup
+					  (NormalizedStringCache.normalizeString
+					   (fields[1]))));
+	  }
+	}
       }
       br.close();
       return udaMap;
@@ -118,31 +126,29 @@ public class UserDefinedAcronym<T> {
 					     List<ERToken> tokenList)
   {
     Set<Entity> entitySet = new HashSet<Entity>();
-    for (Map.Entry<String,UserDefinedAcronym<TermInfo>> entry: udaMap.entrySet()) {
-      for (ERToken token: tokenList) {
-	if (entry.getKey().equals(token.getText())) {
-	  UserDefinedAcronym<TermInfo> uda = entry.getValue();
-	  TermInfo termInfo = uda.getInfo();
-	  Set<ConceptInfo> conceptInfoSet = (Set<ConceptInfo>)termInfo.getDictionaryInfo();
-	  Set<Ev> evSet = new HashSet<Ev>();
-	  for (ConceptInfo conceptInfo: conceptInfoSet) {
-	    Ev ev = new Ev(conceptInfo, 
-			   uda.getShortForm(), 
-			   conceptInfo.getConceptString(), 
-			   token.getOffset(), 
-			   token.getText().length(), 
-			   100.0,
-			   "");
-	    evSet.add(ev);
-	  }
-	  entitySet.add(new Entity("UDA",
-				   docid, 
-				   uda.getShortForm(),
-				   token.getOffset(), 
-				   token.getText().length(), 
-				   100.0,
-				   evSet));
+    for (ERToken token: tokenList) {
+      if (udaMap.containsKey(token.getText())) {
+	UserDefinedAcronym<TermInfo> uda = udaMap.get(token.getText());
+	TermInfo termInfo = uda.getInfo();
+	Set<ConceptInfo> conceptInfoSet = (Set<ConceptInfo>)termInfo.getDictionaryInfo();
+	Set<Ev> evSet = new HashSet<Ev>();
+	for (ConceptInfo conceptInfo: conceptInfoSet) {
+	  Ev ev = new Ev(conceptInfo, 
+			 uda.getShortForm(), 
+			 conceptInfo.getConceptString(), 
+			 token.getOffset(), 
+			 token.getText().length(), 
+			 100.0,
+			 "");
+	  evSet.add(ev);
 	}
+	entitySet.add(new Entity("UDA",
+				 docid, 
+				 uda.getShortForm(),
+				 token.getOffset(), 
+				 token.getText().length(), 
+				 100.0,
+				 evSet));
       }
     }
     return entitySet;

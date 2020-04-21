@@ -75,6 +75,8 @@ import gov.nih.nlm.nls.metamap.document.MedlineDocument;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatterRegistry;
 
+import gov.nih.nlm.nls.metamap.lite.dictionary.AugmentedDictionary;
+
 // import gov.nih.nlm.nls.metamap.lite.context.ContextWrapper;
 import gov.nih.nlm.nls.types.Sentence;
 
@@ -325,6 +327,12 @@ public class MetaMapLite {
 
     this.setSemanticGroup(properties.getProperty("metamaplite.semanticgroup", "all").split(","));
     this.setSourceSet(properties.getProperty("metamaplite.sourceset","all").split(","));
+    if (properties.containsKey("metamaplite.cuitermlistfile.filename")) {
+      // add semantic type and semantic group used by
+      // AugmentedDictionary if user is adding his own concepts.
+      this.semanticGroup.addAll(AugmentedDictionary.getCustomSemanticTypeSet());
+      this.sourceSet.addAll(AugmentedDictionary.getCustomSourceSet());
+    }
     System.setProperty("metamaplite.result.formatter.property.brat.typename",
 		       properties.getProperty("metamaplite.result.formatter.property.brat.typename",
 					      "metamaplite"));
@@ -682,9 +690,10 @@ public class MetaMapLite {
     System.err.println("  --indexdir=<directory>   Set directory containing UMLS indexes");
     System.err.println("  --modelsdir=<directory>  Set OpenNLP model directory");
     System.err.println("  --specialtermsfile=<filename> Set location of specialterms file");
-    System.err.println("  --filelistfn=<filename>  name of file containing list of files to be processed.");
+    System.err.println("  --filelistfn=<filename>       name of file containing list of files to be processed.");
     System.err.println("  --filelist=<file0,file1,...>  comma-separated list of files to be processed.");
-    System.err.println("  --uda=<filename>         user defined acronyms file.");
+    System.err.println("  --uda=<filename>              user defined acronyms file.");
+    System.err.println("  --cuitermlistfile=<filename>  user defined concepts file.");
     System.err.println("  --set_property=<propertyname>=<propertyvalue>  set property");
     System.err.println("scheduler options:");
     System.err.println("  --scheduler              use: \"program inputfilename outputfilename\" scheduler convention.");
@@ -1024,10 +1033,6 @@ public class MetaMapLite {
     String outputFilename = basename + ".sentences";
     File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
-    File outputFile = new File(outputFilename);
-    if (outputFile.exists() && (overwritefile == false)) {
-      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
-    }
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -1145,10 +1150,6 @@ public class MetaMapLite {
     File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     
-    File outputFile = new File(outputFilename);
-    if (outputFile.exists() && (overwritefile == false)) {
-      throw new RuntimeException("File " + outputFile.getPath() + " exists aborting, use --overwrite to overwrite output files.");
-    }
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter
 				     (new FileOutputStream(outputFilename),
@@ -1179,24 +1180,7 @@ public class MetaMapLite {
   /**
    * log information about caches.
    */
-    void logCacheInfo() {
-    if (entityLookup instanceof EntityLookup4) {
-      if (((EntityLookup4)entityLookup).dictionaryLookup instanceof IVFLookup) {
-	logger.info
-	  ("cui -> preferred-name cache size: " +
-	   ((IVFLookup)((EntityLookup4)entityLookup).dictionaryLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
-	logger.info
-	  ("term -> concept cache size: " +
-	   ((IVFLookup)((EntityLookup4)entityLookup).dictionaryLookup).termConceptInfoCache.termConceptCache.size());
-      }
-    } else if (entityLookup instanceof EntityLookup5) {
-	logger.info
-	  ("cui -> preferred-name cache size: " +
-	   ((IVFLookup)((EntityLookup5)entityLookup).dictionaryLookup).cuiPreferredNameCache.cuiPreferredNameCache.size());
-      logger.info
-	  ("term -> concept cache size: " +
-	   ((IVFLookup)((EntityLookup5)entityLookup).dictionaryLookup).termConceptInfoCache.termConceptCache.size());
-    } 
+  void logCacheInfo() {
     logger.info("string -> normalized string cache size: " +
 		gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
   }
@@ -1372,6 +1356,12 @@ public class MetaMapLite {
 		System.err.println("missing argument in \"" + fields[0] + "\" option");
 	      } else {
 		optionsConfiguration.setProperty("metamaplite.uda.filename", fields[1]);
+	      }
+	    } else if (fields[0].equals("--cuitermlistfile")) {
+	      if (fields.length < 2) {
+		System.err.println("missing argument in \"" + fields[0] + "\" option");
+	      } else {
+		optionsConfiguration.setProperty("metamaplite.cuitermlistfile.filename", fields[1]);
 	      }
 	    } else if (fields[0].equals("--list_acronyms")) {
 	      optionsConfiguration.setProperty("metamaplite.list.acronyms", "true");

@@ -42,6 +42,7 @@ import gov.nih.nlm.nls.metamap.lite.ChunkerMethod;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPChunker;
 
 import gov.nih.nlm.nls.metamap.prefix.CharUtils;
+
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.PosToken;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
@@ -52,11 +53,14 @@ import gov.nih.nlm.nls.metamap.prefix.Scanner;
 import gov.nih.nlm.nls.metamap.lite.mapdb.MapDbLookup;
 
 import gov.nih.nlm.nls.types.Sentence;
+import gov.nih.nlm.nls.utils.NameIdListMap;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.utils.LRUCache;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
+import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
+import gov.nih.nlm.nls.metamap.lite.dictionary.AugmentedDictionary;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -126,8 +130,18 @@ public class EntityLookup5 implements EntityLookup {
     registry.put("mapdb", new MapDbLookup());
     String directoryPath = properties.getProperty("metamaplite.index.directory");
     Map.Entry<String,MMLDictionaryLookup> entry = registry.determineImplementation(directoryPath);
-    this.dictionaryLookup = entry.getValue();
-    this.dictionaryLookup.init(properties);
+        if (properties.containsKey("metamaplite.cuitermlistfile.filename")) {
+      MMLDictionaryLookup persistantLookup = entry.getValue();
+      Map<String,List<String>> strCuiListMap =
+	NameIdListMap.loadNameIdListMap
+	(properties.getProperty("metamaplite.cuitermlistfile.filename"));
+      this.dictionaryLookup =
+	new AugmentedDictionary(persistantLookup, strCuiListMap);
+      this.dictionaryLookup.init(properties);
+    } else {
+      this.dictionaryLookup = entry.getValue();
+      this.dictionaryLookup.init(properties);
+    }
     this.MAX_TOKEN_SIZE =
       Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
 						Integer.toString(MAX_TOKEN_SIZE)));
@@ -238,7 +252,7 @@ public class EntityLookup5 implements EntityLookup {
     // user defined acronyms
     if (properties.containsKey("metamaplite.uda.filename")) {
       String udaFilename = properties.getProperty("metamaplite.uda.filename");
-      this.udaMap = UserDefinedAcronym.loadUDAList(udaFilename, new IVFLookup(properties));
+      this.udaMap = UserDefinedAcronym.loadUDAList(udaFilename, this.dictionaryLookup);
       for (Map.Entry<String,UserDefinedAcronym<TermInfo>> acronym: udaMap.entrySet()) {
 	logger.info(acronym.getKey() + " -> " + acronym.getValue());
       }
@@ -598,7 +612,8 @@ public class EntityLookup5 implements EntityLookup {
       isHeadInMatchedTokenList(phraseTokenList, matchTokenList, headPos, matchedTermOffset) ? 1.0 : 0.0;
     // double variation = 4.0/(variantLookup.lookupVariant(matchedText, metaTerm) + 4.0 );
     double variation = Scoring.computeVariation(matchedText, metaTerm,
-						matchTokenList, (VariantLookup)this.dictionaryLookup);
+						matchTokenList, 
+						(VariantLookup)this.dictionaryLookup);
     // coverage steps:
     //  1. extract components
     // extractComponents();

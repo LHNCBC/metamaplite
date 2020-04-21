@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
+import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

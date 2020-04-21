@@ -21,6 +21,7 @@ import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 import gov.nih.nlm.nls.metamap.lite.types.MMLEntity;
 import gov.nih.nlm.nls.metamap.lite.types.Span;
 import gov.nih.nlm.nls.metamap.lite.types.SpanImpl;
+import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 
