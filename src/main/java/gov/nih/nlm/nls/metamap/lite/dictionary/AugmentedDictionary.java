@@ -28,7 +28,7 @@ public class AugmentedDictionary
   final static Set<String> customSourceSet = new HashSet<String>();
   final static Set<String> customSemanticTypeSet = new HashSet<String>();
   static {
-    customSourceSet.add("userdefined");
+    customSourceSet.add("USERDEFINED");
     customSemanticTypeSet.add("unknown");
   }
   
@@ -50,8 +50,8 @@ public class AugmentedDictionary
 	ConceptInfo conceptInfo = new ConceptInfo(cui,
 						  originalTerm,
 						  normTerm,
-						  customSourceSet, // custom vocabulary
-						  customSemanticTypeSet);
+						  this.getSourceSet(cui), // custom vocabulary
+						  this.getSemanticTypeSet(cui));
 	ciSet.add(conceptInfo);
       }
     }
@@ -70,8 +70,8 @@ public class AugmentedDictionary
 	  ConceptInfo conceptInfo = new ConceptInfo(cui,
 						    originalTerm,
 						    normTerm,
-						    customSourceSet, // custom vocabulary
-						    customSemanticTypeSet);
+						    this.getSourceSet(cui), // custom vocabulary
+						    this.getSemanticTypeSet(cui));
 	  ciSet.add(conceptInfo);
 	}
       }
@@ -143,11 +143,22 @@ public class AugmentedDictionary
 
   // SemanticTypeLookup signature
   public Set<String> getSemanticTypeSet(String cui) {
-    return this.persistantLookup.getSemanticTypeSet(cui);
+    Set<String> semTypeSet = this.persistantLookup.getSemanticTypeSet(cui);
+    if (semTypeSet.isEmpty()) {
+      return customSemanticTypeSet;
+    } else {
+      return semTypeSet;
+    }
   }
 
   // SourceLookup signature
   public Set<String> getSourceSet(String cui) {
-    return this.persistantLookup.getSourceSet(cui);
+    Set<String> sourceSet = this.persistantLookup.getSourceSet(cui);
+    if (sourceSet.isEmpty()) {
+      return customSourceSet;
+    } else {
+      sourceSet.addAll(customSourceSet);
+      return sourceSet;
+    }
   }
 }
