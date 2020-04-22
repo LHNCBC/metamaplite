@@ -81,7 +81,7 @@ The list of concepts returned can be restricted to a only those that
 refer to a subset of the UMLS semantic types by semantic type
 abbreviations:
 
-    ./metamaplite.sh --restrict_to_sts=abbrev,abbrev
+    ./metamaplite.sh --restrict_to_sts=abbrev,abbrev ...
 
 The following option restricts to concepts that have the semantic types
 disease or syndrome (dsyn) and hazardous or poisonous substance (hops):
@@ -97,7 +97,7 @@ https://metamap.nlm.nih.gov/Docs/SemanticTypes_2018AB.txt
 The follows option specifies that only concepts that appear in the
 MeSH (MSH), and NCBI Taxonomy (NCBI) vocabularies will be returned:
 
-    ./metamaplite.sh --restrict_to_sources=MSH,NCBI
+    ./metamaplite.sh --restrict_to_sources=MSH,NCBI ...
 
 A full list of the current source vocabularies and their abbreviations
 can be found at:
@@ -113,7 +113,12 @@ To create annotation files (.ann) in a directory from the associated text files 
 
 ### User defined acronyms
 
-    ./metamaplite.sh --uda=acronymfile
+The option –uda allows a user to supply a list of user defined
+acronyms or abbreviations with associated long forms.  When
+MetaMapLite encounters a user defined acronym, it will attach the
+information associated with the acronym's long form.
+
+    ./metamaplite.sh --uda=acronymfile ...
 
 The acronym file is the form "acronym|long form", for example:
 
@@ -126,9 +131,12 @@ The acronym file is the form "acronym|long form", for example:
 
 ### User defined concepts
 
-    ./metamaplite.sh --cuitermlistfile=concepfile
+The option –cuitermlistfile allows a user to add a list of concepts
+not present in MetaMapLite’s dataset at invocation:
 
-The  file is the form "cui|term", for example:
+    ./metamaplite.sh --cuitermlistfile=conceptfile ...
+
+The concepts file is the form "cui|term", for example:
 
      C5203670|COVID-19
      C5203671|Suspected COVID-19
