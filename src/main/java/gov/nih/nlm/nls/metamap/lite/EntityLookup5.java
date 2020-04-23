@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Properties;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.Writer;
@@ -129,8 +130,12 @@ public class EntityLookup5 implements EntityLookup {
     registry.put("ivf", new IVFLookup());
     registry.put("mapdb", new MapDbLookup());
     String directoryPath = properties.getProperty("metamaplite.index.directory");
+    if (! new File(directoryPath).exists()) {
+      System.err.println("index directory: " + directoryPath + " does not exist, aborting.");
+      System.exit(1);
+    }
     Map.Entry<String,MMLDictionaryLookup> entry = registry.determineImplementation(directoryPath);
-        if (properties.containsKey("metamaplite.cuitermlistfile.filename")) {
+    if (properties.containsKey("metamaplite.cuitermlistfile.filename")) {
       MMLDictionaryLookup persistantLookup = entry.getValue();
       Map<String,List<String>> strCuiListMap =
 	NameIdListMap.loadNameIdListMap
@@ -139,12 +144,16 @@ public class EntityLookup5 implements EntityLookup {
 	new AugmentedDictionary(persistantLookup, strCuiListMap);
       this.dictionaryLookup.init(properties);
     } else {
-      this.dictionaryLookup = entry.getValue();
+      if (entry == null) {
+	this.dictionaryLookup = new IVFLookup();
+      } else {
+	this.dictionaryLookup = entry.getValue();
+      }
       this.dictionaryLookup.init(properties);
     }
     this.MAX_TOKEN_SIZE =
       Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
-						Integer.toString(MAX_TOKEN_SIZE)));
+					      Integer.toString(MAX_TOKEN_SIZE)));
     this.addPartOfSpeechTagsFlag =
       Boolean.parseBoolean(properties.getProperty("metamaplite.enable.postagging",
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
