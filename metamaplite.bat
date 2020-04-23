@@ -1,5 +1,8 @@
 ::
-echo off
+:: A simplified metamaplite batch script using metamaplite standalone
+:: jar, should work in Command Prompt and maybe PowerShell on Windows.
+
+@echo off
 
 set projectdir=%cd%
 
@@ -10,7 +13,7 @@ set CONFIGDIR=$PROJECTDIR/config
 
 set MML_JVM_OPTS=-Xmx12g
 
-set METAMAPLITE=%projectdir%/target/metamaplite-%MML_VERSION%%-standalone.jar
+set METAMAPLITE=%projectdir%/target/metamaplite-%MML_VERSION%-standalone.jar
 
 set JARSPATH=%METAMAPLITE%
 
@@ -24,13 +27,11 @@ set JVMOPTS=-Den-sent.bin.path=%OPENNLP_MODELS%/en-sent.bin ^
 -Dlog4j.configurationFile=file:///%projectdir%/config/log4j2.xml ^
 -Dmetamaplite.property.file=%CONFIGDIR%/metamaplite.properties ^
 -Dmetamaplite.entitylookup.resultlength=1500 ^
--Dmetamaplite.ivf.cuiconceptindex=%projectdir%/data/ivf/strict/cuiconcept ^
--Dmetamaplite.ivf.firstwordsofonewideindex=%projectdir%/data/ivf/strict/first_words_of_one_WIDE ^
--Dmetamaplite.ivf.cuisourceinfoindex=%projectdir%/data/ivf/strict/cuisourceinfo ^
--Dmetamaplite.ivf.cuisemantictypeindex=%projectdir%/data/ivf/strict/cuist ^
--Dmetamaplite.ivf.varsindex=%projectdir%/data/ivf/strict/vars ^
--Dmetamaplite.ivf.meshtcrelaxedindex=$PROJECTDIR/data/ivf/strict/indices/meshtcrelaxed
+-Dmetamaplite.index.directory=%projectdir%/data/ivf/2019AB/USAbase ^
+-Dmetamaplite.excluded.termsfile=%projectdir%/data/specialterms.txt
 
-java -cp %projectdir%/target/classes;%projectdir%/build/classes;%projectdir%/classes;%JARSPATH%;%CONFIGDIR% ^
+java -cp %projectdir%/target/classes;%projectdir%/build/classes;%projectdir%/classes;%JARSPATH%;%projectdir% ^
      %JVMOPTS% gov.nih.nlm.nls.ner.MetaMapLite %* 
+
+
 

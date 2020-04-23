@@ -257,12 +257,8 @@ These properties can be set using a System property
 ### Configuration properties
 
     | metamaplite.excluded.termsfile        | cui/terms pairs that are exclude from results (default: data/specialterms.txt)
-    | metamaplite.index.directory           | the directory the indexes resides (sets the following properties)
-    | metamaplite.ivf.cuiconceptindex       | cui/concept/preferredname index
-    | metamaplite.ivf.cuisourceinfoindex    | cui/sourceinfo index 
-    | metamaplite.ivf.cuisemantictypeindex  | cui/semantictype index
-
-    | opennlp.models.directory              | the directory the models resides (sets the following properties. default: data/models)
+    | metamaplite.index.directory           | the directory the indexes reside
+    | opennlp.models.directory              | the directory the models reside (sets the following properties. default: data/models)
     | opennlp.en-pos.bin.path               | (default: data/models/en-pos-maxent.bin)
     | opennlp.en-token.bin.path             | (default: data/models/en-token.bin)
     | opennlp.en-sent.bin.path              | (default: data/models/en-sent.bin)
@@ -484,11 +480,7 @@ Use the --indexdir=<directory> option:
 
 Or modify the configuration file config/metamap.properties:
 
-    metamaplite.ivf.cuiconceptindex: <ivfdir>/indices/cuiconcept
-    metamaplite.ivf.cuisourceinfoindex: <ivfdir>/indices/cuisourceinfo
-    metamaplite.ivf.cuisemantictypeindex: <ivfdir>/indices/cuist
-	metamaplite.ivf.varsindex: <ivfdir>/indices/vars
-    metamaplite.ivf.meshtcrelaxedindex: <ivfdir>/indices/meshtcrelaxed
+    metamaplite.index.directory: <ivfdir>
 
 ## Adding custom input document formats
 
@@ -582,8 +574,8 @@ directory and specify that in servlet:
         try {
           this.properties = new Properties();
           // default properties that can be overriden 
-          this.properties.setProperty("metamaplite.ivf.cuiconceptindex","data/ivf/strict/indices/cuiconcept");
-          ...
+          this.properties.setProperty("metamaplite.index.directory","data/ivf/strict");
+		  ...
           // load user properties
           this.properties.load(new FileReader(configPropertyFilename));
           this.metaMapLiteInst = new MetaMapLite(this.properties);

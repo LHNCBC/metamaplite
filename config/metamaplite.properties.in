@@ -8,12 +8,7 @@ metamaplite.cuisemantictypeindex: @@basedir@@/data/lucenedb/cui_st
 metamaplite.varsindex: @@basedir@@/data/lucenedb/vars
 
 # Inverted Files
-metamaplite.ivf.cuiconceptindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/cuiconcept
-metamaplite.ivf.firstwordsofonewideindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/first_words_of_one_WIDE
-metamaplite.ivf.cuisourceinfoindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/cuisourceinfo
-metamaplite.ivf.cuisemantictypeindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/cuist
-metamaplite.ivf.varsindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/vars
-metamaplite.ivf.meshtcrelaxedindex: @@basedir@@/data/ivf/@@year@@/@@subset@@/indices/meshtcrelaxed
+metamaplite.index.directory=@@basedir@@/data/ivf/@@year@@/@@subset@@
 
 # default semantic.type.list: if not defined is empty (all semantic types) 
 #   semantic type abbreviations separated by commas.

@@ -72,6 +72,16 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
 
   // Implementation of gov.nih.nlm.nls.metamap.lite.DictionaryLookup
 
+  public static void expandIndexDir(Properties properties, String indexDirName) {
+    if (indexDirName != null) {
+      properties.setProperty("metamaplite.ivf.cuiconceptindex", indexDirName + "/indices/cuiconcept");
+      properties.setProperty("metamaplite.ivf.firstwordsofonewideindex", indexDirName + "/indices/first_words_of_one_WIDE");
+      properties.setProperty("metamaplite.ivf.cuisourceinfoindex", indexDirName + "/indices/cuisourceinfo");
+      properties.setProperty("metamaplite.ivf.cuisemantictypeindex", indexDirName + "/indices/cuist");
+      properties.setProperty("metamaplite.ivf.varsindex", indexDirName + "/indices/vars");
+      properties.setProperty("metamaplite.ivf.meshtcrelaxedindex", indexDirName + "/indices/meshtcrelaxed");
+    }
+  }
 
   public void init(Properties properties) {
     try {
@@ -84,6 +94,8 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
 	Integer.parseInt(properties.getProperty("metamaplite.entitylookup3.maxtokensize",
 						Integer.toString(MAX_TOKEN_SIZE)));
 
+      // fill-in properties for individual indexes
+      expandIndexDir(properties, properties.getProperty("metamaplite.index.directory"));
       this.mmIndexes = new MetaMapIvfIndexes(properties);
       this.cuiPreferredNameCache = new CuiPreferredNameCache(this, properties);
       this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
