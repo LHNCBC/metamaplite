@@ -1,7 +1,7 @@
 # MetaMapLite: A lighter named-entity recognizer
 
 The primary goal of MetaMapLite is to provide a near real-time
-named-entity recognizer which is not a rigorous as MetaMap but much
+named-entity recognizer which is not as rigorous as MetaMap but much
 faster while allowing users to customize and augment its behavior for
 specific purposes.
 
@@ -57,9 +57,9 @@ Example of invocation on Windows using batch file:
     metamaplite.bat [options] [<input file>|--]
 
 Example of invocation using Java VM directly when running from the
-__public_mm__ directory:
+__public_mm_lite__ directory:
 
-    $ java -cp target/metamaplite-3.6-standalone.jar \
+    $ java -cp target/metamaplite-3.6.2rc5-standalone.jar \
           gov.nih.nlm.nls.ner.MetaMapLite \
           --indexdir=data/ivf/strict \
           --modelsdir=data/models \
@@ -107,7 +107,8 @@ https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
 
 ### Annotating a brat directory
 
-To create annotation files (.ann) in a directory from the associated text files (.txt)
+To create annotation files (.ann) in a directory from the associated
+text files (.txt)
 
     ./metamaplite.sh --brat directory/*.txt
 

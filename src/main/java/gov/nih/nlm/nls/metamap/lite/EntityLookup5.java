@@ -90,7 +90,7 @@ public class EntityLookup5 implements EntityLookup {
     Boolean.parseBoolean(System.getProperty("metamaplite.disable.chunker","false"));
   
   /** Part of speech tags used for term lookup, can be set using
-   * property: metamaplite.pos.taglist; the tag list is a set of Penn
+   * property: metamaplite.postaglist; the tag list is a set of Penn
    * Treebank part of speech tags separated by commas. */
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {
@@ -160,11 +160,9 @@ public class EntityLookup5 implements EntityLookup {
 
     this.disableChunker = 
       Boolean.parseBoolean(properties.getProperty("metamaplite.disable.chunker","false"));
-
-    this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.postaglist");
       if (allowedPartOfSpeechTaglist != null) {
 	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
 	  this.allowedPartOfSpeechSet.add(pos);
@@ -220,7 +218,7 @@ public class EntityLookup5 implements EntityLookup {
 
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.postaglist");
       if (allowedPartOfSpeechTaglist != null) {
 	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
 	  this.allowedPartOfSpeechSet.add(pos);

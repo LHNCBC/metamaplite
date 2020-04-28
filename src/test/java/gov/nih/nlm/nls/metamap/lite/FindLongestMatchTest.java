@@ -46,7 +46,7 @@ public class FindLongestMatchTest {
   }
 
   /** Part of speech tags used for term lookup, can be set using
-   * property: metamaplite.pos.taglist; the tag list is a set of Penn
+   * property: metamaplite.postaglist; the tag list is a set of Penn
    * Treebank part of speech tags separated by commas. */
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {

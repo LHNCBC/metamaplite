@@ -96,7 +96,7 @@ public class EntityLookup3 implements EntityLookup {
   {
     this.mmIndexes = new MetaMapIvfIndexes(properties);
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-    String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+    String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.postaglist");
     if (allowedPartOfSpeechTaglist != null) {
 	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
 	  this.allowedPartOfSpeechSet.add(pos);

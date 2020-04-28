@@ -80,7 +80,7 @@ public class EntityLookup4 implements EntityLookup {
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
 
   /** Part of speech tags used for term lookup, can be set using
-   * property: metamaplite.pos.taglist; the tag list is a set of Penn
+   * property: metamaplite.postaglist; the tag list is a set of Penn
    * Treebank part of speech tags separated by commas. */
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
   public void defaultAllowedPartOfSpeech() {
@@ -145,12 +145,11 @@ public class EntityLookup4 implements EntityLookup {
 
     if (this.addPartOfSpeechTagsFlag) {
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.pos.taglist");
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.postaglist");
       if (allowedPartOfSpeechTaglist != null) {
 	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
 	  this.allowedPartOfSpeechSet.add(pos);
-	}
-	this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
+	} 
       } else {
 	this.defaultAllowedPartOfSpeech();
       }

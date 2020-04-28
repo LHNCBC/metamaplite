@@ -969,12 +969,13 @@ public class MetaMapLite {
    * @param filename filename of file to be checked.
    * @return file object of specified file
    */
-  public File throwExceptionIfFileExists(String outputFilename, boolean overwritefile) {
+  public File abortIfFileExists(String outputFilename, boolean overwritefile) {
     File outputFile = new File(outputFilename);
     if (outputFile.exists() && (overwritefile == false)) {
-      throw new RuntimeException
+      System.out.println
 	("File " + outputFile.getPath() +
 	 " exists aborting, use --overwrite to overwrite output files.");
+      System.exit(1);
     }
     return outputFile;
   }
@@ -994,7 +995,7 @@ public class MetaMapLite {
     // create output filename
     String basename = getBasename(filename);
     String outputFilename = basename + ".sentences";
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
@@ -1011,7 +1012,7 @@ public class MetaMapLite {
   {
     String basename = getBasename(filename);
     String outputFilename = basename + ".acronyms";
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
     for (AbbrInfo acronym: this.getAcronymList(documentList)) {
@@ -1030,8 +1031,8 @@ public class MetaMapLite {
     // output results for file
     // create output filename
     String basename = getBasename(filename);
-    String outputFilename = basename + ".sentences";
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    String outputFilename = basename + ".sentences_postags";
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
@@ -1088,7 +1089,7 @@ public class MetaMapLite {
     // create output filename
     String basename = getBasename(filename);
     String outputFilename = basename + ".chunks";
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
@@ -1106,7 +1107,7 @@ public class MetaMapLite {
     // create output filename
     String basename = getBasename(filename);
     String outputFilename = basename + outputExtension;
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     // output results for file
     PrintWriter pw = new PrintWriter(new BufferedWriter
@@ -1126,7 +1127,7 @@ public class MetaMapLite {
     // create output filename
     String basename = getBasename(filename);
     String outputFilename = basename + outputExtension;
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
@@ -1147,7 +1148,7 @@ public class MetaMapLite {
 		    boolean overwritefile)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
-    File outputFile = throwExceptionIfFileExists(outputFilename, overwritefile);
+    File outputFile = abortIfFileExists(outputFilename, overwritefile);
     logger.info("outputing results to " + outputFilename);
     
     // output results for file
@@ -1296,8 +1297,8 @@ public class MetaMapLite {
 	    } else if (fields[0].equals("--bioc") || 
 		       fields[0].equals("--cdi") || 
 		       fields[0].equals("--bc") || 
-		       fields[0].equals("--bcevaluate")) {
-	      optionsConfiguration.setProperty("metamaplite.outputformat","bioc");
+		       fields[0].equals("--bc-evaluate")) {
+	      optionsConfiguration.setProperty("metamaplite.outputformat","cdi");
 	      optionsConfiguration.setProperty("metamaplite.outputextension",
 					       (outputExtensionMap.containsKey("cdi") ?
 						outputExtensionMap.get("cdi") :
@@ -1337,6 +1338,12 @@ public class MetaMapLite {
 	      optionsConfiguration.setProperty("metamaplite.disable.chunker","true");
 	    } else if (fields[0].equals("--brat_type_name")) {
 	      optionsConfiguration.setProperty("metamaplite.brat.typename", fields[1]);
+	    } else if (fields[0].equals("--postaglist")) {
+	      if (fields.length < 2) {
+		System.err.println("missing argument in \"" + fields[0] + "\" option");
+	      } else {
+		optionsConfiguration.setProperty("metamaplite.postaglist", fields[1]);
+	      }
 	    } else if (fields[0].equals("--filelist")) {
 	      if (fields.length < 2) {
 		System.err.println("missing argument in \"" + fields[0] + "\" option");
@@ -1429,12 +1436,11 @@ public class MetaMapLite {
 
       String documentInputOption = properties.getProperty("metamaplite.document.inputtype", "freetext");
       String outputFormatOption = properties.getProperty("metamaplite.outputformat","mmi");
-      String outputExtension = ".out";
+      String outputExtension = properties.getProperty("metamaplite.outputextension","out");
       if (properties.getProperty("metamaplite.outputformat").equals("mmi")) {
-	properties.setProperty("metamaplite.outputextension", ".mmi");
-      }
-      if (properties.containsKey("metamaplite.outputextension")) {
-	outputExtension = properties.getProperty("metamaplite.outputextension");
+	if (! properties.containsKey("metamaplite.outputextension")) {
+	  outputExtension = ".mmi";
+	}
       }
       boolean listSentencesOption =
 	Boolean.parseBoolean(properties.getProperty("metamaplite.list.sentences","false"));
