@@ -82,8 +82,16 @@ public class GenerateVariants {
    * @return contents of words column.
    */
   public String getWord(String line) {
-    String[] fields = line.split("\\|");
-    return fields[2];
+    try {
+      String[] fields = line.split("\\|");
+      if (fields.length > 2) {
+	return fields[2];
+      } else {
+	return fields[0];
+      }
+    } catch (ArrayIndexOutOfBoundsException aioobe) {
+      throw new RuntimeException("ArrayIndexOutOfBoundsException: line: " + line);
+    }
   }
 
   /***
@@ -220,9 +228,13 @@ public class GenerateVariants {
     }
     System.out.println("Processing " + mrconsoFilename + " --> " +
 		       varsFilename + ".");
+    System.out.println("Processing " + mrconsoFilename + " --> " +
+		       wordsFilename + ".");
 
     GleanMrconso gleanMrconsoInst = new GleanMrconso();
     gleanMrconsoInst.process(mrconsoFilename, wordsFilename);
+    System.out.println("Processing " + wordsFilename + " --> " +
+		       varsFilename + ".");
     this.processWords(wordsFilename, varsFilename);
   }
 
