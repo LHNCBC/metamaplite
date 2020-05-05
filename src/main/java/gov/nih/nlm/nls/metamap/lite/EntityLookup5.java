@@ -131,8 +131,7 @@ public class EntityLookup5 implements EntityLookup {
     registry.put("mapdb", new MapDbLookup());
     String directoryPath = properties.getProperty("metamaplite.index.directory");
     if (! new File(directoryPath).exists()) {
-      System.err.println("index directory: " + directoryPath + " does not exist, aborting.");
-      System.exit(1);
+      throw new RuntimeException("index directory: " + directoryPath + " does not exist.");
     }
     Map.Entry<String,MMLDictionaryLookup> entry = registry.determineImplementation(directoryPath);
     if (properties.containsKey("metamaplite.cuitermlistfile.filename")) {
