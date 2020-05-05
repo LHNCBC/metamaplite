@@ -71,10 +71,6 @@ public class PubMedXMLDocument
 		break;
 	    }
 	    case "AbstractText" : {
-	      System.out.print("AbstractText : ");
-	      System.out.println(streamReader.getElementText());
-	      System.out.print("Abstract : ");
-	      System.out.println(streamReader.getElementText());
 	      BioCPassage abstractPassage = new BioCPassage();
 	      abstractPassage.setText(streamReader.getElementText());
 	      abstractPassage.putInfon("docid", doc.getID());

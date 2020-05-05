@@ -129,7 +129,7 @@ public class SectionIndicatorData {
       }
     }
     Matcher headerMatcher = headerPattern.matcher(aPassage);
-    System.out.println("headerMatcher: " + headerMatcher);
+    // System.out.println("headerMatcher: " + headerMatcher);
     while (headerMatcher.find()) {
       console.printf("I found the text" +
 		     " \"%s\" starting at " +
