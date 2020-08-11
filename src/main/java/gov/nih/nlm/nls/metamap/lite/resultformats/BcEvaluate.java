@@ -79,10 +79,6 @@ public class BcEvaluate implements ResultFormatter {
     }
     int rindex = 1;
     for (String term: termSet) {
-      System.out.println(document.getID() + "\t" +
-			 term + "\t" +
-			 rindex + "\t" +
-			 0.9);
       writer.println(document.getID() + "\t" +
 		     term + "\t");
 		     // rindex + "\t" +
