@@ -159,8 +159,11 @@ public class Entity implements Annotation, Comparable<Entity>
   }
   public int compareTo(Entity o) {
     if (this.getScore() != o.getScore()) {
-      return Double.compare(this.getScore(),o.getScore());
-    } 
+      return Double.compare(this.getScore(), o.getScore());
+    }
+    if (! this.getEvList().equals(o.getEvList())) { 
+      return Integer.compare(o.getEvList().size(), this.getEvList().size());
+    }
     return this.getText().compareTo(o.getText());
   }
   public String getDocid() { return this.docid; }
