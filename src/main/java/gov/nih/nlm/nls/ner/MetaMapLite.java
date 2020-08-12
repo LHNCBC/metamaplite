@@ -1249,7 +1249,15 @@ public class MetaMapLite {
       String mmlIndexDirEnv = System.getenv("MML_INDEXDIR");
       if (mmlIndexDirEnv != null) {
 	optionsConfiguration.setProperty ("metamaplite.index.directory", mmlIndexDirEnv);
-      } 
+      }
+      String opennlpModelsDirEnv = System.getenv("OPENNLP_MODELSDIR");
+      if (opennlpModelsDirEnv != null) {
+	optionsConfiguration.setProperty ("opennlp.models.directory", opennlpModelsDirEnv);
+      }
+      String excludedTermsEnv = System.getenv("EXCLUDEDTERMS_FILE");
+      if (excludedTermsEnv != null) {
+	optionsConfiguration.setProperty ("metamaplite.excluded.termsfile", excludedTermsEnv);
+      }
       boolean fromScheduler = false;
       boolean overwritefile = false;
       int i = 0;
