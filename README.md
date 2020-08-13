@@ -266,10 +266,15 @@ These properties can be set using a System property
 	| metamaplite.enable.postagging         | Enable part of speech tagging (default: "true" [on])
 	| metamaplite.postaglist                | List of part-of-speech tags to use for term lookup
 	                                        | (each Penn Treebank part-of-speech tag is separated by commas.)
-	| metamaplite.enable.scoring            | turn on chunker (currently OpenNLP's chunker) and score concepts.
+	| metamaplite.enable.scoring            | score concepts (I.E.: turn on chunker [currently OpenNLP]).
 
 	| metamaplite.uda.filename              | user defined acronyms file.
 	| metamaplite.cuitermlistfile.filename  | user defined concepts file.
+
+### Environment Variables
+currently one
+
+MML_INDEXDIR
 
 ## Using MetaMapLite from Java
 
