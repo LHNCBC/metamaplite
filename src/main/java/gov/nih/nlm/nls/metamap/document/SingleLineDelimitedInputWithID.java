@@ -26,7 +26,8 @@ import org.apache.logging.log4j.Logger;
 public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
   private static final Logger logger = LogManager.getLogger(SingleLineDelimitedInputWithID.class);
 
-  Charset charset = Charset.forName("utf-8");
+  static Charset charset = Charset.forName("utf-8");
+  static String delimiterRegexp = System.getProperty("metamaplite.sldiwd.delimiter.regexp", "\\|");
 
   /**
    * Instantiate BioCDocument document instance reading single-line
@@ -45,7 +46,7 @@ public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
    */
   public static BioCDocument instantiateBioCDocument(String docText) 
   {
-    String[] docFields = docText.split("\\|");
+    String[] docFields = docText.split(delimiterRegexp);
     BioCDocument doc = new BioCDocument();
     if (docFields.length > 1) {
       doc.setID(docFields[0]);
