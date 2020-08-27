@@ -248,13 +248,9 @@ public class MetaMapLite {
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
 
     boolean enableScoring = false;
-    if (properties.containsKey("metamaplite.outputformat")) {
-      if (properties.get("metamaplite.outputformat").equals("mmi")) {
-	properties.setProperty("metamaplite.enable.scoring","true");
-      }
-    }
     if (properties.containsKey("metamaplite.enable.scoring")) {
       if (Boolean.parseBoolean(properties.getProperty("metamaplite.enable.scoring"))) {
+	    enableScoring = true;
       }
     }
     BioCDocumentLoaderRegistry.register("bioc",
