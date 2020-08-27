@@ -1,0 +1,358 @@
+% MetaMapLite Data File Buider usage document
+%
+% This document requires the following sty and cfg files
+% 
+% memoir.sty
+% hyperref.sty
+% 
+% Generating the document in pdf:
+% 
+% latex datafilebuilder ; latex datafilebuilder # process twice to resolve references
+% dvips datafilebuilder -o datafilebuilder.ps   # generate ps file from dvi file
+% ps2pdf datafilebuilder.ps                     # generate pdf file from ps file
+% acroread datafilebuilder.pdf &                # view pdf file
+%
+% If using TeXLive or TeTeX (or any TeX 3.0 implementation really) you
+% can generate the pdf document using pdflatex which eliminates the
+% dvi2ps and ps2pdf steps.
+%
+% pdflatex datafilebuilder ; pdflatex datafilebuilder # process twice to resolve references
+% acroread datafilebuilder.pdf &                      # view pdf file
+%
+% \documentclass[letterpaper,twocolumn,article]{memoir}
+\documentclass[letterpaper,article]{memoir}
+
+\textwidth 7in
+\textheight 9in
+
+\usepackage[hypertex]{hyperref}
+
+\def\strut{{\rule{0cm}{0.5cm}}}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{5pt}
+
+\def\tt{\ttfamily}
+\def\bf{\bfseries}
+
+\def\SLBF{\strut\Large\bf}
+\def\LBF{\Large\bf}
+
+\def\circleR{{\ooalign
+   {\hfil\raise.07ex\hbox{\tiny R}\hfil\crcr\mathhexbox20D}}}
+
+\title{MetaMapLite Data File Builder}
+\author{Willie Rogers, Fran\c{c}ois-Michel Lang, Cliff Gay}
+
+\begin{document}
+\maketitle
+
+\pagestyle{headings}
+\chapterstyle{article}
+
+\begin{abstract}
+  The MetaMapLite application is designed to automatically identify
+  UMLS${}^{\circleR}$ Metathesaurus${}^{\circleR}$ concepts
+  referred to in free text\cite{MetaMapLite:JAMIA}\cite{MetaMap:Overview}\cite{UMLS:MainPage}.
+  Although the UMLS focuses on biomedical information sources,
+  MetaMapLite's algorithms are domain independent and can be
+  used with any domain providing adequate knowledge sources.
+  The MetaMapLite Data File Builder enables such cross-domain
+  utilization of MetaMapLite by allowing users to create
+  UMLS-like data models similar to the actual UMLS data models
+  normally used by MetaMapLite.
+\end{abstract}
+
+\chapter{Intended Use}
+\label{sec:intended_use}
+We assume throughout this document that the full MetaMapLite distribution
+has been downloaded from
+\begin{quote}
+\url{https://metamap.nlm.nih.gov/MetaMapLite.shtml}
+\end{quote}
+and installed.
+Once the MetaMap distributions has been installed,
+users have the option of customizing the UMLS dataset
+or creating a dataset {\em de novo\/}.
+There are three principal ways to create a MetaMap knowledge base
+whose concepts the system is designed to identify:
+\begin{enumerate}
+    \item {\bf Full UMLS Metathesaurus}: To use MetaMapLite to map
+      text to concepts in the current version of the UMLS
+      Metathesaurus, there is nothing more to do beyond installing
+      MetaMapLite, because the application is bundled with the latest
+      version of the UMLS data.  Full UMLS data sets other than the
+      one included in the full MetaMapLite distribution (e.g., data
+      sets from earlier releases of the UMLS) are also available from
+      the same website given above.
+    \item {\bf UMLS Metathesaurus Subset}: If copyright issues
+      preclude the use of certain vocabularies in the MetaMapLite
+      download, or if users want to focus on selected Metathesaurus
+      vocabularies, one should use
+      MetamorphoSys\footnote{\url{https://www.nlm.nih.gov/research/umls/implementation_resources/metamorphosys/index.html}}
+      to create an appropriate subset of the Metathesaurus and then
+      use Data File Builder to create a customized data set that based
+      based on the Metathesaurus subset.
+    \item {\bf Non-UMLS Database}: Finally, in order to to use
+      MetaMapLite to identify concepts in knowledge sources not based
+      on the UMLS Metathesaurus, it is necessary to create from
+      scratch a special-purpose data set; this approach also requires
+      Data File Builder to create the database files used by
+      MetaMapLite.
+\end{enumerate}
+
+\chapter{Document Roadmap}
+%% Section \ref{sec: platform_differences}
+%% explains of how to tailor the instructions
+%% in this manual to specific operating systems (Solaris and Linux).
+Section \ref{Background}
+provides a historical perspective for Data File Builder processing.
+Next, sections \ref{Creating}, \ref{Generating}, and \ref{Loading}
+explain in greater detail the three processing stages presented above.
+Section \ref{Troubleshooting} presents some troubleshooting tips,
+and the manual concludes with section \ref{Using MetaMap},
+which contains directions for using MetaMap with the new database.
+
+%% \chapter{Platform Differences}
+%% \label{sec:platform_differences}
+%% \section{Linux}
+%% \section{MacOS}
+%% \section{Windows}
+
+\chapter{Background}\label{Background}
+
+This section discusses the processing required
+to generate the data files to be used by MetaMap.
+Several papers on the Reference Page of the
+MetaMap Portal\footnote{\url{https://metamap.nlm.nih.gov/}}
+explain portions of the Data File Building process
+in greater depth:
+
+\begin{itemize}
+\item {\em Effective Mapping of Biomedical Text to the UMLS Metathesaurus:
+	The MetaMap Program\/}:
+  	This recent paper provides not only a good overview of the
+	processing available with MetaMap,
+        but also discusses the data-maintenance process and variant
+        generation.
+\footnote{\url{https://skr.nlm.nih.gov/papers/references/metamap_01AMIA.pdf}}
+\item {\em MetaMap Update Procedures\/}:
+	This paper describes the maintenance of MetaMap data files. It was
+        this process that was adapted for use with MetaMap.
+\footnote{\url{https://skr.nlm.nih.gov/papers/references/mm.update.pdf}}
+\item {\em Filtering the UMLS Metathesaurus for MetaMap\/} 
+	A critical part of the MetaMap Data File generation is the
+        filtering out of certain strings from the source files.
+	A brief description of this process
+        is provided below at the end of section \ref{MWI},
+        but this paper explains manual filtering,
+        the seven kinds of lexical filtering,
+        filtering by Metathesaurus term type (which is no longer done),
+        and finally syntactic filtering.
+\footnote{\url{https://skr.nlm.nih.gov/papers/references/filtering08.pdf}}
+\item {\em MetaMap: Mapping Text to the UMLS Metathesaurus\/}:
+	Section 3 (Noun Phrase Variants, pp. 4-7) of this paper
+        provides an explanation of the role of variant generation
+        in the MetaMap matching algorithm. (A variation of this algorithm
+        is used when calculating scores when using MMI output)
+\footnote{\url{https://skr.nlm.nih.gov/papers/references/metamap06.pdf}}
+\end{itemize}
+
+\chapter{Creating a Custom Dataset}\label{Creating}
+
+Recall that if MetaMapLite is to be used with the full UMLS
+Metathesaurus provided with MetaMapLite, there is nothing to do beyond
+installing MetaMapLite and a Pre-built dataset.  We now explain the
+two methods of creating a custom Metathesaurus-like data set:
+\begin{enumerate}
+    \item Using a subset of the actual UMLS Metathesaurus, and
+    \item Creating one's own customized knowledge base from scratch.
+\end{enumerate}
+This section explains both these approaches.
+
+\section{Create the Workspace}\label{Create the Workspace}
+
+Data File Builder expects all the knowledge sources to be in a common
+location and a common location for the generated tables and associated
+indexes.
+
+\section{Using a UMLS Metathesaurus Subset}\label{Using Subset}
+
+% check urls
+As noted in Section \ref{sec:intended_use},
+there are two basic approaches to creating
+customized knowledge sources.
+We next describe the first approach,
+which involves creating a subset
+of the UMLS Metathesaurus knowledge sources.
+The UMLS download provides a tool called MetamorphoSys,
+which is the UMLS' installation wizard and customization tool.
+MetamorphoSys is included in every UMLS release,
+and allows users to exclude and/or prioritize vocabularies
+in order to comply with licensing restrictions
+and exercise some control over naming of the Metathesaurus data.
+The MetamorphoSys Fact Sheet can be found at
+
+{\small
+  \begin{quote}
+    \url{https://www.nlm.nih.gov/pubs/factsheets/umlsmetamorph.html}
+  \end{quote}
+}
+
+The UMLS Knowledge Sources manual (the green book)
+discusses the operation of MetamorphoSys in section 6.
+This information is also available online at
+
+{\small
+\begin{quote}
+\url{https://www.ncbi.nlm.nih.gov/books/NBK9683/}
+\end{quote}
+}
+
+Please refer to the General MetamorphoSys Documentation for
+information on how to create a Metathesaurus subset:
+
+\url{https://www.nlm.nih.gov/research/umls/implementation_resources/metamorphosys/index.html}
+
+
+
+\section{Using a New Knowledge Source}\label{Using New KS}
+
+This section now describes the process of building data sources
+not based on the UMLS Metathesaurus.
+
+The goal is to create the files required to run the Data File
+Builder program in order to create a valid MetaMapLite database.
+Table \ref{tab:required_files} lists the files required,
+which must be placed in the {\tt umls} directory of the workspace.
+\begin{table}
+  \centering
+\begin{tabular}{|l|p{2.1in}|} \hline
+\bf File   & \bf When Required \\ \hline
+    MRCONSO.RRF & always \\ \hline
+    MRSAT.RRF   & always (but can be empty when treecode equivalent
+                  data is not present.) \\ \hline
+    MRSTY.RRF   & always  \\ \hline
+\end{tabular}
+\caption{Required Files}
+\label{tab:required_files}
+\end{table}
+
+
+\chapter{Generating the Data Files}\label{Generating}
+
+We assume at this point that the required tables
+listed  in Table \ref{tab:required_files} above
+on page \pageref{tab:required_files} have been created.
+
+MetaMapLite's datafiles can be divided into three categories:
+\begin{enumerate}
+    \item word-index and cui-index files,
+    \item a treecode file, 
+    \item a word/variants-index file,
+\end{enumerate}
+\chapter{Data Set Creation and Load} \label{Loading}
+
+The CreateIndexes program requires at least 16 gigabytes of RAM to run.
+
+\begin{verbatim}
+$ java -Xmx2g -cp %projectdir%\target\metamaplite-%MML_VERSION%-standalone.jar \
+     gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes
+\end{verbatim}
+
+A low-memory script for computers with at least 8 gigabytes of RAM has
+been provided:
+
+\begin{verbatim}
+$ bin\create_indexes.sh
+\end{verbatim}
+
+This script does everything the CreateIndexes does using five separate
+programs.
+
+\chapter{Troubleshooting}\label{Troubleshooting}
+
+{\bf When a data file is missing}:
+If a missing file is reported,
+you should go to the directory where the missing file should be,
+and (re-)run the script that creates it.
+If intermediate files exist in the directory,
+check the output from the script carefully for error messages.
+
+{\bf When an error is reported}:
+Because errors can have such varied etiology,
+we can offer only general suggestions;
+the specific error message may offer some clues as to what might have gone wrong.
+If not, we recommend cleaning up the working directory for the step that failed,
+and simply running it again.
+
+{\bf To clean up a working directory}:
+
+To restart the process of indexing remove the following directories in {\it ivfdir}:
+
+\begin{verbatim}
+cuiconcept
+cuisourceinfo
+cuist
+meshtcrelaxed
+vars
+\end{verbatim}
+
+\chapter{Using MetaMapLite}\label{Using MetaMapLite}
+This section gives a brief overview of using MetaMapLite with a custom
+data set. More complete information on using MetaMapLite and its options
+is available at
+\begin{quote}
+\url{https://metamap.nlm.nih.gov/MetaMapLite.shtml}
+\end{quote}
+
+
+\begin{table*}
+\footnotesize
+\begin{tabular}{|l|l|l|p{1.7in}|} \hline
+\SLBF Program   & \LBF Input Files  & \LBF Output Files \\
+ \hline
+ \tt CreateIndexes & MRCONSO.RRF &  cuiconcept.txt \\
+ &           & cuisourceinfo.txt \\
+  &           & vars.txt \\
+ & MRSTY.RRF & cuist.txt \\
+ & MRSAT.RRF & mesh\_tc\_relaxed.txt \\
+ \hline
+ \tt ExtractMrconsoPreferredNames &  MRCONSO.RRF & cuiconcept.txt  \\
+ \hline
+ \tt ExtractMrconsoSources &  MRCONSO.RRF & cuisourceinfo.txt \\
+ \hline
+ \tt ExtractMrstySemanticTypes &  MRSTY.RRF & cuist.txt \\
+ \hline
+ \tt ExtractTreecodes & MRCONSO.RRF & mesh\_tc\_relaxed.txt \\
+                      & MRSAT.RRF &  \\
+ \hline
+ \tt GenerateVariants & MRCONSO.RRF  & vars.txt \\ \hline
+\end{tabular}
+\caption{Data File Builder Overview}
+\label{tab:dfb_overview}
+% \end{table*}
+\end{table*}
+
+
+\begin{thebibliography}{99}
+\bibitem{MetaMapLite:JAMIA} Dina Demner-Fushman, Willie J Rogers, Alan
+  R Aronson, MetaMap Lite: An Evaluation of a New Java Implementation
+  of MetaMap, Journal of the American Medical Informatics Association,
+  2017 Jul 1;24(4):841-844, doi: 10.1093/jamia/ocw177.
+  \url{https://academic.oup.com/jamia/article/24/4/841/2961848}
+  
+\bibitem{MetaMap:Overview} Alan R Aronson, François-Michel Lang,
+An overview of MetaMap: historical perspective and recent advances,
+Journal of the American Medical Informatics Association, 2010;17:229-236, doi:10.1136/jamia.2009.002733,
+\url{https://jamia.bmj.com/content/17/3/229.long}
+
+\bibitem{UMLS:MainPage} Unified Medical Language System® (UMLS®), National Library of Medicine,
+\url{https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/index.html}
+
+\bibitem{UMLS:Manual} UMLS® Reference Manual [Internet], Metathesaurus
+  - Rich Release Format (RRF), National Library of Medicine,
+  \url{https://www.ncbi.nlm.nih.gov/books/NBK9685/}
+\end{thebibliography}
+
+\end{document}
