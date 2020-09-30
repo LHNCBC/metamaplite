@@ -48,8 +48,6 @@ import gov.nih.nlm.nls.metamap.prefix.Tokenize;
 import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 import gov.nih.nlm.nls.metamap.prefix.Scanner;
 
-import gov.nih.nlm.nls.metamap.lite.mapdb.MapDbLookup;
-
 import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.utils.NameIdListMap;
 
@@ -112,7 +110,6 @@ public class EntityLookup4 implements EntityLookup {
   {
     MMLDictionaryLookupRegistry registry = new MMLDictionaryLookupRegistry();
     registry.put("ivf", new IVFLookup());
-    registry.put("mapdb", new MapDbLookup());
     String directoryPath = properties.getProperty("metamaplite.index.directory");
     if (! new File(directoryPath).exists()) {
       throw new RuntimeException("index directory: " + directoryPath + " does not exist.");
