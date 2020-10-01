@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import gov.nih.nlm.nls.metamap.prefix.Token;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.lite.types.ConceptInfo;
@@ -31,7 +31,7 @@ import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
  */
 public class IVFLookup implements MMLDictionaryLookup<TermInfo>
 {
-  private static final Logger logger = LogManager.getLogger(IVFLookup.class);
+  private static final Logger logger = LoggerFactory.getLogger(IVFLookup.class);
 
   /** string column for cuisourceinfo index*/
   int strColumn = 3;		

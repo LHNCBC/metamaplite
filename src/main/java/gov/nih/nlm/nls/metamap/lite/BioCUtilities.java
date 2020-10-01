@@ -11,8 +11,8 @@ import bioc.BioCAnnotation;
 import bioc.BioCLocation;
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gov.nih.nlm.nls.metamap.prefix.Scanner;
 import gov.nih.nlm.nls.metamap.prefix.Token;
@@ -32,7 +32,7 @@ import gov.nih.nlm.nls.metamap.lite.SentenceAnnotator;
  */
 public class BioCUtilities {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(BioCUtilities
+  private static final Logger logger = LoggerFactory.getLogger(BioCUtilities
 							    .class);
 
   /**

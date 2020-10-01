@@ -12,8 +12,8 @@ import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.chunker.ChunkerME;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Describe class OpenNLPChunker here.
@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
  * @version 1.0
  */
 public class OpenNLPChunker implements ChunkerMethod {
-  private static final Logger logger = LogManager.getLogger(OpenNLPPoSTagger.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpenNLPPoSTagger.class);
 
   ChunkerME chunker;
 
@@ -144,7 +144,7 @@ public class OpenNLPChunker implements ChunkerMethod {
       List<String> posTokenList = new ArrayList<String>();
       logger.debug("---begin tokenList");
       for (ERToken token: tokenList) {
-	logger.debug(token);
+	  logger.debug(token.toString());
 	sentenceTokenList.add(token.getText());
 	posTokenList.add(token.getPartOfSpeech());
       }

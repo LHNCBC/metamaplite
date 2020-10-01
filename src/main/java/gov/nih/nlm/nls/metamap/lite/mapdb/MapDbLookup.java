@@ -26,8 +26,8 @@ import gov.nih.nlm.nls.metamap.lite.SpecialTerms;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.NormalizedStringCache;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Describe class MapDbDictionaryLookup here.
@@ -39,7 +39,7 @@ import org.apache.logging.log4j.Logger;
  * @version 1.0
  */
 public class MapDbLookup implements MMLDictionaryLookup<TermInfo> {
-  private static final Logger logger = LogManager.getLogger(MapDbLookup.class);
+  private static final Logger logger = LoggerFactory.getLogger(MapDbLookup.class);
   
   HTreeMap cuiConceptCuiMap;
   HTreeMap cuiSourceInfoStrMap;

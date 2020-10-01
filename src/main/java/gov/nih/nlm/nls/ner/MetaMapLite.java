@@ -89,8 +89,8 @@ import bioc.tool.AbbrConverter;
 import bioc.tool.AbbrInfo;
 import bioc.tool.ExtractAbbrev;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import opennlp.tools.util.Span;
 
 import gov.nih.nlm.nls.utils.Configuration;
@@ -195,7 +195,7 @@ import gov.nih.nlm.nls.metamap.mmi.Ranking;
  */
 public class MetaMapLite {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(MetaMapLite.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetaMapLite.class);
   /** location of metamaplite.properties configuration file */
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");
@@ -1484,12 +1484,14 @@ public class MetaMapLite {
       if (BioCDocumentLoaderRegistry.contains(documentInputOption)) {
 	docLoader = BioCDocumentLoaderRegistry.get(documentInputOption);
 	if (docLoader == null) {
+	    logger.error("Document loader for input option \"" +
+			 documentInputOption + "\" is not available.");
 	  throw new Exception("Fatal: Document loader for input option \"" +
 			      documentInputOption +
 			      "\" is not instantiated check configuration or properties");
 	}
       } else {
-	logger.fatal("Document loader for input option \"" +
+	logger.error("Document loader for input option \"" +
 		     documentInputOption + "\" is not available.");
 
 	throw new Exception("Fatal: Document loader for input option \"" +
