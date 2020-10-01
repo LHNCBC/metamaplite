@@ -36,8 +36,8 @@ import gov.nih.nlm.nls.metamap.document.NCBICorpusDocument;
 
 import gov.nih.nlm.nls.types.Sentence;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * What should a pipeline look-like?
@@ -68,7 +68,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Pipeline {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(Pipeline.class);
+  private static final Logger logger = LoggerFactory.getLogger(Pipeline.class);
   /** location of metamaplite.properties configuration file */
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/metamaplite.properties");

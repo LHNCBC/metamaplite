@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Example of using MetaMapLite from Java to output BioC document.
@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 public class BioCPipeLineExample {
  /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(BioCPipeLineExample.class);
+  private static final Logger logger = LoggerFactory.getLogger(BioCPipeLineExample.class);
 
   /**
    * Main program

@@ -61,8 +61,8 @@ import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
 import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.AugmentedDictionary;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import opennlp.tools.dictionary.serializer.Entry;
 
 import gov.nih.nlm.nls.metamap.evaluation.Scoring;
@@ -72,7 +72,7 @@ import gov.nih.nlm.nls.metamap.evaluation.Scoring;
  */
 
 public class EntityLookup5 implements EntityLookup {
-  private static final Logger logger = LogManager.getLogger(EntityLookup5.class);
+  private static final Logger logger = LoggerFactory.getLogger(EntityLookup5.class);
 
   ChunkerMethod chunkerMethod;
   
@@ -527,7 +527,7 @@ public class EntityLookup5 implements EntityLookup {
 	return originalTokenList;
       }
     } catch (IllegalArgumentException iae) {
-      logger.error(iae);
+	logger.error(iae.toString());
       throw new RuntimeException("originaltokenlist: " + originalTokenList +
 				 ", subtokenlist: " + newTokenlist, iae);
     }

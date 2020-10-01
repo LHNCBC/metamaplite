@@ -31,15 +31,15 @@ import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //
 /**
  *
  */
 public class EntityAnnotation {
-  private static final Logger logger = LogManager.getLogger(EntityAnnotation.class);
+  private static final Logger logger = LoggerFactory.getLogger(EntityAnnotation.class);
 
   public static void displayEntitySet(Set<Entity> entitySet) {
     logger.debug("displayEntitySet");

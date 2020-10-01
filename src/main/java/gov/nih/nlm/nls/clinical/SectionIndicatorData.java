@@ -16,8 +16,8 @@ import java.io.File;
 import java.io.Console;
 import au.com.bytecode.opencsv.CSVReader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 public class SectionIndicatorData {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(SectionIndicator.class);
+  private static final Logger logger = LoggerFactory.getLogger(SectionIndicator.class);
 
   /** header pattern */
   static Pattern headerPattern = Pattern.compile("\\d+\\t[\\|]+\\t\\d+\\t[\\|]+\\t\\d+\\t[\\|]+\\t[\\w\\_\\-]+\\t[\\|]+\\t\\d+\\-\\d+\\-\\d+ \\d+:\\d+:\\d+\\.\\d+\\t[\\|]+\\t\\t[\\|]+\\t\\t[\\|]+\\t");

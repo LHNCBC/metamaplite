@@ -16,15 +16,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 
 public class SingleLineDelimitedInputWithID implements BioCDocumentLoader {
-  private static final Logger logger = LogManager.getLogger(SingleLineDelimitedInputWithID.class);
+  private static final Logger logger = LoggerFactory.getLogger(SingleLineDelimitedInputWithID.class);
 
   static Charset charset = Charset.forName("utf-8");
   static String delimiterRegexp = System.getProperty("metamaplite.sldiwd.delimiter.regexp", "\\|");

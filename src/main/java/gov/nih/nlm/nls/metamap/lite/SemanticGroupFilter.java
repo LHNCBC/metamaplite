@@ -12,8 +12,8 @@ import gov.nih.nlm.nls.metamap.lite.types.Ev;
 import gov.nih.nlm.nls.metamap.lite.types.BioCEntity;
 import bioc.BioCSentence;
 import bioc.BioCAnnotation;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 public class SemanticGroupFilter {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(SemanticGroupFilter.class);
+  private static final Logger logger = LoggerFactory.getLogger(SemanticGroupFilter.class);
 
   static Set<String> semanticGroup = SemanticGroups.disorders;
 

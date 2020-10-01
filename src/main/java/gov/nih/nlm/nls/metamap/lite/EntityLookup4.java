@@ -57,8 +57,8 @@ import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookup;
 import gov.nih.nlm.nls.metamap.lite.dictionary.MMLDictionaryLookupRegistry;
 import gov.nih.nlm.nls.metamap.lite.dictionary.AugmentedDictionary;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import opennlp.tools.dictionary.serializer.Entry;
 
 /**
@@ -66,7 +66,7 @@ import opennlp.tools.dictionary.serializer.Entry;
  */
 
 public class EntityLookup4 implements EntityLookup {
-  private static final Logger logger = LogManager.getLogger(EntityLookup4.class);
+  private static final Logger logger = LoggerFactory.getLogger(EntityLookup4.class);
 
   public MMLDictionaryLookup<TermInfo> dictionaryLookup;
   int MAX_TOKEN_SIZE =

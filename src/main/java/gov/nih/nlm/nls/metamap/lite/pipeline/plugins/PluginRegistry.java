@@ -13,15 +13,15 @@ import java.lang.reflect.Method;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Currently a singleton class.
  */
 
 public class PluginRegistry {
-  private static final Logger logger = LogManager.getLogger(PluginRegistry.class);
+  private static final Logger logger = LoggerFactory.getLogger(PluginRegistry.class);
 
   /** Map of plugins by plugin name */
   static Map<String,Plugin> pluginMap = new HashMap<String,Plugin>();

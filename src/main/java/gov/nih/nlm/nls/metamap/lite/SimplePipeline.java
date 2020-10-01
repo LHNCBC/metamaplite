@@ -49,8 +49,8 @@ import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.nlp.nlsstrings.MWIUtilities;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -58,7 +58,7 @@ import org.apache.logging.log4j.Logger;
  */
 
 public class SimplePipeline {
-  private static final Logger logger = LogManager.getLogger(SimplePipeline.class);
+  private static final Logger logger = LoggerFactory.getLogger(SimplePipeline.class);
   public SentenceModel sentenceModel;
   public SentenceDetectorME sentenceDetector;
   public TokenizerModel model;
