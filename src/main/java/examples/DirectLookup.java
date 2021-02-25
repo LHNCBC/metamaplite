@@ -39,7 +39,9 @@ public class DirectLookup {
     this.myProperties.setProperty("metamaplite.excluded.termsfile", "data/specialterms.txt");
     // Loading properties file in "config", overriding previously
     // defined properties.
-    this.myProperties.load(new FileReader("config/metamaplite.properties"));
+    FileReader fr = new FileReader("config/metamaplite.properties");
+    myProperties.load(fr);
+    fr.close();
     this.mmIndexes = new MetaMapIvfIndexes(this.myProperties);
   }
 

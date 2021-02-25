@@ -150,7 +150,6 @@ public class SimplePipeline {
     throws IOException, FileNotFoundException
   {
     Properties properties = new Properties();
-    // properties.load(?);
     this.entityLookup = new EntityLookup4(properties);
     initSentenceDetector();
     initTokenizer();

@@ -14,30 +14,33 @@ Below is an example using BioC Processing with MetaMapLite
 		                   "config/metamaplite.properties");
     Properties configProperties = new Properties();
     // set any in-line properties here.
-	configProperties.load(new FileReader(configPropertiesFilename));
-	configProperties.setProperty("metamaplite.semanticgroup",
-	"acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy");
-	Properties properties =
-	  Configuration.mergeConfiguration(configProperties,
+    FileReader fr = new FileReader(configPropertiesFilename);
+    configProperties.load(fr);
+    fr.close();
+
+    configProperties.setProperty("metamaplite.semanticgroup",
+    "acab,anab,bact,cgab,dsyn,emod,inpo,mobd,neop,patf,sosy");
+    Properties properties =
+        Configuration.mergeConfiguration(configProperties,
 					   defaultConfiguration);
-	BioCProcess process = new BioCProcess(properties);
+    BioCProcess process = new BioCProcess(properties);
 
-	// read BioC XML collection
-	Reader inputReader = new FileReader(inputFile);
-	BioCFactory bioCFactory = BioCFactory.newFactory("STANDARD");
-	BioCCollectionReader collectionReader =
-	bioCFactory.createBioCCollectionReader(inputReader);
-	BioCCollection collection = collectionReader.readCollection();
+    // read BioC XML collection
+    Reader inputReader = new FileReader(inputFile);
+    BioCFactory bioCFactory = BioCFactory.newFactory("STANDARD");
+    BioCCollectionReader collectionReader =
+    bioCFactory.createBioCCollectionReader(inputReader);
+    BioCCollection collection = collectionReader.readCollection();
 
-	// Run named entity recognition on collection
-	BioCCollection newCollection = process.processCollection(collection);
+    // Run named entity recognition on collection
+    BioCCollection newCollection = process.processCollection(collection);
 
     // write out the annotated collection
     File outputFile = new File(outputFilename);
-	Writer outputWriter = new PrintWriter(outputFile, "UTF-8");
-	BioCCollectionWriter collectionWriter = bioCFactory.createBioCCollectionWriter(outputWriter);
-	collectionWriter.writeCollection(newCollection);
-	outputWriter.close();
+    Writer outputWriter = new PrintWriter(outputFile, "UTF-8");
+    BioCCollectionWriter collectionWriter = bioCFactory.createBioCCollectionWriter(outputWriter);
+    collectionWriter.writeCollection(newCollection);
+    outputWriter.close();
 
 This process attempts to preserve any annotation present in the
 original BioC XML input.    Some annotations applied to BioC

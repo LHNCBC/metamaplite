@@ -131,7 +131,9 @@ public class Pipeline {
     logger.debug("enter initPipeline");
 
     Properties properties = new Properties();
-    properties.load(new FileReader(configPropertyFilename));
+    FileReader fr = new FileReader(configPropertyFilename);
+    properties.load(fr);
+    fr.close();
     if (logger.isDebugEnabled()) {
       for (Map.Entry<Object,Object> entry: properties.entrySet()) {
 	logger.debug(entry.getKey() + " -> " + entry.getValue());

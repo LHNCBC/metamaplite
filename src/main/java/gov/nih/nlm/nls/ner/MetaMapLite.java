@@ -627,6 +627,37 @@ public class MetaMapLite {
     return infos;
   }
 
+  /** Document abbreviation information class */
+  public class DocInfo {
+    /** document id */
+    String id;
+    /** list of abbreviation information instances */
+    List <AbbrInfo> infolist;
+    public DocInfo(String id, List <AbbrInfo> infos) {
+      this.id = id;
+      this.infolist = infos;
+    }
+    public String getId() { return this.id; }
+    public List<AbbrInfo> getInfolist() { return this.infolist; }
+  }
+
+  public List<DocInfo> getDocAcronymList(List<BioCDocument> documentList) {
+    List <DocInfo> docInfoList = new ArrayList<DocInfo>();
+    for (BioCDocument document: documentList) {
+      List <AbbrInfo> infos = new ArrayList<AbbrInfo>();
+      for (BioCPassage passage: document.getPassages()) {
+	// for (Sentence sentence: this.sentenceExtractor.createSentenceList(passage.getText())) {
+	for (AbbrInfo abbrInfo: extractAbbr.extractAbbrPairsString(passage.getText())) {
+	  infos.add(new AbbrInfo(abbrInfo.shortForm.replace("\n", " "), abbrInfo.shortFormIndex,
+				 abbrInfo.longForm.replace("\n", " "), abbrInfo.longFormIndex));
+	}
+	//}
+      }
+      docInfoList.add(new DocInfo(document.getID(), infos));
+    }
+    return docInfoList;
+  }
+
   public static List<String> loadInputFileList(String inputfileListFileName)
     throws FileNotFoundException, IOException
   {
@@ -828,7 +859,9 @@ public class MetaMapLite {
       if (verbose) {
 	System.out.println("loading local configuration from " + localConfigurationFile);
       }
-      localConfiguration.load(new FileReader(localConfigurationFile));
+      FileReader fr = new FileReader(localConfigurationFile);
+      localConfiguration.load(fr);
+      fr.close();
       logger.info("loaded " + localConfiguration.size() + " records from local configuration");
       if (verbose) {
 	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
@@ -895,9 +928,12 @@ public class MetaMapLite {
   void listAcronyms(List<BioCDocument> documentList) {
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
 							    Charset.forName("utf-8")));
-    for (AbbrInfo acronym: this.getAcronymList(documentList)) {
-      pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
-		 acronym.longForm + "|" + acronym.longFormIndex );
+    for (DocInfo docInfo: this.getDocAcronymList(documentList)) {
+      for (AbbrInfo acronym: docInfo.getInfolist()) {
+	pw.println(docInfo.getId() + "|" +
+		   acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
+		   acronym.longForm + "|" + acronym.longFormIndex );
+     }
     }
     pw.flush();
   }
@@ -1011,9 +1047,12 @@ public class MetaMapLite {
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
-    for (AbbrInfo acronym: this.getAcronymList(documentList)) {
-      pw.println(acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
-		 acronym.longForm + "|" + acronym.longFormIndex );
+    for (DocInfo docInfo: this.getDocAcronymList(documentList)) {
+      for (AbbrInfo acronym: docInfo.getInfolist()) {
+	pw.println(docInfo.getId() + "|" +
+		   acronym.shortForm + "|" + acronym.shortFormIndex + "|" +
+		   acronym.longForm + "|" + acronym.longFormIndex );
+      }
     }
     pw.close();
   }

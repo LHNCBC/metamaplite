@@ -318,7 +318,9 @@ public class BioCPipeline {
     logger.debug("enter initPipeline");
 
     Properties properties = new Properties();
-    properties.load(new FileReader(configPropertyFilename));
+    FileReader fr = new FileReader(configPropertyFilename);
+    properties.load(fr);
+    fr.close();
     if (logger.isDebugEnabled()) {
       for (Map.Entry<Object,Object> entry: properties.entrySet()) {
 	logger.debug(entry.getKey() + " -> " + entry.getValue());
@@ -457,7 +459,9 @@ public class BioCPipeline {
       if (verbose) {
 	System.out.println("loading local configuration from " + localConfigurationFile);
       }
-      localConfiguration.load(new FileReader(localConfigurationFile));
+      FileReader fr = new FileReader(localConfigurationFile);
+      localConfiguration.load(fr);
+      fr.close();
       if (verbose) {
 	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
       }

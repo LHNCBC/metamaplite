@@ -218,7 +218,9 @@ public class StreamPassageSentences {
 				    metaMapLiteRootDir + "/data/specialterms.txt");
       // Loading properties file in "config", overriding previously
       // defined properties.
-      // this.myProperties.load(new FileReader("config/metamaplite.properties"));
+      // FileReader fr = new FileReader("config/metamaplite.properties");
+      // myProperties.load(fr);
+      // fr.close();
       // this.mmIndexes = new MetaMapIvfIndexes(this.myProperties);
       this.myProperties.setProperty("metamaplite.postaglist",
 				    "CD,FW,RB,NN,NNS,NNP,NNPS,JJ,JJR,JJS,LS");

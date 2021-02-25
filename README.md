@@ -291,8 +291,9 @@ Creating properties for configuring MetaMapLite Instance:
 
 Loading properties file in "config":
 
-    myProperties.load(new FileReader("config/metamaplite.properties"));
-
+    FileReader fr = new FileReader("config/metamaplite.properties");
+    myProperties.load(fr);
+    fr.close();
 
 Creating a metamap lite instance:
 
@@ -583,7 +584,9 @@ directory and specify that in servlet:
           this.properties.setProperty("metamaplite.index.directory","data/ivf/strict");
 		  ...
           // load user properties
-          this.properties.load(new FileReader(configPropertyFilename));
+          FileReader fr = new FileReader(configPropertyFilename);
+          myProperties.load(fr);
+          fr.close();
           this.metaMapLiteInst = new MetaMapLite(this.properties);
 		  ...
       	} catch (Exception e) {

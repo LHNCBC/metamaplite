@@ -259,7 +259,9 @@ public class BioCProcess {
 	String configPropertiesFilename = System.getProperty("metamaplite.propertyfile",
 							     "config/metamaplite.properties");
 	Properties configProperties = new Properties();
-	configProperties.load(new FileReader(configPropertiesFilename));
+	FileReader fr = new FileReader(configPropertiesFilename);
+	configProperties.load(fr);
+	fr.close();
 	Properties properties =
 	  Configuration.mergeConfiguration(configProperties,
 					   defaultConfiguration);

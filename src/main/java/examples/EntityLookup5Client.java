@@ -59,7 +59,9 @@ public class EntityLookup5Client {
       MetaMapLite.expandIndexDir(myProperties, installdir + "/data/ivf/2017AA/USAbase/strict");
       myProperties.setProperty("metamaplite.excluded.termsfile",
 			       installdir + "/data/specialterms.txt");
-      myProperties.load(new FileReader(installdir + "/config/metamaplite.properties"));
+      FileReader fr = new FileReader(installdir + "/config/metamaplite.properties");
+      myProperties.load(fr);
+      fr.close();
       myProperties.list(System.out);
       this.sentenceAnnotator = new OpenNLPPoSTagger(myProperties);
       this.sentenceExtractor = new OpenNLPSentenceExtractor(myProperties);

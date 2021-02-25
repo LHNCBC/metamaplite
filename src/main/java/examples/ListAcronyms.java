@@ -61,7 +61,9 @@ public class ListAcronyms {
 			       "/export/home/wjrogers/Projects/metamaplite/data/specialterms.txt");
       MetaMapLite.expandIndexDir(myProperties);
       // override any properties with those in property file.
-      myProperties.load(new FileReader("config/metamaplite.properties"));
+      FileReader fr = new FileReader("config/metamaplite.properties");
+      myProperties.load(fr);
+      fr.close();
       SentenceExtractor sentenceExtractor = new OpenNLPSentenceExtractor(myProperties);
       ExtractAbbrev extractAbbr = new ExtractAbbrev();
       // Processing Section

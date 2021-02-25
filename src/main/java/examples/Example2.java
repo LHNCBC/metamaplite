@@ -52,7 +52,9 @@ public class Example2 {
     MetaMapLite.expandIndexDir(myProperties);
     // Loading properties file in "config", overriding previously
     // defined properties.
-    myProperties.load(new FileReader("config/metamaplite.properties"));
+    FileReader fr = new FileReader("config/metamaplite.properties");
+    myProperties.load(fr);
+    fr.close();
     MetaMapLite metaMapLiteInst = new MetaMapLite(myProperties);
 
     // Processing Section
