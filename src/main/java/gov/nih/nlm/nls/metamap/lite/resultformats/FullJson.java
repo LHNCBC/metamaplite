@@ -61,6 +61,7 @@ public class FullJson implements ResultFormatter {
     jsonObj.put("fieldid", entity.getFieldId());
     jsonObj.put("start", entity.getStart());
     jsonObj.put("length", entity.getLength());
+    jsonObj.put("negated", entity.isNegated());
     JSONArray evArray = new JSONArray();
     for (Ev ev: entity.getEvSet()) {
       evArray.put(evToJson(ev));
