@@ -127,7 +127,8 @@ public class EntityLookup5 implements EntityLookup {
     throws IOException, FileNotFoundException
   {
     MMLDictionaryLookupRegistry registry = new MMLDictionaryLookupRegistry();
-    registry.put("ivf", new IVFLookup());
+    // registry.put("ivf", new IVFLookup());
+    registry.put("diskivf", new DiskIVFLookup());
     registry.put("mapdb", new MapDbLookup());
     String directoryPath = properties.getProperty("metamaplite.index.directory");
     if (! new File(directoryPath).exists()) {

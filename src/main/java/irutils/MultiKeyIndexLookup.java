@@ -73,9 +73,9 @@ public class MultiKeyIndexLookup {
     if (entry != null) {
       MultiKeyIndex.readPostings(extentsRaf, postingsRaf, resultList, entry, this.charset);
     }
-    termDictionaryRaf.close();
-    extentsRaf.close();
-    postingsRaf.close();
+    // termDictionaryRaf.close();
+    // extentsRaf.close();
+    // postingsRaf.close();
     return resultList;
   }
 

@@ -29,7 +29,7 @@ import gov.nih.nlm.nls.metamap.lite.types.PositionImpl;
 import gov.nih.nlm.nls.metamap.lite.resultformats.ResultFormatter;
 import gov.nih.nlm.nls.metamap.lite.types.TriggerInfo;
 import gov.nih.nlm.nls.metamap.lite.types.MatchInfo;
-import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
+import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfDiskIndexes;
 
 import gov.nih.nlm.nls.metamap.mmi.AATF;
 import gov.nih.nlm.nls.metamap.mmi.Ranking;
@@ -456,7 +456,7 @@ public class MMI implements ResultFormatter {
     return new ArrayList<TermFrequency>(termFreqMap.values());
   }
 
-  public MetaMapIvfIndexes mmIndexes;
+  public MetaMapIvfDiskIndexes mmIndexes;
 
   public List<String> getTreecodes(String term) {
     try {
@@ -473,7 +473,7 @@ public class MMI implements ResultFormatter {
 
   public void initProperties(Properties properties) {
     try {
-      this.mmIndexes = new MetaMapIvfIndexes(properties);
+      this.mmIndexes = new MetaMapIvfDiskIndexes(properties);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
