@@ -96,7 +96,7 @@
     </repository -->
     <repository>
       <id>metamap maven</id>
-      <url>https://metamap.nlm.nih.gov/maven2/</url>
+      <url>https://data.lhncbc.nlm.nih.gov/public/ii/tools/MetaMap/maven2/</url>
     </repository>
   </repositories>
   <dependencies>
