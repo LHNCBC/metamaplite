@@ -14,11 +14,11 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 import gov.nih.nlm.nls.types.Document;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 public class ChemDNERSLDI implements BioCDocumentLoader {
-  private static final Logger logger = LogManager.getLogger(SingleLineDelimitedInputWithID.class);
+  private static final Logger logger = LoggerFactory.getLogger(SingleLineDelimitedInputWithID.class);
 
   /**
    * Instantiate PubMedDocumentImpl document instance reading single-line

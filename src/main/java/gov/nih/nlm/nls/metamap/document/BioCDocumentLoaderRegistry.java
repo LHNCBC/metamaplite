@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * list document loaders in properties file in the following format:
@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class BioCDocumentLoaderRegistry {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(BioCDocumentLoaderRegistry.class);
+  private static final Logger logger = LoggerFactory.getLogger(BioCDocumentLoaderRegistry.class);
   /** Map of BioC document loader by document type name */
   static final Map<String,BioCDocumentLoader> bioCDocumentLoaderMap = new HashMap<String,BioCDocumentLoader>();
   /** Map of document loader description by document type name */
@@ -47,7 +47,7 @@ public class BioCDocumentLoaderRegistry {
 	descriptionMap.put(name,description);
       }
     } else {
-      logger.fatal("class " + className +
+      logger.error("class " + className +
 		   " for document input type " + name +
 		   " is not of class BioCDocumentLoader.  Not adding entry for input type " + name);
       throw new RuntimeException("Class instance does not implement the BioCDocumentLoader interface.");

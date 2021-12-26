@@ -76,8 +76,8 @@ import bioc.io.BioCCollectionWriter;
 import bioc.io.BioCFactory;
 import bioc.io.standard.BioCFactoryImpl;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import gov.nih.nlm.nls.utils.Configuration;
 
@@ -104,7 +104,7 @@ import gov.nih.nlm.nls.utils.Configuration;
 
 public class BioCPipeline {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(BioCPipeline.class);
+  private static final Logger logger = LoggerFactory.getLogger(BioCPipeline.class);
   /** location of metamaplite.properties configuration file */
   static String configPropertyFilename =
     System.getProperty("metamaplite.property.file", "config/bioc.metamaplite.properties");

@@ -10,8 +10,8 @@ import java.io.FileNotFoundException;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Describe class VariantLookupIVF here.
@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
  * @version 1.0
  */
 public class VariantLookupIVF implements VariantLookup {
-  private static final Logger logger = LogManager.getLogger(VariantLookupIVF.class);
+  private static final Logger logger = LoggerFactory.getLogger(VariantLookupIVF.class);
 
   public MetaMapIvfIndexes mmIndexes;
 

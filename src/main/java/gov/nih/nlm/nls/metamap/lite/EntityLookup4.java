@@ -50,8 +50,8 @@ import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.utils.StringUtils;
 import gov.nih.nlm.nls.utils.LRUCache;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import opennlp.tools.dictionary.serializer.Entry;
 
 /**
@@ -59,7 +59,7 @@ import opennlp.tools.dictionary.serializer.Entry;
  */
 
 public class EntityLookup4 implements EntityLookup {
-  private static final Logger logger = LogManager.getLogger(EntityLookup4.class);
+  private static final Logger logger = LoggerFactory.getLogger(EntityLookup4.class);
 
   public MetaMapIvfIndexes mmIndexes;
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();

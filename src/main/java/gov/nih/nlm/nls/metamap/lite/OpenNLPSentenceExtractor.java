@@ -21,8 +21,8 @@ import opennlp.tools.sentdetect.SentenceDetectorME;
 import gov.nih.nlm.nls.types.Sentence;
 import gov.nih.nlm.nls.types.Annotation;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import bioc.BioCPassage;
 import bioc.BioCSentence;
@@ -33,7 +33,7 @@ import bioc.BioCSentence;
 
 public class OpenNLPSentenceExtractor implements SentenceExtractor
 {
-  private static final Logger logger = LogManager.getLogger(OpenNLPSentenceExtractor.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpenNLPSentenceExtractor.class);
 
   SentenceModel sentenceModel;
   SentenceDetectorME sentenceDetector;

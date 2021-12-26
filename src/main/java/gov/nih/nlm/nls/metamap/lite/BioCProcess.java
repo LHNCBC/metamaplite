@@ -33,8 +33,8 @@ import bioc.tool.AbbrConverter;
 import bioc.tool.AbbrInfo;
 import bioc.tool.ExtractAbbrev;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.Plugin;
 import gov.nih.nlm.nls.metamap.lite.pipeline.plugins.PipelineRegistry;
@@ -50,7 +50,7 @@ import gov.nih.nlm.nls.utils.Configuration;
 
 public class BioCProcess {
   /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(BioCProcess.class);
+  private static final Logger logger = LoggerFactory.getLogger(BioCProcess.class);
 
   Set<String> semanticGroup = new HashSet<String>(); // initially empty
   Set<String> sourceSet = new HashSet<String>(); // initially empty

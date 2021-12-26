@@ -31,8 +31,8 @@ import bioc.BioCSentence;
 import bioc.BioCPassage;
 import bioc.tool.AbbrConverter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
@@ -42,7 +42,7 @@ import opennlp.tools.postag.POSTaggerME;
  */
 
 public class OpenNLPPoSTagger implements SentenceAnnotator {
-  private static final Logger logger = LogManager.getLogger(OpenNLPPoSTagger.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpenNLPPoSTagger.class);
 
   public POSModel posModel;
   public POSTaggerME posTagger;

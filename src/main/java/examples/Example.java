@@ -11,8 +11,8 @@ import java.util.Properties;
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
 import java.io.FileReader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Example of using metaMapLite from Java
@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Example {
  /** log4j logger instance */
-  private static final Logger logger = LogManager.getLogger(Example.class);
+  private static final Logger logger = LoggerFactory.getLogger(Example.class);
 
   /**
    * Main program
