@@ -375,6 +375,19 @@ public class MetaMapLite {
   }
 
   /**
+   * Set tagger using input stream, usually from a resource
+   * (classpath, servlet context, etc.)
+   *
+   * @param instream input stream
+   */
+  public void setPoSTagger(InputStream instream) {
+    if (this.entityLookup instanceof EntityLookup4) {
+      ((EntityLookup4)(this.entityLookup)).setPoSTagger
+	(properties, instream);
+    }
+  }
+
+  /**
    * Invoke sentence processing pipeline on a sentence
    * @param sentence BioC sentence containing passage
    * @param passage BioC sentence containing sentences
