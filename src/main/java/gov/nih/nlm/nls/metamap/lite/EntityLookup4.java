@@ -24,6 +24,7 @@ import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.PrintStream;
 import java.io.OutputStreamWriter;
+import java.io.InputStream;
 
 import bioc.BioCSentence;
 import bioc.BioCAnnotation;
@@ -106,7 +107,12 @@ public class EntityLookup4 implements EntityLookup {
     new HashMap<String,UserDefinedAcronym<TermInfo>>();
 
   Map<String,String> uaMap = new HashMap<String,String>();
-  
+
+  /**
+   * Instantiate EntityLookup4 instance
+   *
+   * @param properties metamaplite properties instance
+   */
   public EntityLookup4(Properties properties) 
     throws IOException, FileNotFoundException
   {
@@ -143,6 +149,7 @@ public class EntityLookup4 implements EntityLookup {
 						  Boolean.toString(addPartOfSpeechTagsFlag)));
 
     if (this.addPartOfSpeechTagsFlag) {
+      
       this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
       String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.postaglist");
       if (allowedPartOfSpeechTaglist != null) {
@@ -189,6 +196,30 @@ public class EntityLookup4 implements EntityLookup {
 	logger.info(acronym.getKey() + " -> " + acronym.getValue());
       }
       this.uaMap = UserDefinedAcronym.udasToUA(this.udaMap);
+    }
+  }
+
+  /**
+   * Set tagger using input stream, usually from a resource
+   * (classpath, servlet context, etc.)
+   *
+   * @param properties properties instance
+   * @param instream input stream
+   */
+  public void setPoSTagger(Properties properties, InputStream instream) {
+    if (this.addPartOfSpeechTagsFlag) {
+      // skip this if pos tag is false
+      this.sentenceAnnotator = new OpenNLPPoSTagger(instream);
+      String allowedPartOfSpeechTaglist = properties.getProperty("metamaplite.postaglist");
+      if (allowedPartOfSpeechTaglist != null) {
+	for (String pos: allowedPartOfSpeechTaglist.split(",")) {
+	  this.allowedPartOfSpeechSet.add(pos);
+	} 
+      } else {
+	this.defaultAllowedPartOfSpeech();
+      }
+    } else {
+      this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
     }
   }
 
@@ -583,15 +614,16 @@ n   * <pre>
 	}
       }
 
-      Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
-      Set<Entity> entitySet = new HashSet<Entity>();
-      for (Entity entity: entitySet1) {
+      Set<Entity> entitySet1 = new HashSet<Entity>();
+      for (Entity entity: entitySet0) {
 	ConceptInfoUtils.filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
 	ConceptInfoUtils.filterEntityEvListBySource(entity, sourceRestrictSet);
 	if (entity.getEvList().size() > 0) {
-	  entitySet.add(entity);
+	  entitySet1.add(entity);
 	}
       }
+      Set<Entity> entitySet = removeSubsumedEntities(entitySet1);
+
       List<Entity> resultList = new ArrayList<Entity>(entitySet);
       Collections.sort(resultList, entityComparator);
       return resultList;
