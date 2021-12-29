@@ -52,15 +52,20 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
   public OpenNLPPoSTagger()
   {
     InputStream modelIn = null;
-
+    String posModelFname = System.getProperty("opennlp.en-pos.bin.path",
+					      "data/models/en-pos-maxent.bin");
     try {
-      modelIn = new FileInputStream(System.getProperty("opennlp.en-pos.bin.path",
-						       "data/models/en-pos-maxent.bin"));
+      modelIn = new FileInputStream(posModelFname);
       this.posModel = new POSModel(modelIn);
-    this.posTagger = new POSTaggerME(this.posModel);
+      this.posTagger = new POSTaggerME(this.posModel);
     }
     catch (IOException e) {
       // Model loading failed, handle the error
+      System.err.println("Error opening Part of Speech model file " +
+			 posModelFname);
+      logger.error("Error opening Part of Speech model file ",
+		   posModelFname);
+      logger.error(e.toString());
       e.printStackTrace();
     }
     finally {
@@ -68,7 +73,13 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 	try {
 	  modelIn.close();
 	}
-	catch (IOException e) {
+	catch (IOException ioe) {
+	  System.err.println("Error closing Part of Speech model file " +
+			 posModelFname);
+	  System.err.println
+	    ("Error when closing Part of Speech model file " + posModelFname +
+	     "after reading: " +
+	     ioe);
 	}
       }
     }
@@ -77,15 +88,20 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
   public OpenNLPPoSTagger(Properties properties)
   {
     InputStream modelIn = null;
-
+    String posModelFname = properties.getProperty("opennlp.en-pos.bin.path",
+						  "data/models/en-pos-maxent.bin");
     try {
-      modelIn = new FileInputStream(properties.getProperty("opennlp.en-pos.bin.path",
-							   "data/models/en-pos-maxent.bin"));
+      modelIn = new FileInputStream(posModelFname);
       this.posModel = new POSModel(modelIn);
       this.posTagger = new POSTaggerME(this.posModel);
     }
     catch (IOException e) {
       // Model loading failed, handle the error
+      System.err.println("Error opening Part of Speech model file " +
+			 posModelFname);
+      logger.error("Error opening Part of Speech model file " + 
+			 posModelFname + ".");
+      logger.error(e.toString());
       e.printStackTrace();
     }
     finally {
@@ -93,11 +109,47 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 	try {
 	  modelIn.close();
 	}
-	catch (IOException e) {
+	catch (IOException ioe) {
+	  System.err.println
+	    ("Error when closing Part of Speech model file " + posModelFname +
+	     "after reading: " +
+	     ioe);
 	}
       }
     }
+  }
 
+  /** 
+   * Instantiate tagger using input stream, most likely from
+   * getResourceAsStream from classpath or ServletContext.
+   *
+   * @param modelIn inputstream of model file
+   */
+  public OpenNLPPoSTagger(InputStream modelIn)
+  {
+    try {
+      this.posModel = new POSModel(modelIn);
+      this.posTagger = new POSTaggerME(this.posModel);
+    }
+    catch (IOException e) {
+      // Model loading failed, handle the error
+      System.err.println("Error opening Part of Speech model file from input stream.");
+      logger.error("Error opening Part of Speech model file from input stream.");
+      logger.error(e.toString());
+      e.printStackTrace();
+    }
+    finally {
+      if (modelIn != null) {
+	try {
+	  modelIn.close();
+	}
+	catch (IOException ioe) {
+	  System.err.println
+	    ("Error when closing Part of Speech model input stream: " +
+	     ioe);
+	}
+      }
+    }
   }
   
   /**
@@ -129,15 +181,21 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 	textList.add(token.getText());
       }
     }
-    String tags[] = this.posTagger.tag(textList.toArray(new String[0]));
-    int i = 0;
-    for (ERToken token: tokenList) {
-      if (! token.getTokenClass().equals("ws")) {
-	token.setPartOfSpeech(tags[i]);
-        i++;
-      } else {
-        token.setPartOfSpeech("WS");
+    logger.info("OpenNLPPosTagger:addPartOfSpeech: textList: ", textList);
+    logger.info("OpenNLPPosTagger:addPartOfSpeech: posTagger: ", this.posTagger);
+    if (this.posTagger != null) {
+      String tags[] = this.posTagger.tag(textList.toArray(new String[0]));
+      int i = 0;
+      for (ERToken token: tokenList) {
+	if (! token.getTokenClass().equals("ws")) {
+	  token.setPartOfSpeech(tags[i]);
+	  i++;
+	} else {
+	  token.setPartOfSpeech("WS");
+	}
       }
+    } else {
+      logger.error("OpenNLPPosTagger:addPartOfSpeech: posTagger is null!");
     }
   }
   
