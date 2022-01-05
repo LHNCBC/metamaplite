@@ -14,7 +14,15 @@ sublist is normalized and then looked up in a dictionary.  Any match
 found in the dictionary that is subsumed by a longer match is
 discarded.
 
-MetaMapLite processing stages
+## Description
+
+Segments text using sentence or blank lines using OpenNLP's sentence
+segmenter or MetaMapLite's blank line seqmenter.  Tokenizes sentences
+using tokenizer based of Original MetaMap's tokenization regime.
+Part-of-speech information is added to tokenized text using OpenNLP's
+part-of-speech tagger.  Mapping is done using dictionary lookup
+discarding any match subsumed by longest match found in the
+dictionary.
 
     input text ->
       sentence/line segmentation ->
@@ -25,6 +33,10 @@ MetaMapLite processing stages
                 concept dictionary lookup ->
                   negation detection ->
 				  result presentation
+
+1. add support for exclusion of some cui/term combination (see MetaMap's special terms file) [done?]
+2. support entity lookup using two separate dataset (UMLS and custom, etc.) 
+
 
 Below is an example of sentence level named entity recognition in
 which a token list for the sentence "Papillary Thyroid Carcinoma is a
