@@ -14,6 +14,10 @@ import bioc.BioCRelation;
 import bioc.BioCSentence;
 import bioc.BioCPassage;
 
+import bioc.tool.AbbrConverter;
+import bioc.tool.AbbrInfo;
+import bioc.tool.ExtractAbbrev;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +34,9 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 public class MarkAbbreviations {
   private static final Logger logger = LoggerFactory.getLogger(MarkAbbreviations.class);
 
+  AbbrConverter abbrConverter = new AbbrConverter();
+  static ExtractAbbrev extractAbbr = new ExtractAbbrev();
+
   public static List<Entity> findMatches(BioCPassage passage, Entity entity) {
     String target = entity.getText();
     List<Entity> newEntityList = new ArrayList<Entity>();
@@ -44,6 +51,110 @@ public class MarkAbbreviations {
     }
     return newEntityList;
   }
+
+  public static List<Entity> findMatches(String text, Entity entity) {
+    String target = entity.getText();
+    List<Entity> newEntityList = new ArrayList<Entity>();
+    for (ERToken token: Scanner.analyzeText(text)) {
+      if (token.getText().equals(target)) {
+	Entity newEntity = new Entity(entity);
+	newEntity.setText(token.getText());
+	newEntity.setStart(token.getPosition());
+	newEntity.setLength(token.getText().length());
+	newEntityList.add(newEntity);
+      }
+    }
+    return newEntityList;
+  }
+
+
+  public static List<Entity> markAbbreviations(String text, List<Entity> entityList)
+  {
+    Map<String,String> uaMap = new HashMap<String,String>();
+    return markAbbreviations(text, uaMap, entityList);
+  }
+
+  public static List<Entity> markAbbreviations(String text,
+					       Map<String,String> uaMap,
+					       List<Entity> entityList) {
+    // add abbreviations to entity set if present
+    List<Entity> newEntityList = new ArrayList<Entity>(entityList);
+    // Generate abbrevation Maps
+
+    Map<String,String> abbrMap = new HashMap<String,String>(); // long form <-> short form
+    // short form -> abbrevation info list
+    Map<String,List<AbbrInfo>> shortFormMap = new HashMap<String,List<AbbrInfo>>(); 
+    // long form -> abbrevation info list
+    Map<String,List<AbbrInfo>> longFormMap = new HashMap<String,List<AbbrInfo>>();
+
+    ArrayList<AbbrInfo> abbrInfoList = extractAbbr.extractAbbrPairsString(text);
+    for (AbbrInfo abbrInfo: abbrInfoList) {
+      System.out.println("abbrInfo:");
+      System.out.println(" shortForm: " + abbrInfo.shortForm);
+      System.out.println("  shortFormIndex: " + abbrInfo.shortFormIndex);	
+      System.out.println(" longForm: " + abbrInfo.longForm);
+      System.out.println("  longFormIndex: " + abbrInfo.longFormIndex);	
+      if (shortFormMap.containsKey(abbrInfo.shortForm)) {
+	shortFormMap.get(abbrInfo.shortForm).add(abbrInfo);
+      } else {
+	List<AbbrInfo> newList = new ArrayList<AbbrInfo>();
+	newList.add(abbrInfo);
+	shortFormMap.put(abbrInfo.shortForm, newList);
+      }
+      if (longFormMap.containsKey(abbrInfo.longForm)) {
+	longFormMap.get(abbrInfo.longForm).add(abbrInfo);
+      } else {
+	List<AbbrInfo> newList = new ArrayList<AbbrInfo>();
+	newList.add(abbrInfo);
+	longFormMap.put(abbrInfo.longForm, newList);
+      }
+      if (! abbrMap.containsKey(abbrInfo.longForm)) {
+	abbrMap.put(abbrInfo.longForm, abbrInfo.shortForm);
+      }
+    }
+
+    // Actually add the entities
+    if (abbrMap.size() > 0) {
+      List<Entity> abbrevEntities = new ArrayList<Entity>();
+      for (Entity entity: entityList) {
+    	String key = entity.getText();
+    	if (abbrMap.containsKey(key)) {
+    	  logger.info("text -> " + key + " -> " + abbrMap.get(key));
+    	  if (shortFormMap.containsKey(abbrMap.get(key))) {
+    	    for (AbbrInfo abbrInfo: shortFormMap.get(abbrMap.get(entity.getText()))) {
+	      System.out.println("abbrev shortForm: " + abbrInfo.shortForm); 
+	      System.out.println("abbrev shortForm index: " + abbrInfo.shortFormIndex);
+    	      int location = abbrInfo.shortFormIndex;
+    	      // verify if abbreviation is in original text at specified offset 
+    	      if ((location >= 0) && (abbrInfo.shortForm.length() > 0)) {
+    		System.out.println("abbrev shortForm: " + abbrInfo.shortForm); 
+    		System.out.println("abbrev location offset: " + location);
+    		String passageText = text;
+    		int begin = Math.max(0, location);
+    		int end = Math.min(begin + abbrInfo.shortForm.length(), passageText.length());
+    		System.out.println("abbrev begin: " + begin);
+    		System.out.println("abbrev end: " + end);
+    		String passageSubstring = passageText.substring(begin, end);
+    		System.out.println("abbrev passageSubstring: " + passageSubstring);
+    		if (passageSubstring.equals(abbrInfo.shortForm)) {
+    		  System.out.println("adding entity " + abbrInfo.shortForm +
+			       " " + abbrInfo.shortFormIndex);
+    		  Entity newEntity = new Entity(entity);
+    		  newEntity.setText(abbrInfo.shortForm);
+    		  newEntity.setStart(location);
+    		  newEntity.setLength(abbrInfo.shortForm.length());
+    		  logger.info("newEntity: " + newEntity);
+    		  newEntityList.add(newEntity);
+    		  newEntityList.addAll(findMatches(text, newEntity));
+    		}
+    	      }
+    	    }
+    	  }
+    	}
+      } /* entity */
+    }
+    return newEntityList;
+  }  
 
   /**
    * Add any entity that has an abbreviations.  Passage has been
@@ -104,9 +215,9 @@ public class MarkAbbreviations {
 	      }
 	    }
 	  }
-	  logger.debug("abbrvMap: " + shortForm + " -> " + longForm);
+	  System.out.println("abbrvMap: " + shortForm + " -> " + longForm);
 	  abbrMap.put(shortForm,longForm);
-	  logger.debug("abbrvMap: " + longForm + " -> " + shortForm);
+	  System.out.println("abbrvMap: " + longForm + " -> " + shortForm);
 	  abbrMap.put(longForm,shortForm);
 	}
       }
