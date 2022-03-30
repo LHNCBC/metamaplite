@@ -179,18 +179,6 @@
 	    { "name" : "<init>", "parameterTypes" : [] }
 	]
     },
-
-    { "name" : "org.apache.logging.log4j.message.ParameterizedMessageFactory",
-      	"methods" : [
-	    { "name" : "<init>", "parameterTypes" : [] }
-	]
-    },
-    {
-	"name" : "org.apache.logging.log4j.core.async.AsyncLogger",
-	"methods" : [
-	    { "name" : "<init>", "parameterTypes" : [] }
-	]
-    },
     {
 	"name" : "com.sun.xml.internal.stream.XMLInputFactoryImpl",
 	"methods" : [
@@ -205,34 +193,6 @@
     },
     {
 	"name" : "com.sun.org.apache.xerces.internal.parsers.SAXParser",
-	"methods" : [
-	    { "name" : "<init>", "parameterTypes" : [] }
-	]
-    },
-    {
-	"name" : "org.apache.logging.log4j.simple.SimpleLogger",
-	"methods" : [
-	    { "name" : "<init>",
-	      "parameterTypes" : ["java.lang.String",
-				  "org.apache.logging.log4j.Level",
-				  "boolean",
-				  "boolean",
-				  "boolean",
-				  "boolean",
-				  "java.lang.String",
-				  "org.apache.logging.log4j.message.MessageFactory",
-				  "org.apache.logging.log4j.util.PropertiesUtil",
-				  "java.io.PrintStream"] }
-	]
-    },
-    {
-	"name" : "org.apache.logging.log4j.simple.SimpleLoggerContext",
-	"methods" : [
-	    { "name" : "<init>", "parameterTypes" : [] }
-	]
-    },
-    {
-	"name" : "org.apache.logging.log4j.simple.SimpleLoggerContextFactory",
 	"methods" : [
 	    { "name" : "<init>", "parameterTypes" : [] }
 	]

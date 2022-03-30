@@ -17,7 +17,7 @@
 #  GraalVM Github page: https://github.com/oracle/graal
 #  GrallVM Community Edition (What I used for this): https://github.com/oracle/graal/releases
 #
-# GRAALVM=$TOOLS/graalvm-ce-19.2.1
+GRAALVM=$TOOLS/graalvm-ce-1.0.0-rc14
 # M2_REPO=$HOME/.m2/repository
 PATH=$PATH:$GRAALVM/bin
 native-image -H:+ReportUnsupportedElementsAtRuntime \
@@ -26,9 +26,11 @@ native-image -H:+ReportUnsupportedElementsAtRuntime \
 	     -H:+ReportExceptionStackTraces \
 	     -H:-UseServiceLoaderFeature \
 	     --allow-incomplete-classpath \
-	     --initialize-at-run-time=org.apache.logging.log4j.core.async.AsyncLogger \
-	     --initialize-at-run-time=org.apache.logging.log4j.core.appender.mom.JmsAppender \
 	     --enable-url-protocols=http \
 	     --enable-url-protocols=https \
-	     -cp target/metamaplite-3.6.2rc4-standalone.jar:$M2_REPO/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar \
+	     -cp target/metamaplite-3.6.2rc8-standalone.jar\
 	     gov.nih.nlm.nls.ner.MetaMapLite
+
+# --initialize-at-run-time=org.apache.logging.log4j.core.async.AsyncLogger \
+# --initialize-at-run-time=org.apache.logging.log4j.core.appender.mom.JmsAppender \
+# :$M2_REPO/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar 
