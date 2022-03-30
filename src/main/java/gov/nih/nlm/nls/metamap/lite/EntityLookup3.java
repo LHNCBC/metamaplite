@@ -519,6 +519,27 @@ public class EntityLookup3 implements EntityLookup {
     return entityList;
   }
 
+
+  /** Process text string */
+  public List<Entity> processText(String docid,
+				  String fieldid,
+				  String text,
+				  boolean detectNegationsFlag,
+				  Set<String> semTypeRestrictSet,
+				  Set<String> sourceRestrictSet) {
+    return null;
+  }
+
+    /** Process text string */
+  public List<Entity> processText(String text,
+				  boolean useNegationDetection,
+				  Set<String> semTypeRestrictSet,
+				  Set<String> sourceRestrictSet) {
+    return processText("000000", "text", text, useNegationDetection,
+		       semTypeRestrictSet, sourceRestrictSet);
+  }
+
+
   /** Process passage
    *
    * @param docid document id

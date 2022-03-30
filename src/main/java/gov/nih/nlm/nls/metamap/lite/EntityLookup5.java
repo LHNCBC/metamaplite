@@ -41,6 +41,7 @@ import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 import gov.nih.nlm.nls.metamap.lite.ChunkerMethod;
 import gov.nih.nlm.nls.metamap.lite.OpenNLPChunker;
+import gov.nih.nlm.nls.metamap.lite.SentenceExtractor;
 
 import gov.nih.nlm.nls.metamap.prefix.CharUtils;
 
@@ -83,6 +84,7 @@ public class EntityLookup5 implements EntityLookup {
     Integer.parseInt(System.getProperty("metamaplite.entitylookup4.maxtokensize","15"));
   SpecialTerms excludedTerms = new SpecialTerms();
   SentenceAnnotator sentenceAnnotator;
+  SentenceExtractor sentenceExtractor;
   NegationDetector negationDetector;
   boolean addPartOfSpeechTagsFlag =
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
@@ -877,6 +879,81 @@ public class EntityLookup5 implements EntityLookup {
     return entityList;
   }
 
+  /** Process text string */
+  public List<Entity> processText(String docid,
+				  String fieldid,
+				  String text,
+				  boolean detectNegationsFlag,
+				  Set<String> semTypeRestrictSet,
+				  Set<String> sourceRestrictSet) {
+    EntityStartComparator entityComparator = new EntityStartComparator();
+    try {
+      Set<Entity> entitySet0 = new HashSet<Entity>();
+      int i = 0;
+      List<Sentence> sentenceList = this.sentenceExtractor.createSentenceList(text);
+      for (Sentence sentence: sentenceList) {
+	List<ERToken> tokenList = Scanner.analyzeText(sentence);
+	Set<Entity> sentenceEntitySet =
+	  this.processSentenceTokenList(docid, fieldid, tokenList,
+					semTypeRestrictSet,
+					sourceRestrictSet);
+	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities
+				 (docid, this.udaMap, tokenList));
+	for (Entity entity: sentenceEntitySet) {
+	  entity.setLocationPosition(i);
+	}
+	entitySet0.addAll(sentenceEntitySet);
+	i++;
+      }
+      // look for negation and other relations using Context.
+      for (Sentence sentence: sentenceList) {
+	List<ERToken> tokenList = Scanner.analyzeText(sentence);
+
+	// mark abbreviations that are entities and add them to sentence entity set.
+	Set<Entity> abbrevEntitySet =
+	  new HashSet(MarkAbbreviations.markAbbreviations
+		      (text, this.uaMap,
+		       new ArrayList(entitySet0)));
+	entitySet0.addAll(abbrevEntitySet);
+	if (detectNegationsFlag) {
+	  detectNegations(entitySet0, sentence.getText(), tokenList);
+	}
+      }
+
+      // remove any entities subsumed by another entity
+      Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
+      // filter entities by semantic type and source sets.
+      Set<Entity> entitySet = new HashSet<Entity>();
+      for (Entity entity: entitySet1) {
+	ConceptInfoUtils.filterEntityEvListBySemanticType(entity, semTypeRestrictSet);
+	ConceptInfoUtils.filterEntityEvListBySource(entity, sourceRestrictSet);
+	if (entity.getEvList().size() > 0) {
+	  entitySet.add(entity);
+	}
+      }
+      List<Entity> resultList = new ArrayList<Entity>(entitySet);
+      Collections.sort(resultList, entityComparator);
+      return resultList;
+    } catch (FileNotFoundException fnfe) {
+      throw new RuntimeException(fnfe);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+  }
+
+  /** Process text string */
+  public List<Entity> processText(String text,
+				  boolean useNegationDetection,
+				  Set<String> semTypeRestrictSet,
+				  Set<String> sourceRestrictSet) {
+    return processText("000000", "text", text, useNegationDetection,
+		       semTypeRestrictSet, sourceRestrictSet);
+  }
+
+
   /** Process passage */
   public List<Entity> processPassage(String docid, BioCPassage passage,
 				     boolean detectNegationsFlag,
@@ -893,10 +970,12 @@ public class EntityLookup5 implements EntityLookup {
       int i = 0;
       for (BioCSentence sentence: passage.getSentences()) {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
-	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
-								      semTypeRestrictSet,
-								      sourceRestrictSet);
-	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities(docid, this.udaMap, tokenList));	
+	Set<Entity> sentenceEntitySet =
+	  this.processSentenceTokenList(docid, fieldid, tokenList,
+					semTypeRestrictSet,
+					sourceRestrictSet);
+	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities
+				 (docid, this.udaMap, tokenList));	
 	for (Entity entity: sentenceEntitySet) {
 	  entity.setLocationPosition(i);
 	}
@@ -909,7 +988,10 @@ public class EntityLookup5 implements EntityLookup {
 	List<ERToken> tokenList = Scanner.analyzeText(sentence);
 
 	// mark abbreviations that are entities and add them to sentence entity set.
-	Set<Entity> abbrevEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage, new ArrayList(entitySet0)));
+	Set<Entity> abbrevEntitySet =
+	  new HashSet(MarkAbbreviations.markAbbreviations
+		      (passage, this.uaMap,
+		       new ArrayList(entitySet0)));
 	entitySet0.addAll(abbrevEntitySet);
 	if (detectNegationsFlag) {
 	  detectNegations(entitySet0, sentence.getText(), tokenList);
