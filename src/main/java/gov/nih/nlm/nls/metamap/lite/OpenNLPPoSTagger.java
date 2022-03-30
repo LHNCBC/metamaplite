@@ -181,8 +181,8 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 	textList.add(token.getText());
       }
     }
-    logger.info("OpenNLPPosTagger:addPartOfSpeech: textList: ", textList);
-    logger.info("OpenNLPPosTagger:addPartOfSpeech: posTagger: ", this.posTagger);
+    logger.debug("OpenNLPPosTagger:addPartOfSpeech: textList: ", textList);
+    logger.debug("OpenNLPPosTagger:addPartOfSpeech: posTagger: ", this.posTagger);
     if (this.posTagger != null) {
       String tags[] = this.posTagger.tag(textList.toArray(new String[0]));
       int i = 0;
@@ -299,10 +299,10 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 	    for (Entity entity: bioCEntity.getEntitySet()) {
 	      String key = bioCEntity.getText();
 	      if (abbrMap.containsKey(key)) {
-		logger.info("text -> " + key + " -> " + abbrMap.get(key));
+		logger.debug("text -> " + key + " -> " + abbrMap.get(key));
 		if (shortFormMap.containsKey(abbrMap.get(key))) {
 		  for (BioCAnnotation abbrAnnot: shortFormMap.get(abbrMap.get(bioCEntity.getText()))) {
-		    logger.info("adding " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
+		    logger.debug("adding " + abbrAnnot.getText() + " "  + abbrAnnot.getLocations());
 		    Entity newEntity = new Entity(entity);
 		    newEntity.setText(abbrAnnot.getText());
 		    BioCLocation location = abbrAnnot.getLocations().get(0);
@@ -311,12 +311,12 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 		    newBioCEntity.setText(abbrMap.get(key));
 		    newBioCEntity.addLocation(location);
 		    newBioCEntity.addEntity(newEntity);
-		    logger.info("BioCEntity: " + newBioCEntity);
+		    logger.debug("BioCEntity: " + newBioCEntity);
 		  }
 		}
 	      }
 	    } /* entity */
-	    logger.info("adding BioCEntity: " + newBioCEntity);
+	    logger.debug("adding BioCEntity: " + newBioCEntity);
 	    if (newBioCEntity.getEntitySet().size() > 0) {
 	      abbrevEntities.add(newBioCEntity);
 	    }
