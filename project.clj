@@ -11,11 +11,11 @@
                  [org.apache.opennlp/opennlp-maxent "3.0.3"]
                  [instaparse "1.4.5"]
                  [clojure-opennlp "0.3.3" :exclusions [instaparse]] ;; uses Opennlp 1.5.3
-                 [org.apache.logging.log4j/log4j-api "2.1"]
-                 [org.apache.logging.log4j/log4j-core "2.1"]
+                 [org.apache.logging.log4j/log4j-api "2.17.2"]
+                 [org.apache.logging.log4j/log4j-core "2.17.2"]
                  ;; [org.apache.lucene/lucene-analyzers-common "4.10.0"]
                  ;; [org.apache.lucene/lucene-queryparser "4.10.0"]
-                 [org.apache.uima/uimaj-core "2.3.1"]
+                 [org.apache.uima/uimaj-core "2.10.2"]
                  [net.sf.opencsv/opencsv "2.3"]
                  [gov.nih.nlm.nls/nlp "2.4.C"]
                  ;; https://mvnrepository.com/artifact/org.jyaml/jyaml
@@ -27,6 +27,7 @@
                  [bioc "1.0.1"]
                  ;; [gov.nih.nlm.nls/aec_mrd_wsd "1.0-SNAPSHOT"]
                  [junit/junit "4.11"]
+                 [org.mapdb/mapdb "3.0.7"]
                  [umls-tables "0.1.0-SNAPSHOT"]
                  [skr "0.1.0-SNAPSHOT"]
                  [lvgclj "0.1.0-SNAPSHOT"]
