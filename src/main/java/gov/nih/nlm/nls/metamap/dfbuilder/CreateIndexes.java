@@ -220,6 +220,13 @@ public class CreateIndexes {
       ivfDir.mkdir();
       tablesDir.mkdir();
       indicesDir.mkdir();
+
+      cuiconceptDir.mkdir();
+      cuisourceinfoDir.mkdir();
+      cuistDir.mkdir();
+      meshtcrelaxedDir.mkdir();
+      varsDir.mkdir();
+
     }
   }
 
