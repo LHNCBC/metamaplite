@@ -80,6 +80,12 @@ public class EntityLookup4 implements EntityLookup {
   NegationDetector negationDetector;
   boolean addPartOfSpeechTagsFlag =
     Boolean.parseBoolean(System.getProperty("metamaplite.enable.postagging","true"));
+
+  // In cases where there are subsumed (entirely overlapped) entities, do we remove them?
+  // For example, "blood sugar level" and "blood sugar"
+  // Most of the time, the answer is "yes"; in some high-recall scenarios, we don't want to.
+  boolean shouldRemoveSubsumedEntities = true;
+
   Properties properties;
 
   /** Part of speech tags used for term lookup, can be set using
@@ -201,6 +207,11 @@ public class EntityLookup4 implements EntityLookup {
       }
       this.uaMap = UserDefinedAcronym.udasToUA(this.udaMap);
     }
+
+    if (properties.containsKey("metamaplite.removeSubsumedEntities")) {
+        this.shouldRemoveSubsumedEntities = Boolean.parseBoolean(properties.getProperty("metamaplite.removeSubsumedEntities"));
+    }
+
   }
 
   /**
@@ -634,7 +645,14 @@ n   * <pre>
 	  entitySet1.add(entity);
 	}
       }
-      Set<Entity> entitySet = removeSubsumedEntities(entitySet1);
+
+        Set<Entity> entitySet;
+
+      if (this.shouldRemoveSubsumedEntities) {
+          entitySet = removeSubsumedEntities(entitySet1);
+      } else {
+          entitySet = entitySet1;
+      }
 
       List<Entity> resultList = new ArrayList<Entity>(entitySet);
       Collections.sort(resultList, entityComparator);
@@ -712,7 +730,14 @@ n   * <pre>
 	  entitySet1.add(entity);
 	}
       }
-      Set<Entity> entitySet = removeSubsumedEntities(entitySet1);
+
+
+      Set<Entity> entitySet;
+      if (this.shouldRemoveSubsumedEntities) {
+          entitySet = removeSubsumedEntities(entitySet1);
+      } else {
+          entitySet = entitySet1;
+      }
 
       List<Entity> resultList = new ArrayList<Entity>(entitySet);
       Collections.sort(resultList, entityComparator);
@@ -755,7 +780,13 @@ n   * <pre>
       }
       i++;
     }
-    Set<Entity> entitySet = removeSubsumedEntities(entitySet0);
+    Set<Entity> entitySet;
+    if (this.shouldRemoveSubsumedEntities) {
+        entitySet = removeSubsumedEntities(entitySet0);
+    } else {
+        entitySet = entitySet0;
+    }
+
     List<Entity> resultList = new ArrayList<Entity>(entitySet);
     Collections.sort(resultList, entityComparator);
     return resultList;
@@ -767,11 +798,13 @@ n   * <pre>
     String fieldid = "text";
     try {
       Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
-      Set<Entity> entitySet = 
-	removeSubsumedEntities
-	(this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
-				       new HashSet<String>(),
-				       new HashSet<String>()));
+      Set<Entity> entitySet = this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
+              new HashSet<String>(),
+              new HashSet<String>());
+      if (this.shouldRemoveSubsumedEntities) {
+          entitySet = removeSubsumedEntities(entitySet);
+      }
+
       for (Entity entity: entitySet) {
 	for (Ev ev: entity.getEvList()) {
 	  BioCAnnotation entityAnnotation = new BioCAnnotation();

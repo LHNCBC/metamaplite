@@ -838,6 +838,9 @@ public class MetaMapLite {
     defaultConfiguration.setProperty("metamaplite.negation.detector",
 				     "gov.nih.nlm.nls.metamap.lite.NegEx");
     defaultConfiguration.setProperty("metamaplite.disable.chunker","true");
+
+    defaultConfiguration.setProperty("metamaplite.removeSubsumedEntities", "true");
+
     return defaultConfiguration;
   }
 
