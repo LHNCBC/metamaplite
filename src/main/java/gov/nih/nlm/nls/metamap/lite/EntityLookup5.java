@@ -125,6 +125,11 @@ public class EntityLookup5 implements EntityLookup {
     this.allowedPhraseTypeSet.add("NP"); // just noun phrases for now.
   }
 
+  // In cases where there are subsumed (entirely overlapped) entities, do we remove them?
+  // For example, "blood sugar level" and "blood sugar"
+  // Most of the time, the answer is "yes"; in some high-recall scenarios, we don't want to.
+  boolean shouldRemoveSubsumedEntities = true;
+
   public EntityLookup5(Properties properties) 
     throws IOException, FileNotFoundException
   {
@@ -265,6 +270,11 @@ public class EntityLookup5 implements EntityLookup {
 	logger.info(acronym.getKey() + " -> " + acronym.getValue());
       }
       this.uaMap = UserDefinedAcronym.udasToUA(this.udaMap);
+    }
+
+    // remove subsumed?
+    if (properties.containsKey("metamaplite.removeSubsumedEntities")) {
+      this.shouldRemoveSubsumedEntities = Boolean.parseBoolean(properties.getProperty("metamaplite.removeSubsumedEntities"));
     }
   }
 
@@ -920,8 +930,13 @@ public class EntityLookup5 implements EntityLookup {
 	}
       }
 
-      // remove any entities subsumed by another entity
-      Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
+      Set<Entity> entitySet1;
+      if (this.shouldRemoveSubsumedEntities) {
+          // remove any entities subsumed by another entity
+          entitySet1 = removeSubsumedEntities(entitySet0);
+      } else {
+          entitySet1 = entitySet0;
+      }
       // filter entities by semantic type and source sets.
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
@@ -999,7 +1014,12 @@ public class EntityLookup5 implements EntityLookup {
       }
       
       // remove any entities subsumed by another entity
-      Set<Entity> entitySet1 = removeSubsumedEntities(entitySet0);
+      Set<Entity> entitySet1;
+      if (this.shouldRemoveSubsumedEntities) {
+          entitySet1 = removeSubsumedEntities(entitySet0);
+      } else {
+          entitySet1 = entitySet0;
+      }
       // filter entities by semantic type and source sets.
       Set<Entity> entitySet = new HashSet<Entity>();
       for (Entity entity: entitySet1) {
@@ -1047,7 +1067,12 @@ public class EntityLookup5 implements EntityLookup {
       }
       i++;
     }
-    Set<Entity> entitySet = removeSubsumedEntities(entitySet0);
+    Set<Entity> entitySet;
+    if (this.shouldRemoveSubsumedEntities) {
+        entitySet = removeSubsumedEntities(entitySet0);
+    } else {
+        entitySet = entitySet0;
+    }
     List<Entity> resultList = new ArrayList<Entity>(entitySet);
     Collections.sort(resultList, entityComparator);
     return resultList;
@@ -1059,11 +1084,13 @@ public class EntityLookup5 implements EntityLookup {
     String fieldid = "text";
     try {
       Set<BioCAnnotation> bioCEntityList = new HashSet<BioCAnnotation>();
-      Set<Entity> entitySet = 
-	removeSubsumedEntities
-	(this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
-				       new HashSet<String>(),
-				       new HashSet<String>()));
+      Set<Entity> entitySet = this.processSentenceTokenList(docid, fieldid, sentenceTokenList,
+              new HashSet<String>(),
+              new HashSet<String>());
+      if (this.shouldRemoveSubsumedEntities) {
+          entitySet = removeSubsumedEntities(entitySet);
+      }
+
       for (Entity entity: entitySet) {
 	for (Ev ev: entity.getEvList()) {
 	  BioCAnnotation entityAnnotation = new BioCAnnotation();
