@@ -429,10 +429,10 @@ public class MappedMultiKeyIndex {
 	bsfp.get(tstwordbuf);
 	tstword = new String(tstwordbuf, charset);
 	// System.out.println("index: " + mid + ", address: " + (mid * (wordlen+datalen)) + ", tstword: " + tstword + ", word: " + word);
-	// cond = word.compareTo(tstword);
-	ByteBuffer wordByteBuf = ByteBuffer.wrap(word.getBytes(charset));
-	ByteBuffer tstwordByteBuf = ByteBuffer.wrap(tstwordbuf);
-	cond = wordByteBuf.compareTo(tstwordByteBuf);
+	 cond = word.compareTo(tstword);
+//	ByteBuffer wordByteBuf = ByteBuffer.wrap(word.getBytes(charset));
+//	ByteBuffer tstwordByteBuf = ByteBuffer.wrap(tstwordbuf);
+//	cond = wordByteBuf.compareTo(tstwordByteBuf);
 	if (cond < 0) {
 	  high = mid;
 	} else if (cond > 0) {
