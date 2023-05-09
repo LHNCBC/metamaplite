@@ -62,4 +62,23 @@ public class ERTokenImpl extends PosTokenImpl implements Token, PosToken, Classi
   public String toString() {
     return this.tokenText + "|" + this.tokenClass + "|" + this.offset + "|" + this.partOfSpeech;
   }
+
+  /**
+   * Overriding the equality check defined in PosTokenImpl, since some of the uses of equals()
+   * for ERToken need to worry about more than just the token text. See, for example, mapToTokenList()
+   * in EntityLookup5 - it uses .indexOf() to find where a given token (including its offset, etc.)
+   * originally occurred in a differently-processed list of tokens. If we only look at tokenText,
+   * and the token in question occurred multiple times in the token list, then we will essentially
+   * lop off everything that happened after the first occurrence of the token.
+   *
+   * This is a particularly big issue with punctuation, as it is quite common for periods etc. to occur
+   * multiple times in a given input.
+   *
+   * If we've done phrase chunking, this is <i>less</i> of a risk but definitely can still happen.
+   *
+   * @param anotherToken token to compare with
+   * @return true if the two tokens share the same text, class, offset, and PoS
+   */
+  public boolean equals(Object anotherToken)
+  { return this.toString().equals(((ERTokenImpl)anotherToken).toString()); }
 }
