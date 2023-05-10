@@ -80,5 +80,15 @@ public class ERTokenImpl extends PosTokenImpl implements Token, PosToken, Classi
    * @return true if the two tokens share the same text, class, offset, and PoS
    */
   public boolean equals(Object anotherToken)
-  { return this.toString().equals(((ERTokenImpl)anotherToken).toString()); }
+  {
+    assert(anotherToken instanceof  ERTokenImpl);
+    // note that we start with a simple int comparison that is likely to fail,
+    // so we can short-circuit this call early. This is important because there are
+    // a few places where .equals() (or, rather, stuff that calls .equals()) is
+    // at the heart of an inner loop.
+    return this.offset == ((ERTokenImpl)anotherToken).offset &&
+            this.tokenText.equals(((ERTokenImpl)anotherToken).tokenText) &&
+            this.tokenClass.equals(((ERTokenImpl)anotherToken).tokenClass) &&
+            this.partOfSpeech.equals(((ERTokenImpl)anotherToken).partOfSpeech);
+  }
 }
