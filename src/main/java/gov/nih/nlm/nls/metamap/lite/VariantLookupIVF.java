@@ -85,12 +85,18 @@ public class VariantLookupIVF implements VariantLookup {
       logger.debug("term: " + term);
       logger.debug("word: " + word);
       for (String[] varFields: this.getVariantsForTerm(term.toLowerCase())) {
-	if ((varFields[2].toLowerCase().equals(word.toLowerCase())) ||
-	    (varFields[2].toLowerCase().equals(term.toLowerCase()))) {
+	if ((varFields[2].equalsIgnoreCase(word)) ||
+	    (varFields[2].equalsIgnoreCase(term))) {
 	  variance = Integer.parseInt(varFields[4]); // use varlevel field
-	  logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      if (logger.isDebugEnabled()) {
+        // No need to pay for expensive string building operation here unless we actually want to
+        logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i).collect(Collectors.joining("|")));
+      }
 	} else {
-	  logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      if (logger.isDebugEnabled()) {
+        // No need to pay for expensive string building operation here unless we actually want to
+        logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i).collect(Collectors.joining("|")));
+      }
 	}
       }
     } catch (IOException ioe) {
@@ -104,11 +110,17 @@ public class VariantLookupIVF implements VariantLookup {
     try {
       logger.debug("term: " + term);
       for (String[] varFields: this.getVariantsForTerm(term.toLowerCase())) {
-	if ((varFields[2].toLowerCase().equals(term.toLowerCase()))) {
+	if ((varFields[2].equalsIgnoreCase(term))) {
 	  variance = Integer.parseInt(varFields[4]); // use varlevel field
-	  logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      if (logger.isDebugEnabled()) {
+        // No need to pay for expensive string building operation here unless we actually want to
+        logger.debug("*varFields: " + Arrays.stream(varFields).map(i -> i).collect(Collectors.joining("|")));
+      }
 	} else {
-	  logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i.toString()).collect(Collectors.joining("|")));
+      if (logger.isDebugEnabled()) {
+        // No need to pay for expensive string building operation here unless we actually want to
+        logger.debug(" varFields: " + Arrays.stream(varFields).map(i -> i).collect(Collectors.joining("|")));
+      }
 	}
       }
     } catch (IOException ioe) {
