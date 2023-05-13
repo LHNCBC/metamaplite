@@ -106,7 +106,7 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
 							   this.cuiSemanticTypeSetIndex,
 							   this.cuiSourceSetIndex,
 							   this.excludedTerms);
-      this.variantLookup = new VariantLookupIVF(this.mmIndexes);
+      this.variantLookup = new VariantLookupIVF(this.mmIndexes, properties);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }

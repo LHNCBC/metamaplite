@@ -1,8 +1,6 @@
 package gov.nih.nlm.nls.metamap.lite;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import java.io.IOException;
@@ -11,6 +9,7 @@ import java.io.FileNotFoundException;
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
 import gov.nih.nlm.nls.metamap.lite.dictionary.VariantLookup;
 
+import gov.nih.nlm.nls.utils.LRUCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +25,13 @@ import org.slf4j.LoggerFactory;
 public class VariantLookupIVF implements VariantLookup {
   private static final Logger logger = LoggerFactory.getLogger(VariantLookupIVF.class);
 
+  private final Properties properties;
+  private final boolean shouldCache;
+//  private final HashMap<String, List<String[]>> variantCache;
+  private final LRUCache<String, List<String[]>> variantCache;
+
+  private final int DEFAULT_CACHE_SIZE = 100_000;
+
   public MetaMapIvfIndexes mmIndexes;
 
   /**
@@ -33,8 +39,19 @@ public class VariantLookupIVF implements VariantLookup {
    *
    * @param mmIndexes set of inverted file indexes
    */
-  public VariantLookupIVF(MetaMapIvfIndexes mmIndexes) {
+  public VariantLookupIVF(MetaMapIvfIndexes mmIndexes, Properties properties) {
     this.mmIndexes = mmIndexes;
+    this.properties = properties;
+    this.shouldCache = Boolean.parseBoolean(properties.getProperty("metamaplite.variantLookup.cache.enable", "true"));
+    if (this.shouldCache) {
+      int cacheSize = Integer.parseInt(properties.getProperty("metamaplite.variantLookup.cache.size","-1"));
+      if (cacheSize < 0) {
+        cacheSize = DEFAULT_CACHE_SIZE;
+      }
+      this.variantCache = new LRUCache<>(cacheSize);
+    } else {
+      this.variantCache = null;
+    }
   }
 
 
@@ -46,6 +63,9 @@ public class VariantLookupIVF implements VariantLookup {
    */
   public List<String[]> getVariantsForTerm(String term)
     throws IOException {
+      if (this.shouldCache && variantCache.containsKey(term)) {
+          return variantCache.get(term);
+      }
     List<String[]> variantList = new ArrayList<String[]>();
     if (this.mmIndexes.varsIndex != null) {
       List<String> hitList = this.mmIndexes.varsIndex.lookup(term, 0);
@@ -53,6 +73,9 @@ public class VariantLookupIVF implements VariantLookup {
 	String[] fields = hit.split("\\|");
 	variantList.add(fields);
       }
+    }
+    if (this.shouldCache) {
+      variantCache.put(term, variantList);
     }
     return variantList;
   }
