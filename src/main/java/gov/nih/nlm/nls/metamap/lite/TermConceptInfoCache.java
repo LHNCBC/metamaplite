@@ -64,7 +64,7 @@ public class TermConceptInfoCache {
     this.cuiPreferredNameCache = cuiPreferredNameCache;
     this.excludedTerms = new SpecialTerms();
     this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
-    this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes);
+    this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes, null);
   }
 
   /**
@@ -88,7 +88,7 @@ public class TermConceptInfoCache {
 	  ("metamaplite.entity.lookup4.term.concept.cache.size","10000")));
     }
     this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
-    this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes);
+    this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes, properties);
   }
 
   /**

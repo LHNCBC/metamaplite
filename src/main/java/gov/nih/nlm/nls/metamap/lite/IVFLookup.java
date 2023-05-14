@@ -126,7 +126,7 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
       this.mmIndexes = new MetaMapIvfIndexes(properties);
       this.cuiPreferredNameCache = new CuiPreferredNameCache(this, properties);
       this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
-      this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes);
+      this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes, properties);
       this.variantLookup = new VariantLookupIVF(this.mmIndexes, properties);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
