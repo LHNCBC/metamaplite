@@ -4,12 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
 
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Properties;
+import java.util.*;
 
 import gov.nih.nlm.nls.metamap.lite.metamap.MetaMapIvfIndexes;
+import gov.nih.nlm.nls.utils.LRUCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import gov.nih.nlm.nls.metamap.prefix.Token;
@@ -49,24 +47,53 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
   public CuiSemanticTypeSetIndex cuiSemanticTypeSetIndex;
   /** cui to sourceset cache */
   public CuiSourceSetIndex cuiSourceSetIndex;
-  /** term to concept info index/cache */
-  public TermConceptInfoCache termConceptInfoCache;
+
+
+
+  /*
+   Local cache mapping terms to concept info structs.
+
+   Note that we are not using TermConceptInfoCache.java. IVFLookup _used_ to keep an instance
+   of this class around, but was never actually using it for anything. Given that class defined
+   there seems to also be doing a lot of other work (keeping track of excluded terms, etc.) that
+   is being done elsewhere in IVFLookup, my hypothesis is that it is something of an evolutionary
+   holdover from an earlier phase of MML's development, during which that functionality _used_ to
+   be needed as part of the lookup but has been refactored to happen elsewhere.
+
+   The good news is that because all of that logic was refactored at some point in the past, we can
+   now just do throw in a simple LRUCache here and it will work just fine.
+
+  */
+
+  // This default cache size is totally arbitrary - depending on use case, likely would want to change it.
+  private final int DEFAULT_TERM_INFO_CACHE_SIZE = 100_000;
+  private final boolean shouldCacheTermInfoLookup;
+
+  private final LRUCache<String, TermInfoImpl<Set<ConceptInfo>>> termInfoCache;
+
   /** word to variant lookup */
   VariantLookupIVF variantLookup;
 
 
-  /**
-   * Creates a new <code>IVFLookup</code> instance.
-   *
-   */
-  public IVFLookup() {
-  }
 
   /**
    * Creates a new <code>IVFLookup</code> instance.
    * @param properties application properties
    */
   public IVFLookup(Properties properties) {
+
+    // Doing this in the constructor (rather than in init() so that various things can be set as final)
+    this.shouldCacheTermInfoLookup = Boolean.parseBoolean(properties.getProperty("metamaplite.ivflookup.termInfoCache.enable", "true"));
+    if (this.shouldCacheTermInfoLookup) {
+      int cacheSize = Integer.parseInt(properties.getProperty("metamaplite.ivflookup.termInfoCache.cacheSize","-1"));
+      if (cacheSize < 0) {
+        cacheSize = DEFAULT_TERM_INFO_CACHE_SIZE;
+      }
+      this.termInfoCache = new LRUCache<>(cacheSize);
+    } else {
+      this.termInfoCache = null;
+    }
+
     init(properties);
   }
 
@@ -99,14 +126,8 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
       this.mmIndexes = new MetaMapIvfIndexes(properties);
       this.cuiPreferredNameCache = new CuiPreferredNameCache(this, properties);
       this.cuiSemanticTypeSetIndex = new CuiSemanticTypeSetIndex(mmIndexes);
-      this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes);
-      this.termConceptInfoCache = new TermConceptInfoCache(properties,
-							   this.mmIndexes,
-							   this.cuiPreferredNameCache,
-							   this.cuiSemanticTypeSetIndex,
-							   this.cuiSourceSetIndex,
-							   this.excludedTerms);
-      this.variantLookup = new VariantLookupIVF(this.mmIndexes);
+      this.cuiSourceSetIndex = new CuiSourceSetIndex(mmIndexes, properties);
+      this.variantLookup = new VariantLookupIVF(this.mmIndexes, properties);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
@@ -163,6 +184,9 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
    * @return a <code>String</code> array associated with input term.
    */
   public final TermInfo lookup(final String term) {
+    if (this.shouldCacheTermInfoLookup && termInfoCache.containsKey(term)) {
+      return termInfoCache.get(term);
+    }
     Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
     String originalTerm = term;
     String normTerm = term;
@@ -187,7 +211,12 @@ public class IVFLookup implements MMLDictionaryLookup<TermInfo>
 						  this.cuiSemanticTypeSetIndex.getSemanticTypeSet(cui));
 	conceptInfoSet.add(conceptInfo);
       }
-      return new TermInfoImpl<Set<ConceptInfo>>(originalTerm, normTerm, conceptInfoSet);
+      TermInfoImpl<Set<ConceptInfo>> toReturn = new TermInfoImpl<Set<ConceptInfo>>(originalTerm, normTerm, conceptInfoSet);
+      if (this.shouldCacheTermInfoLookup) {
+        termInfoCache.put(term, toReturn);
+      }
+      return toReturn;
+//      return new TermInfoImpl<Set<ConceptInfo>>(originalTerm, normTerm, conceptInfoSet);
     } catch (FileNotFoundException fnfe) {
       throw new RuntimeException(fnfe);
     } catch (IOException ioe) {
