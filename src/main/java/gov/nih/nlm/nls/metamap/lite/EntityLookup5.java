@@ -282,7 +282,7 @@ public class EntityLookup5 implements EntityLookup {
     }
 
     // Now check for custom minimum token lengths
-    if (properties.contains("metamaplite.entitylookup5.min_token_length")) {
+    if (properties.containsKey("metamaplite.entitylookup5.min_token_length")) {
         // validate: must be > 0
         int tempTokenLength = Integer.parseInt(properties.getProperty("metamaplite.entitylookup5.min_token_length"));
         if (tempTokenLength >= 1) {
