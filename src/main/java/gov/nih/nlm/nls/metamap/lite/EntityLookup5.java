@@ -75,9 +75,13 @@ import gov.nih.nlm.nls.metamap.evaluation.Scoring;
  */
 
 public class EntityLookup5 implements EntityLookup {
-  private static final Logger logger = LoggerFactory.getLogger(EntityLookup5.class);
+    private static final Logger logger = LoggerFactory.getLogger(EntityLookup5.class);
 
-  ChunkerMethod chunkerMethod;
+    // How long of a token can we consider for an entity map?
+    public static final int DEFAULT_MIN_ORIG_TERM_LENGTH = 3; // Original EntityLookup5 hard-coded ≥3
+    public final int MIN_ORIG_TERM_LENGTH;
+
+    ChunkerMethod chunkerMethod;
   
   public MMLDictionaryLookup<TermInfo> dictionaryLookup;
   int MAX_TOKEN_SIZE =
@@ -276,6 +280,19 @@ public class EntityLookup5 implements EntityLookup {
     if (properties.containsKey("metamaplite.removeSubsumedEntities")) {
       this.shouldRemoveSubsumedEntities = Boolean.parseBoolean(properties.getProperty("metamaplite.removeSubsumedEntities"));
     }
+
+    // Now check for custom minimum token lengths
+    if (properties.contains("metamaplite.entitylookup5.min_token_length")) {
+        // validate: must be > 0
+        int tempTokenLength = Integer.parseInt(properties.getProperty("metamaplite.entitylookup5.min_token_length"));
+        if (tempTokenLength >= 1) {
+            this.MIN_ORIG_TERM_LENGTH = Integer.parseInt(properties.getProperty("metamaplite.entitylookup5.min_token_length"));
+        } else {
+            this.MIN_ORIG_TERM_LENGTH = DEFAULT_MIN_ORIG_TERM_LENGTH;
+        }
+    } else {
+        this.MIN_ORIG_TERM_LENGTH = DEFAULT_MIN_ORIG_TERM_LENGTH;
+    }
   }
 
   /**
@@ -395,7 +412,7 @@ public class EntityLookup5 implements EntityLookup {
        	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
        	  firstToken.getText().length();
        	String originalTerm = StringUtils.join(tokenTextSubList, "");
-	if ((originalTerm.length() > 2) &&
+	if ((originalTerm.length() >= MIN_ORIG_TERM_LENGTH) &&
 	    (CharUtils.isAlphaNumeric(originalTerm.charAt(originalTerm.length() - 1)))) {
 	 
 	  // String term = originalTerm;
