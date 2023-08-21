@@ -99,6 +99,15 @@ public class EntityLookup5 implements EntityLookup {
    * property: metamaplite.postaglist; the tag list is a set of Penn
    * Treebank part of speech tags separated by commas. */
   Set<String> allowedPartOfSpeechSet = new HashSet<String>();
+
+    /**
+     * Normally, only runs of tokens whose first token's first character is alphanumeric
+     * (a-zA-Z0-9 plus greek letters) are considered for matching; however, we want to
+     * enable
+     */
+  boolean considerNonAlphaTokens;
+  Set<Character> additionalTokenStartChars = new HashSet<Character>();
+
   public void defaultAllowedPartOfSpeech() {
     this.allowedPartOfSpeechSet.add("CD"); // cardinal number (need this for chemicals)
     this.allowedPartOfSpeechSet.add("FW"); // foreign word
@@ -183,6 +192,15 @@ public class EntityLookup5 implements EntityLookup {
     } else {
       this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)
     }
+
+    this.considerNonAlphaTokens  = Boolean.parseBoolean(properties.getProperty("metamaplite.entitylookup5.considerNonAlphaTokens", "false"));
+    if (this.considerNonAlphaTokens) { // no need to bother with this if we're not allowing non-alpha tokens
+        String bonusChars = properties.getProperty("metamaplite.entitylookup5.additionalAllowedFirstChars", "");
+        for (char c : bonusChars.toCharArray()) {
+            this.additionalTokenStartChars.add(c);
+        }
+    }
+
     String allowedPhraseTypeList = properties.getProperty("metamaplite.phrasetypelist");
     if (allowedPhraseTypeList != null) {
       for (String phraseType: allowedPhraseTypeList.split(",")) {
@@ -419,7 +437,19 @@ public class EntityLookup5 implements EntityLookup {
 	  // String query = term;
 	  normTerm = NormalizedStringCache.normalizeString(originalTerm);
 	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
-	  if (CharUtils.isAlphaNumeric(originalTerm.charAt(0))) {
+
+      // Should we see if we can find a match for tokenSubList?
+      boolean shouldConsiderMatch = false;
+
+      char firstChar = originalTerm.charAt(0);
+      if (CharUtils.isAlphaNumeric(firstChar)) { // fast path, most likely
+          // If we're dealing with an alphanumeric start char, we always allow
+          shouldConsiderMatch = true;
+      } else if (this.considerNonAlphaTokens && this.additionalTokenStartChars.contains(firstChar)) {
+          // Depending on settings and what that first char is, maybe allow this token
+          shouldConsiderMatch = true;
+      }
+	  if (shouldConsiderMatch) {
 	    Set<Ev> evSet = new HashSet<Ev>();
 	    Integer tokenListLength = new Integer(tokenSubList.size());
 
