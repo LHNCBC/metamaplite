@@ -6,7 +6,7 @@
 
 set projectdir=%cd%
 
-set MML_VERSION=3.6.2rc5
+set MML_VERSION=3.6.2rc8
 
 set OPENNLP_MODELS=$PROJECTDIR/data/models
 set CONFIGDIR=$PROJECTDIR/config
