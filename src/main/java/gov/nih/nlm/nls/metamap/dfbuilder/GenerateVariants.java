@@ -249,6 +249,12 @@ public class GenerateVariants {
       String varsfn = args[1];
       GenerateVariants inst = new GenerateVariants();
       inst.process(mrconsofn, varsfn);
+    } else {
+      System.out.println("usage: gov.nih.nlm.nls.metamap.dfbuilder.GenerateVariants <mrconsofile> <variants output file>");
+      System.out.println("\nAlso be sure that environment variable LVG_DIR is defined:\n");
+      System.out.println("   export LVG_DIR=<location of lvg installation>\n");
+      System.out.println("Also, the variable  LVG_DIR in <lvg installdir>/lvg.properties must have full path of LVG installation.");
+      System.out.println("LVG_DIR=AUTO_MODE will not work.");
     }
   }
 }

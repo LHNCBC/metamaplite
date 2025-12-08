@@ -302,7 +302,11 @@ public class CreateIndexes {
       saveTableConfig(ivfDir + "/tables/ifconfig", tableConfig);
       createIndices(ivfDir, tableConfig, charset);
     } else {
-      System.out.println("usage: gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <ivfdir>");
+      System.out.println("usage: gov.nih.nlm.nls.metamap.dfbuilder.CreateIndexes <mrconsofile> <mrstyfile> <mrsatfile> <ivfdir>");
+      System.out.println("\nAlso be sure that environment variable LVG_DIR is defined:\n");
+      System.out.println("   export LVG_DIR=<location of lvg installation>\n");
+      System.out.println("Also, the variable LVG_DIR in <lvg installdir>/lvg.properties must have full path of LVG installation.");
+      System.out.println("LVG_DIR=AUTO_MODE will not work.");
     }
   }
 }
