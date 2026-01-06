@@ -85,7 +85,7 @@ public class NegEx implements NegationDetector {
 	window.add(token.toLowerCase());
       }
       if (phrase.equals(window)) {
-	foundList.add(new Integer(n));
+	foundList.add(Integer.valueOf(n));
       }
       n++;
       notfound = (n < slength) &&  ((n + plength) <= slength);

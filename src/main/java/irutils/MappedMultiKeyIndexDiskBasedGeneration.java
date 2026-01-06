@@ -306,7 +306,7 @@ public class MappedMultiKeyIndexDiskBasedGeneration {
 	    // store column -> term -> hash list
 	    this.columnLengthTermDigestMap.get(column).get(bytelength).get(term).add(digest);
 	  } else {
-	    Map<String,List<String>> termDigestMap = this.columnLengthTermDigestMap.get(column).get(new Integer(bytelength));
+	    Map<String,List<String>> termDigestMap = this.columnLengthTermDigestMap.get(column).get(Integer.valueOf(bytelength));
             List<String> newList = new ArrayList<String>();
             newList.add(digest);    
             termDigestMap.put(term, newList);

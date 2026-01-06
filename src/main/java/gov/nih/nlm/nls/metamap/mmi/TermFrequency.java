@@ -74,7 +74,7 @@ public class TermFrequency {
    * returns a copy of the tuple set as a list.
    * @return copy of tuple set conforming to the list interface.
    */
-  public List<Tuple> getTupleList() { return new ArrayList(this.tupleSet); }
+  public List<Tuple> getTupleList() { return new ArrayList<Tuple>(this.tupleSet); }
   public boolean getTitleFlag() { return this.titleFlag; }
   public String getCui() { return this.cui;}
   public int getFrequencyCount() { return this.frequencyCount; }

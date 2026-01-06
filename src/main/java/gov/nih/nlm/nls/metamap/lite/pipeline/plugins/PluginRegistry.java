@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 import gov.nih.nlm.nls.utils.StringUtils;
 
@@ -43,13 +44,20 @@ public class PluginRegistry {
 			      String inputParameterType)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException
- {
-    Object classInstance = Class.forName(className).newInstance();
-    Class<?> parameterTypeClass = Class.forName(inputParameterType);
-    Method newMethod = classInstance.getClass().getMethod(methodName,parameterTypeClass);
+  {
+    try {
+      Object classInstance = Class.forName(className)
+	.getDeclaredConstructor(null).newInstance();
+      Class<?> parameterTypeClass = Class.forName(inputParameterType);
+      Method newMethod = classInstance.getClass().getMethod(methodName,parameterTypeClass);
 
-    Plugin newPlugin = new Plugin(name, description, classInstance,newMethod);
-    pluginMap.put(name,newPlugin);
+      Plugin newPlugin = new Plugin(name, description, classInstance,newMethod);
+      pluginMap.put(name,newPlugin);
+    } catch (NoSuchMethodException nsme) {
+      throw new RuntimeException(nsme);
+    } catch (InvocationTargetException ite) {
+      throw new RuntimeException(ite);
+    }
   }
 
   public static List<String> listPlugins() {
@@ -99,6 +107,4 @@ public class PluginRegistry {
       }
     }
   }
-
-
 }
