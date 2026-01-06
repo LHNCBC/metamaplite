@@ -48,7 +48,7 @@ public class ExtractTreecodes {
    * @param mrsatFilename
    * @return Map of treecodelists by cui
    */
-  Map<String,List<String>> generateCuiToTreecodeMap(String mrsatFilename) {
+  public Map<String,List<String>> generateCuiToTreecodeMap(String mrsatFilename) {
     int mrsatRecordCnt = 0;
     Map<String,List<String>> cuiToAtvMap = new HashMap<String,List<String>>();
     try {
@@ -63,7 +63,7 @@ public class ExtractTreecodes {
 	    if (cuiToAtvMap.containsKey(record.getCui())) {
 	      cuiToAtvMap.get(record.getCui()).add(record.getAtv());
 	    } else {
-	      List<String> treecodeList = new ArrayList();
+	      List<String> treecodeList = new ArrayList<String>();
 	      treecodeList.add(record.getAtv());
 	      cuiToAtvMap.put(record.getCui(), treecodeList);
 	    }

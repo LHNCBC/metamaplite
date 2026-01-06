@@ -28,14 +28,14 @@ public class TokenTrieNER {
       if (trie.has(candidate)) {
 	if (trie.hasReference(candidate) != null) {
 	  resultList.add(new Result(Tokenize.getTextFromTokenList(candidate),
-				    new Span(((PosToken)candidate.get(0)).getPosition(),
-					     ((PosToken)candidate.get(0)).getPosition() + 
+				    new Span(((PosToken)candidate.get(0)).getOffset(),
+					     ((PosToken)candidate.get(0)).getOffset() + 
 					     Tokenize.getTextFromTokenList(candidate).length()),
 				    trie.hasReference(candidate)));
 	} else {
 	  resultList.add(new Result(Tokenize.getTextFromTokenList(candidate),
-				    new Span(((PosToken)candidate.get(0)).getPosition(),
-					     ((PosToken)candidate.get(0)).getPosition() + 
+				    new Span(((PosToken)candidate.get(0)).getOffset(),
+					     ((PosToken)candidate.get(0)).getOffset() + 
 					     Tokenize.getTextFromTokenList(candidate).length())));
 	}
       }

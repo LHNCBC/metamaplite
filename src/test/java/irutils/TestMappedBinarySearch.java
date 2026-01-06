@@ -89,7 +89,7 @@ public class TestMappedBinarySearch {
   void addEntry(Map<Integer,List<Entry>> entryListMap, String text, int count, int address) {
     byte[] bytes = text.getBytes(this.charset);
     System.out.println("TestMappedBinarySearch: addEntry: text: " + text + ", bytelength: " + bytes.length);
-    Integer slotKey = new Integer(bytes.length);
+    Integer slotKey = Integer.valueOf(bytes.length);
     if (entryListMap.containsKey(slotKey)) {
       entryListMap.get(slotKey).add(new Entry(bytes, count, address));
     } else {
@@ -157,7 +157,7 @@ public class TestMappedBinarySearch {
     throws FileNotFoundException {
     byte[] bytes = text.getBytes(this.charset);
     System.out.println("TestMappedBinarySearch: rafOpenIndex: text: " + text + ", bytelength: " + bytes.length);
-    Integer slotKey = new Integer(bytes.length);
+    Integer slotKey = Integer.valueOf(bytes.length);
     if (indexMap.containsKey(slotKey)) {
       return indexMap.get(slotKey);
     } else {
@@ -210,7 +210,7 @@ public class TestMappedBinarySearch {
     throws FileNotFoundException, IOException {
     byte[] bytes = text.getBytes(this.charset);
     System.out.println("TestMappedBinarySearch: memmapOpenIndex: text: " + text + ", bytelength: " + bytes.length);
-    Integer slotKey = new Integer(bytes.length);
+    Integer slotKey = Integer.valueOf(bytes.length);
     if (indexMap.containsKey(slotKey)) {
       return indexMap.get(slotKey);
     } else {

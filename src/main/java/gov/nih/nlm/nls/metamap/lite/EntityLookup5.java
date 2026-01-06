@@ -25,6 +25,8 @@ import java.io.BufferedWriter;
 import java.io.PrintStream;
 import java.io.OutputStreamWriter;
 
+import java.lang.reflect.InvocationTargetException;
+
 import bioc.BioCSentence;
 import bioc.BioCAnnotation;
 import bioc.BioCDocument;
@@ -66,7 +68,7 @@ import gov.nih.nlm.nls.metamap.lite.dictionary.AugmentedDictionary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import opennlp.tools.dictionary.serializer.Entry;
+
 
 import gov.nih.nlm.nls.metamap.evaluation.Scoring;
 
@@ -220,9 +222,13 @@ public class EntityLookup5 implements EntityLookup {
 	Class.forName
 	(properties.getProperty
 	 ("metamaplite.negation.detector",
-	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).newInstance();
+	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).getDeclaredConstructor(null).newInstance();
       this.negationDetector.initProperties(properties);
       // this.negationDetector = new ContextWrapper();
+    } catch (NoSuchMethodException nsme) {
+      throw new RuntimeException(nsme);
+    } catch (InvocationTargetException ite) {
+      throw new RuntimeException(ite);
     } catch (ClassNotFoundException cnfe) {
       throw new RuntimeException(cnfe);
     } catch (InstantiationException ie) {
@@ -267,9 +273,14 @@ public class EntityLookup5 implements EntityLookup {
 	Class.forName
 	(properties.getProperty
 	 ("metamaplite.negation.detector",
-	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).newInstance();
+	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper"))
+	.getDeclaredConstructor(null).newInstance();
       this.negationDetector.initProperties(properties);
       // this.negationDetector = new ContextWrapper();
+    } catch (NoSuchMethodException cnfe) {
+      throw new RuntimeException(cnfe);
+    } catch (InvocationTargetException cnfe) {
+      throw new RuntimeException(cnfe);
     } catch (ClassNotFoundException cnfe) {
       throw new RuntimeException(cnfe);
     } catch (InstantiationException ie) {
@@ -451,7 +462,7 @@ public class EntityLookup5 implements EntityLookup {
       }
 	  if (shouldConsiderMatch) {
 	    Set<Ev> evSet = new HashSet<Ev>();
-	    Integer tokenListLength = new Integer(tokenSubList.size());
+	    Integer tokenListLength = Integer.valueOf(tokenSubList.size());
 
 
 	    Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
@@ -968,9 +979,9 @@ public class EntityLookup5 implements EntityLookup {
 
 	// mark abbreviations that are entities and add them to sentence entity set.
 	Set<Entity> abbrevEntitySet =
-	  new HashSet(MarkAbbreviations.markAbbreviations
-		      (text, this.uaMap,
-		       new ArrayList(entitySet0)));
+	  new HashSet<Entity>(MarkAbbreviations.markAbbreviations
+			      (text, this.uaMap,
+			       new ArrayList<Entity>(entitySet0)));
 	entitySet0.addAll(abbrevEntitySet);
 	if (detectNegationsFlag) {
 	  detectNegations(entitySet0, sentence.getText(), tokenList);
@@ -1051,9 +1062,9 @@ public class EntityLookup5 implements EntityLookup {
 
 	// mark abbreviations that are entities and add them to sentence entity set.
 	Set<Entity> abbrevEntitySet =
-	  new HashSet(MarkAbbreviations.markAbbreviations
-		      (passage, this.uaMap,
-		       new ArrayList(entitySet0)));
+	  new HashSet<Entity>(MarkAbbreviations.markAbbreviations
+			      (passage, this.uaMap,
+			       new ArrayList<Entity>(entitySet0)));
 	entitySet0.addAll(abbrevEntitySet);
 	if (detectNegationsFlag) {
 	  detectNegations(entitySet0, sentence.getText(), tokenList);

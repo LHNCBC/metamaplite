@@ -9,7 +9,6 @@ import java.util.TreeSet;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.bind.annotation.W3CDomHandler;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -209,7 +208,6 @@ public class MedlineDomReader implements MedlineReader {
     DocumentBuilder builder = null;
     try {
       builder = builderFactory.newDocumentBuilder();
-      W3CDomHandler domHandler = new W3CDomHandler();
       Document doc = builder.parse(inputFilename); 
       Element root = doc.getDocumentElement();
     
@@ -263,7 +261,6 @@ public class MedlineDomReader implements MedlineReader {
     DocumentBuilder builder = null;
     try {
       builder = builderFactory.newDocumentBuilder();
-      W3CDomHandler domHandler = new W3CDomHandler();
       Document doc = builder.parse(new File(inputFilename)); 
       Element root = doc.getDocumentElement();
     
@@ -310,7 +307,6 @@ public class MedlineDomReader implements MedlineReader {
     DocumentBuilder builder = null;
     try {
       builder = builderFactory.newDocumentBuilder();
-      W3CDomHandler domHandler = new W3CDomHandler();
       Document doc = builder.parse(new File(inputFilename)); 
       Element root = doc.getDocumentElement();
     

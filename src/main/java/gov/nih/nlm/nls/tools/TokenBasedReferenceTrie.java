@@ -11,10 +11,10 @@ import gov.nih.nlm.nls.metamap.prefix.Token;
  *
  * <pre>
  * TokenBasedReferenceTrie trie = new TokenBasedReferenceTrie();
- * trie.insert(Tokenize.mmPosTokenize("Fas antigen", 0), new Integer(355));
- * trie.insert(Tokenize.mmPosTokenize("fas antigen", 0), new Integer(355));
- * trie.insert(Tokenize.mmPosTokenize("Fas ligand",  0), new Integer(356));
- * trie.insert(Tokenize.mmPosTokenize("fas ligand",  0), new Integer(356));
+ * trie.insert(Tokenize.mmPosTokenize("Fas antigen", 0), Integer.valueOf(355));
+ * trie.insert(Tokenize.mmPosTokenize("fas antigen", 0), Integer.valueOf(355));
+ * trie.insert(Tokenize.mmPosTokenize("Fas ligand",  0), Integer.valueOf(356));
+ * trie.insert(Tokenize.mmPosTokenize("fas ligand",  0), Integer.valueOf(356));
  * System.out.println("trie.hasReference(Tokenize.mmPosTokenize(\"fas antigen\", 0)) -&gt; " + 
  * 		       trie.hasReference(Tokenize.mmPosTokenize("fas antigen", 0)));
  * </pre>

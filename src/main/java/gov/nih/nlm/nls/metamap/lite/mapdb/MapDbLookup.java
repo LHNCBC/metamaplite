@@ -45,8 +45,8 @@ public class MapDbLookup implements MMLDictionaryLookup<TermInfo> {
   HTreeMap cuiSourceInfoStrMap;
   HTreeMap cuiSourceInfoCuiMap;
   HTreeMap cuiSemanticTypeCuiMap;
-  HTreeMap variantMap;
-  HTreeMap treecodeMap;
+  HTreeMap<String, List<String[]>> variantMap;
+  HTreeMap<String, List<String[]>> treecodeMap;
   SpecialTerms excludedTerms;
 
   public final String defaultDbFilename = "data/mapdb/strict.db";

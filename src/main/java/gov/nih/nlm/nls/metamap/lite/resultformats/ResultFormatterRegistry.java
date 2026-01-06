@@ -4,6 +4,7 @@ package gov.nih.nlm.nls.metamap.lite.resultformats;
 
 import java.util.HashMap;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Set;
 import java.util.ArrayList;
@@ -38,20 +39,24 @@ public class ResultFormatterRegistry {
 			      String className)
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException
- {
-    Object classInstance = Class.forName(className).newInstance();
-    if (classInstance instanceof ResultFormatter) {
-      ResultFormatter instance = (ResultFormatter)classInstance;
-      synchronized(formatterMap) {
-	formatterMap.put(name,instance);
+  {
+    try {
+      Object classInstance = Class.forName(className).getDeclaredConstructor(null).newInstance();
+      if (classInstance instanceof ResultFormatter) {
+	ResultFormatter instance = (ResultFormatter) classInstance;
+	synchronized (formatterMap) {
+	  formatterMap.put(name, instance);
+	}
+	synchronized (descriptionMap) {
+	  descriptionMap.put(name, description);
+	}
+      } else {
+	throw new RuntimeException
+	  ("Class instance " + className + " for result formatter " + name +
+	   " does not implement the BioCResultformatter interface.");
       }
-      synchronized(descriptionMap) {
-	descriptionMap.put(name,description);
-      }
-    } else {
-      throw new RuntimeException("Class instance " + className +
-				 " for result formatter " + name +
-				 " does not implement the BioCResultformatter interface.");
+    } catch (InvocationTargetException ite) {
+      throw new RuntimeException(ite);
     }
   }
 
