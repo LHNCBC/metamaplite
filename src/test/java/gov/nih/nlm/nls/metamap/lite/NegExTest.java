@@ -48,7 +48,7 @@ public class NegExTest extends TestCase {
       ("The", "diagnosis", "suggests", "that", "pneumonia", "can", "be", "ruled", "out");
     List<String> phrase = Arrays.asList("can", "be", "ruled", "out");
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
-    assertTrue(positionList.equals(Arrays.asList(new Integer(5))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(5))));
   }
 
   /**
@@ -60,7 +60,7 @@ public class NegExTest extends TestCase {
     List<String> stringlist = Arrays.asList("There", "was", "no", "sign", "of", "pneumonia");
     List<String> phrase = Arrays.asList("no", "sign", "of");
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
-    assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(2))));
   }
 
   /**
@@ -73,7 +73,7 @@ public class NegExTest extends TestCase {
       Arrays.asList("The patient denies chest pain and has no shortage of breath".split(" "));
     List<String> phrase = Arrays.asList("denies");
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
-    assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(2))));
   }
 
   /**
@@ -86,7 +86,7 @@ public class NegExTest extends TestCase {
       Arrays.asList("The patient denies chest pain and has no shortage of breath".split(" "));
     List<String> phrase = Arrays.asList("no");
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
-    assertTrue(positionList.equals(Arrays.asList(new Integer(7))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(7))));
   }
 
   /**
@@ -98,7 +98,7 @@ public class NegExTest extends TestCase {
       Arrays.asList("It is sufficient to rule him out for pneumonia".split(" "));
     List<String> phrase = Arrays.asList("sufficient to rule him out".split(" "));
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
-    assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(2))));
   }
 
   /**
@@ -110,7 +110,7 @@ public class NegExTest extends TestCase {
       Arrays.asList("Pneumonia was ruled out".split(" "));
     List<String> phrase = Arrays.asList("was ruled out".split(" "));
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
-    assertTrue(positionList.equals(Arrays.asList(new Integer(1))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(1))));
   }
 
   public void testTokenNegEx()
@@ -170,7 +170,7 @@ public class NegExTest extends TestCase {
     List<Integer> positionList = this.inst.findPhrase(stringlist, phrase);
     System.out.println("testFindPhraseDenies: positionList: " + positionList +
 		       " -> (" + stringlist.get(positionList.get(0)) + ")");
-    assertTrue(positionList.equals(Arrays.asList(new Integer(2))));
+    assertTrue(positionList.equals(Arrays.asList(Integer.valueOf(2))));
   }
 
   public void testGetEntityTokenPosition0()
@@ -211,7 +211,7 @@ public class NegExTest extends TestCase {
     entityList.add(new Entity("s1", "AVH", 29, 3, 100.0, new ArrayList<Ev>()));
     
     List<NegPhraseInfo> negationPhraseList = new ArrayList<NegPhraseInfo>();
-    List<Integer> posList = Arrays.asList(new Integer("2"));
+    List<Integer> posList = Arrays.asList(Integer.valueOf("2"));
     negationPhraseList.add(new NegPhraseInfo(Arrays.asList("denies"), "nega", posList));
     
     List<NegPhraseInfo> conjPhraseList = new ArrayList<NegPhraseInfo>(); // empty, no conjunctions

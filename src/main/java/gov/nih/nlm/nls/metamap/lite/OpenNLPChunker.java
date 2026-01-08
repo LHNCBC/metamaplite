@@ -169,7 +169,7 @@ public class OpenNLPChunker implements ChunkerMethod {
 	  if (fields[0].equals("B")) {
 	    if (cTokenList.size() > 0) {
 	      chunkList.add(new PhraseImpl(cTokenList, phraseTag));
-	      cTokenList = new ArrayList();
+	      cTokenList = new ArrayList<ERToken>();
 	    }
 	    phraseTag = fields[1];
 	    cTokenList.add(tokenList.get(i));

@@ -153,7 +153,9 @@ public class U
       
       if ( runtime != null ) 
         {
-          p = runtime.exec( pCommand.trim() );
+	  String[] cmdarray = new String[1];
+	  cmdarray[0] = pCommand.trim();
+          p = runtime.exec( cmdarray );
 
           BufferedReader outputStream = new BufferedReader(
                                                            new InputStreamReader( p.getInputStream()));

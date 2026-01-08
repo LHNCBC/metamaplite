@@ -317,7 +317,7 @@ public class EntityLookup3 implements EntityLookup {
 	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
 	  if (CharUtils.isAlpha(term.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
-	    Integer tokenListLength = new Integer(tokenSubList.size());
+	    Integer tokenListLength = Integer.valueOf(tokenSubList.size());
 	    if (termConceptCache.containsKey(normTerm)) {
 	      for (ConceptInfo concept: termConceptCache.get(normTerm)) {
 		String cui = concept.getCUI();
@@ -452,7 +452,7 @@ public class EntityLookup3 implements EntityLookup {
     logger.debug("-input entity set spans-");
     for (Entity entity: entitySet) {
       // logger.debug(entity.getStart() + "," + entity.getLength());
-      Integer key = new Integer(entity.getStart());
+      Integer key = Integer.valueOf(entity.getStart());
       if (startMap.containsKey(key)) {
 	if (startMap.get(key).getLength() < entity.getLength()) {
 	  // replace entity with larger span
@@ -466,7 +466,7 @@ public class EntityLookup3 implements EntityLookup {
     Map <Integer,Entity> endMap = new HashMap<Integer,Entity>();
     for (Entity entity: startMap.values()) {
       // logger.debug(entity.getStart() + "," + entity.getLength());
-      Integer key = new Integer(entity.getStart() + entity.getLength());
+      Integer key = Integer.valueOf(entity.getStart() + entity.getLength());
       if (endMap.containsKey(key)) {
 	if (endMap.get(key).getStart() > entity.getStart()) {
 	  // replace entity with larger span

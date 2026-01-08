@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Properties;
+
+import java.lang.reflect.InvocationTargetException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,9 +118,14 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
 	Class.forName
 	(properties.getProperty
 	 ("metamaplite.negation.detector",
-	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).newInstance();
+	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper"))
+	.getDeclaredConstructor(null).newInstance();
       this.negationDetector.initProperties(properties);
       // this.negationDetector = new ContextWrapper();
+    } catch (NoSuchMethodException nsme) {
+      throw new RuntimeException(nsme);
+    } catch (InvocationTargetException ite) {
+      throw new RuntimeException(ite);
     } catch (ClassNotFoundException cnfe) {
       throw new RuntimeException(cnfe);
     } catch (InstantiationException ie) {
@@ -165,9 +173,14 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
 	Class.forName
 	(properties.getProperty
 	 ("metamaplite.negation.detector",
-	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).newInstance();
+	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper"))
+	.getDeclaredConstructor(null).newInstance();
       this.negationDetector.initProperties(properties);
       // this.negationDetector = new ContextWrapper();
+    } catch (NoSuchMethodException nsme) {
+      throw new RuntimeException(nsme);
+    } catch (InvocationTargetException ite) {
+      throw new RuntimeException(ite);
     } catch (ClassNotFoundException cnfe) {
       throw new RuntimeException(cnfe);
     } catch (InstantiationException ie) {
@@ -461,7 +474,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
 	    int offset = tokenSubList.get(0).getLocations().get(0).getOffset();
 	    if (CharUtils.isAlpha(term.charAt(0))) {
 	      Set<Ev> evSet = new HashSet<Ev>();
-	      Integer tokenListLength = new Integer(tokenSubList.size());
+	      Integer tokenListLength = Integer.valueOf(tokenSubList.size());
 	      if (termConceptCache.containsKey(normTerm)) {
 		for (ConceptInfo concept: termConceptCache.get(normTerm)) {
 		  String cui = concept.getCUI();
@@ -541,7 +554,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
     Map <Integer,Entity> startMap = new HashMap<Integer,Entity>();
     logger.debug("-input entity set spans-");
     for (Entity entity: entitySet) {
-      Integer key = new Integer(entity.getStart());
+      Integer key = Integer.valueOf(entity.getStart());
       if (startMap.containsKey(key)) {
 	if (startMap.get(key).getLength() < entity.getLength()) {
 	  // replace entity with larger span
@@ -554,7 +567,7 @@ public class BioCLRLongestMatchLookup implements BioCEntityLookup
     logger.debug("-shorter entities with same start have been removed-");
     Map <Integer,Entity> endMap = new HashMap<Integer,Entity>();
     for (Entity entity: startMap.values()) {
-      Integer key = new Integer(entity.getStart() + entity.getLength());
+      Integer key = Integer.valueOf(entity.getStart() + entity.getLength());
       if (endMap.containsKey(key)) {
 	if (endMap.get(key).getStart() > entity.getStart()) {
 	  // replace entity with larger span

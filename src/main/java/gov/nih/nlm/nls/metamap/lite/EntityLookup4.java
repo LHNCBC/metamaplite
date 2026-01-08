@@ -26,6 +26,8 @@ import java.io.PrintStream;
 import java.io.OutputStreamWriter;
 import java.io.InputStream;
 
+import java.lang.reflect.InvocationTargetException;
+
 import bioc.BioCSentence;
 import bioc.BioCAnnotation;
 import bioc.BioCDocument;
@@ -181,9 +183,14 @@ public class EntityLookup4 implements EntityLookup {
 	Class.forName
 	(properties.getProperty
 	 ("metamaplite.negation.detector",
-	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper")).newInstance();
+	  "gov.nih.nlm.nls.metamap.lite.context.ContextWrapper"))
+	.getDeclaredConstructor(null).newInstance();
       this.negationDetector.initProperties(properties);
       // this.negationDetector = new ContextWrapper();
+    } catch (NoSuchMethodException nsme) {
+      throw new RuntimeException(nsme);
+    } catch (InvocationTargetException ite) {
+      throw new RuntimeException(ite);
     } catch (ClassNotFoundException cnfe) {
       throw new RuntimeException(cnfe);
     } catch (InstantiationException ie) {
@@ -303,7 +310,7 @@ public class EntityLookup4 implements EntityLookup {
    * </pre>
    * 
    * Check the following:
-n   * <pre>
+   * <pre>
    *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
    *   "Papillary Thyroid Carcinoma is a Unique Clinical"
    *   "Papillary Thyroid Carcinoma is a Unique"
@@ -363,7 +370,7 @@ n   * <pre>
 	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
 	  if (CharUtils.isAlphaNumeric(originalTerm.charAt(0))) {
 	    Set<Ev> evSet = new HashSet<Ev>();
-	    Integer tokenListLength = new Integer(tokenSubList.size());
+	    Integer tokenListLength = Integer.valueOf(tokenSubList.size());
 
 	    Set<ConceptInfo> conceptInfoSet = new HashSet<ConceptInfo>();
 	    // TermInfo termInfo =
@@ -623,9 +630,9 @@ n   * <pre>
 	// mark abbreviations that are entities and add them to entity set.
 	
 	Set<Entity> abbrevEntitySet =
-	  new HashSet(MarkAbbreviations.markAbbreviations
-		      (text, this.uaMap,
-		       new ArrayList(entitySet0)));
+	  new HashSet<Entity>(MarkAbbreviations.markAbbreviations
+			      (text, this.uaMap,
+			       new ArrayList<Entity>(entitySet0)));
 	// dbg
 	// for (Entity entity: abbrevEntitySet) {
 	//   logger.debug("abbrevEntitySet.entity: " + entity);
@@ -691,10 +698,12 @@ n   * <pre>
 	if (this.addPartOfSpeechTagsFlag) {
 	  sentenceAnnotator.addPartOfSpeech(tokenList);
 	}
-	Set<Entity> sentenceEntitySet = this.processSentenceTokenList(docid, fieldid, tokenList,
-								      semTypeRestrictSet,
-								      sourceRestrictSet);
-	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities(docid, this.udaMap, tokenList));
+	Set<Entity> sentenceEntitySet =
+	  this.processSentenceTokenList(docid, fieldid, tokenList,
+					semTypeRestrictSet,
+					sourceRestrictSet);
+	sentenceEntitySet.addAll(UserDefinedAcronym.generateEntities
+				 (docid, this.udaMap, tokenList));
 	for (Entity entity: sentenceEntitySet) {
 	  entity.setLocationPosition(i);
 	}
@@ -708,9 +717,9 @@ n   * <pre>
 
 	// mark abbreviations that are entities and add them to entity set.
 	
-	Set<Entity> abbrevEntitySet = new HashSet(MarkAbbreviations.markAbbreviations(passage,
-										      this.uaMap,
-										      new ArrayList(entitySet0)));
+	Set<Entity> abbrevEntitySet = new HashSet
+	  (MarkAbbreviations.markAbbreviations
+	   (passage, this.uaMap, new ArrayList<Entity>(entitySet0)));
 	// dbg
 	// for (Entity entity: abbrevEntitySet) {
 	//   logger.debug("abbrevEntitySet.entity: " + entity);

@@ -83,7 +83,7 @@ public final class NLSStrings {
   };
 
   /** init preposition and conjunctions */
-  static Map prepOrConj = new HashMap(102);
+  static Map<String, String> prepOrConj = new HashMap<String, String>(102);
 
   static {
     // init preposition and conjunctions

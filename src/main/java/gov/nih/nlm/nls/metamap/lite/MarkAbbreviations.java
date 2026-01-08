@@ -44,7 +44,7 @@ public class MarkAbbreviations {
       if (token.getText().equals(target)) {
 	Entity newEntity = new Entity(entity);
 	newEntity.setText(token.getText());
-	newEntity.setStart(token.getPosition());
+	newEntity.setStart(token.getOffset());
 	newEntity.setLength(token.getText().length());
 	newEntityList.add(newEntity);
       }
@@ -59,7 +59,7 @@ public class MarkAbbreviations {
       if (token.getText().equals(target)) {
 	Entity newEntity = new Entity(entity);
 	newEntity.setText(token.getText());
-	newEntity.setStart(token.getPosition());
+	newEntity.setStart(token.getOffset());
 	newEntity.setLength(token.getText().length());
 	newEntityList.add(newEntity);
       }
