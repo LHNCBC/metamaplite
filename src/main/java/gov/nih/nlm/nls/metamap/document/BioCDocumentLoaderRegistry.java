@@ -3,6 +3,7 @@ package gov.nih.nlm.nls.metamap.document;
 
 import java.util.HashMap;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Set;
 import java.util.ArrayList;
@@ -41,21 +42,28 @@ public class BioCDocumentLoaderRegistry {
     throws ClassNotFoundException, InstantiationException, 
 	   NoSuchMethodException, IllegalAccessException
  {
-    Object classInstance = Class.forName(className).newInstance();
-    if (classInstance instanceof BioCDocumentLoader) {
-      BioCDocumentLoader instance = (BioCDocumentLoader)classInstance;
-      synchronized(bioCDocumentLoaderMap) {
-	bioCDocumentLoaderMap.put(name,instance);
-      }
-      synchronized(descriptionMap) {
-	descriptionMap.put(name,description);
-      }
-    } else {
-      logger.error("class " + className +
-		   " for document input type " + name +
-		   " is not of class BioCDocumentLoader.  Not adding entry for input type " + name);
-      throw new RuntimeException("Class instance does not implement the BioCDocumentLoader interface.");
-    }
+   try {
+     Object classInstance = Class.forName(className)
+       .getDeclaredConstructor(null).newInstance();
+     if (classInstance instanceof BioCDocumentLoader) {
+       BioCDocumentLoader instance = (BioCDocumentLoader)classInstance;
+       synchronized(bioCDocumentLoaderMap) {
+	 bioCDocumentLoaderMap.put(name, instance);
+       }
+       synchronized(descriptionMap) {
+	 descriptionMap.put(name, description);
+       }
+     } else {
+       logger.error("class " + className +
+		    " for document input type " + name +
+		    " is not of class BioCDocumentLoader.  Not adding entry for input type " + name);
+       throw new RuntimeException("Class instance does not implement the BioCDocumentLoader interface.");
+     }
+   } catch (NoSuchMethodException nsme) {
+     throw new RuntimeException(nsme);
+   } catch (InvocationTargetException ite) {
+     throw new RuntimeException(ite);
+   }
   }
 
   /**
