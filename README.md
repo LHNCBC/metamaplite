@@ -337,9 +337,30 @@ Add each term as a single document:
 
 ### Using Maven
 
+
 #### Installing metamaplite and dependencies into local Maven repository
+
+Bioc-1.0.1 is available at:
+
+https://github.com/willjrogers/BioC_Java.git
+
+This implementation is based on the implementation at: 
+
+   http://sourceforge.net/projects/bioc/files/BioC_Java_1.0.1.tar.gz/download
+
+See also: https://bioc.sourceforge.net/
+
+A mirror of Context 2012 is available at:
+
+https://github.com/willjrogers/ConText-2012-Mirror.git
+
 From public\_mm\_lite directory install Context, BioC, and NLS NLP libraries
 
+Context 2012:
+
+    $ git clone https://github.com/willjrogers/ConText-2012-Mirror.git
+	$ cd ConText-2012-Mirror
+	$ mvn package
     $ mvn install:install-file \
          -Dfile=lib/context-2012.jar \
          -DgroupId=context \
@@ -347,34 +368,24 @@ From public\_mm\_lite directory install Context, BioC, and NLS NLP libraries
 	     -Dversion=2012 \
          -Dpackaging=jar
 
+BioC Java 1.0.1 with some modifications:
+
+    $ git clone https://github.com/willjrogers/BioC_Java.git
+    $ cd BioC_Java
     $ mvn install:install-file \
-         -Dfile=lib/bioc-1.0.1.jar \
+         -Dfile=lib/bioc.jar \
          -DgroupId=bioc \
 	     -DartifactId=bioc \
 	     -Dversion=1.0.1 \
          -Dpackaging=jar
 
-    $ mvn install:install-file \
-         -Dfile=lib/nlp-2.4.C.jar \
-         -DgroupId=gov.nih.nlm.nls \
-	     -DartifactId=nlp \
-	     -Dversion=2.4.C \
-         -Dpackaging=jar
-
-    $ mvn install:install-file  \
-         -Dfile=lib/lvgdist-2020.0.jar \
-         -DgroupId=gov.nih.nlm.nls.lvg \
-         -DartifactId=lvgdist \
-         -Dversion=2020.0 \
-         -Dpackaging=jar
-
-Then install metamaplite into your local Maven repository:
+Then to install metamaplite into your local Maven repository:
 
     $ mvn install
 
-#### Add metamaplite dependency to POM file
+#### Adding the metamaplite dependency to application POM file
 
-Add the following dependency to your webapps pom.xml:
+Add the following dependency to your webapp or application pom.xml:
 
     <dependency>
       <groupId>gov.nih.nlm.nls</groupId>
