@@ -3,6 +3,8 @@ package gov.nih.nlm.nls.metamap.lite.types;
 import java.util.List;
 import java.util.ArrayList;
 
+import gov.nih.nlm.nls.types.Span;
+
 /**
  * Describe class MMLEntity here.
  *

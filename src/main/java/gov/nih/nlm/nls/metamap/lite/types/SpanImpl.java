@@ -2,12 +2,13 @@
 //
 package gov.nih.nlm.nls.metamap.lite.types;
 
+import gov.nih.nlm.nls.types.Span;
+
 /**
  *
  */
 
-public class SpanImpl 
-  implements Span
+public class SpanImpl implements Span
 {
   int start;
   int end;

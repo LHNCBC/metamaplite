@@ -2,7 +2,7 @@
 //
 package gov.nih.nlm.nls.metamap.lite.types;
 
-import gov.nih.nlm.nls.metamap.lite.types.Span;
+import gov.nih.nlm.nls.types.Span;
 
 /**
  *

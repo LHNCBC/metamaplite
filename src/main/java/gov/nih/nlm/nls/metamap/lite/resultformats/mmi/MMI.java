@@ -20,7 +20,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import gov.nih.nlm.nls.utils.StringUtils;
-import gov.nih.nlm.nls.metamap.lite.types.Span;
+import gov.nih.nlm.nls.types.Span;
 import gov.nih.nlm.nls.metamap.lite.types.SpanImpl;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
@@ -136,7 +136,6 @@ public class MMI implements ResultFormatter {
     return sb.toString();
   }
 
-
   public static Map<String,MatchInfo> genCuiMatchInfoMap(List<Entity> entityList) {
     Map<String,MatchInfo> cuiMatchInfoMap = new HashMap<String,MatchInfo>();
     for (Entity entity: entityList) {
@@ -151,7 +150,7 @@ public class MMI implements ResultFormatter {
 				   ev.getPartOfSpeech(),
 				   0,
 				   entity.isNegated(),
-				   new SpanImpl(ev.getStart(), ev.getStart() + ev.getLength()));	  
+				   new SpanImpl(ev.getStart(), ev.getStart() + ev.getLength()));
 	} else {
 	  Set<String> semanticTypeSet = ev.getConceptInfo().getSemanticTypeSet();
 	  MatchInfo newEntity = new MatchInfo(preferredName, semanticTypeSet);
