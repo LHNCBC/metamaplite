@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;
-import gov.nih.nlm.nls.metamap.lite.types.Span;
+import gov.nih.nlm.nls.types.Span;
 import gov.nih.nlm.nls.metamap.lite.types.Entity;
 import gov.nih.nlm.nls.metamap.lite.types.Ev;
 

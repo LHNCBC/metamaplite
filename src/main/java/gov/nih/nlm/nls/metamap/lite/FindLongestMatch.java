@@ -18,8 +18,9 @@ import gov.nih.nlm.nls.metamap.prefix.PosToken;
 import gov.nih.nlm.nls.metamap.prefix.ERToken;
 import gov.nih.nlm.nls.metamap.prefix.TokenListUtils;
 
+import gov.nih.nlm.nls.types.Span;
+import gov.nih.nlm.nls.types.Mention;
 import gov.nih.nlm.nls.metamap.lite.types.MMLEntity;
-import gov.nih.nlm.nls.metamap.lite.types.Span;
 import gov.nih.nlm.nls.metamap.lite.types.SpanImpl;
 import gov.nih.nlm.nls.metamap.lite.dictionary.DictionaryLookup;
 
@@ -81,12 +82,12 @@ public class FindLongestMatch {
    * @param lookupImpl dictionary lookup class
    * @return list of term info instances
    */
-  public static List<TermInfo> findLongestMatch(List<ERToken> tokenList,
-					 Set<String> allowedPartOfSpeechSet,
-					 DictionaryLookup<TermInfo> lookupImpl)
+  public static <T> List<T> findLongestMatch(List<ERToken> tokenList,
+						Set<String> allowedPartOfSpeechSet,
+						DictionaryLookup<T> lookupImpl)
   {
     logger.debug("findLongestMatch");
-    List<TermInfo> termInfoList = new ArrayList<TermInfo>();
+    List<T> termInfoList = new ArrayList<T>();
     List<List<? extends Token>> listOfTokenSubLists = TokenListUtils.createSubListsOpt(tokenList);
     for (List<? extends Token> tokenSubList: listOfTokenSubLists) {
       List<String> tokenTextSubList = new ArrayList<String>();
@@ -106,7 +107,7 @@ public class FindLongestMatch {
 	  int offset = ((PosToken)tokenSubList.get(0)).getOffset();
 	  // term must begin with alphabetic character.
 	  if (CharUtils.isAlpha(originalTerm.charAt(0))) {
-	    TermInfo termInfo = lookupImpl.lookup(originalTerm);
+	    T termInfo = lookupImpl.lookup(originalTerm);
 	    if (termInfo != null) {
 	      termInfoList.add(termInfo);
 	    }
@@ -115,6 +116,76 @@ public class FindLongestMatch {
       }
     }
     return termInfoList;
+  }
+
+  /**
+   * Given Example:
+   * <pre>
+   *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity."
+   * </pre>
+   * 
+   * Check the following:
+   * <pre>
+   *   "Papillary Thyroid Carcinoma is a Unique Clinical Entity"
+   *   "Papillary Thyroid Carcinoma is a Unique Clinical"
+   *   "Papillary Thyroid Carcinoma is a Unique"
+   *   "Papillary Thyroid Carcinoma is a"
+   *   "Papillary Thyroid Carcinoma is"
+   *   "Papillary Thyroid Carcinoma"
+   *   "Papillary Thyroid"
+   *   "Papillary"
+   *             "Thyroid Carcinoma is a Unique Clinical Entity"
+   *             "Thyroid Carcinoma is a Unique Clinical"
+   *             "Thyroid Carcinoma is a Unique"
+   *             "Thyroid Carcinoma is a"
+   *             "Thyroid Carcinoma is"
+   *             "Thyroid Carcinoma"
+   *             "Thyroid"
+   *    ...
+   * </pre>
+   * @param tokenList tokenlist of document
+   * @param termFilter filter terms by criteria, for example: part of speech, phrase type, etc.
+   * @param contextInfo additional context about tokenlist
+   * @param lookupImpl dictionary lookup class
+   * @return list MML Entity instances
+   */
+  public static <T> List<MMLEntity<T>> findLongestMatch(List<ERToken> tokenList,
+							TermFilter termFilter,
+							Map<String,Object> contextInfo,
+							DictionaryLookup<T> lookupImpl)
+  {
+    logger.debug("findLongestMatch");
+    List<MMLEntity<T>> entityList = new ArrayList<MMLEntity<T>>();
+    List<List<? extends Token>> listOfTokenSubLists = TokenListUtils.createSubListsOpt(tokenList);
+    for (List<? extends Token> tokenSubList: listOfTokenSubLists) {
+      List<String> tokenTextSubList = new ArrayList<String>();
+      for (Token token: tokenSubList) {
+       	tokenTextSubList.add(token.getText());
+      }
+      ERToken firstToken = (ERToken)tokenSubList.get(0);
+      ERToken lastToken = (ERToken)tokenSubList.get(tokenSubList.size() - 1);
+      if (termFilter.filterToken(firstToken, contextInfo)) {
+       	int termLength = (tokenSubList.size() > 1) ?
+       	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
+       	  firstToken.getText().length();
+       	String originalTerm = StringUtils.join(tokenTextSubList, "");
+	if ((originalTerm.length() > 2) &&
+	    (CharUtils.isAlphaNumeric(originalTerm.charAt(originalTerm.length() - 1)))) {
+	  int offset = firstToken.getOffset();
+	  int endOffset = lastToken.getOffset() + lastToken.getText().length();
+	  // term must begin with alphabetic character.
+	  if (CharUtils.isAlpha(originalTerm.charAt(0))) {
+	    T termInfo = lookupImpl.lookup(originalTerm);
+	    if (termInfo != null) {
+	      List<Span> spanList = new ArrayList<Span>();
+	      spanList.add(new SpanImpl(offset, endOffset));
+	      entityList.add(new MMLEntity<T>(spanList, termInfo));
+	    }
+	  }
+	}
+      }
+    }
+    return entityList;
   }
 
 
@@ -149,13 +220,12 @@ public class FindLongestMatch {
    * @param lookupImpl dictionary lookup class
    * @return list MML Entity instances
    */
-  public static List<MMLEntity<TermInfo>> findLongestMatch(List<ERToken> tokenList,
-						TermFilter termFilter,
-						Map<String,Object> contextInfo,
-						DictionaryLookup<TermInfo> lookupImpl)
+  public static <T> List<Mention> findLongestMatch(List<ERToken> tokenList,
+					       TermFilter termFilter,
+					       DictionaryLookup<T> lookupImpl)
   {
     logger.debug("findLongestMatch");
-    List<MMLEntity<TermInfo>> entityList = new ArrayList<MMLEntity<TermInfo>>();
+    List<Mention> entityList = new ArrayList<Mention>();
     List<List<? extends Token>> listOfTokenSubLists = TokenListUtils.createSubListsOpt(tokenList);
     for (List<? extends Token> tokenSubList: listOfTokenSubLists) {
       List<String> tokenTextSubList = new ArrayList<String>();
@@ -164,6 +234,7 @@ public class FindLongestMatch {
       }
       ERToken firstToken = (ERToken)tokenSubList.get(0);
       ERToken lastToken = (ERToken)tokenSubList.get(tokenSubList.size() - 1);
+      Map<String, Object> contextInfo = null;
       if (termFilter.filterToken(firstToken, contextInfo)) {
        	int termLength = (tokenSubList.size() > 1) ?
        	  (lastToken.getOffset() + lastToken.getText().length()) - firstToken.getOffset() : 
@@ -175,11 +246,11 @@ public class FindLongestMatch {
 	  int endOffset = lastToken.getOffset() + lastToken.getText().length();
 	  // term must begin with alphabetic character.
 	  if (CharUtils.isAlpha(originalTerm.charAt(0))) {
-	    TermInfo termInfo = lookupImpl.lookup(originalTerm);
+	    T termInfo = lookupImpl.lookup(originalTerm);
 	    if (termInfo != null) {
 	      List<Span> spanList = new ArrayList<Span>();
 	      spanList.add(new SpanImpl(offset, endOffset));
-	      entityList.add(new MMLEntity<TermInfo>(spanList, termInfo));
+	      entityList.add(new MentionImpl(termInfo, spanList));
 	    }
 	  }
 	}
@@ -187,7 +258,7 @@ public class FindLongestMatch {
     }
     return entityList;
   }
-
+ 
   /** An example Term Filter class */
   public static class SampleTermFilter implements TermFilter {
     /** Set of parts-of-speech allowed, usually a set of Penn Treebank tags. */
@@ -199,6 +270,17 @@ public class FindLongestMatch {
      */
     public SampleTermFilter(Set<String> allowedPartOfSpeechSet) {
       this.allowedPartOfSpeechSet = allowedPartOfSpeechSet;
+    }
+
+    /**
+     * If token is in allowed part of speech set and is not "other"
+     * then return true.  otherwise return false.
+     * @param firstToken token to be tested
+     * @return True if token meets criteria, false otherwise.
+    */
+    public boolean filterToken(ERToken firstToken) {
+      return (! firstToken.getText().toLowerCase().equals("other")) &&
+	allowedPartOfSpeechSet.contains(firstToken.getPartOfSpeech());
     }
 
     /**
