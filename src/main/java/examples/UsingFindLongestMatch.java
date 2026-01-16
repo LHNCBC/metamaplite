@@ -86,7 +86,7 @@ public class UsingFindLongestMatch {
     return sb.toString();
   }
 
-  public static class InMemoryTermInfo implements TermInfo {
+  public static class InMemoryTermInfo implements TermInfo<String> {
     String originalTerm;
     String normTerm;
     List<? extends Token> tokenList;
@@ -129,7 +129,7 @@ public class UsingFindLongestMatch {
    * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
    * @version 1.0
    */
-  public static class InMemoryLookup implements DictionaryLookup<TermInfo> {
+  public static class InMemoryLookup implements DictionaryLookup<TermInfo<String>> {
 
     Map<String,String> termMap = new HashMap<String,String>();
 
@@ -156,7 +156,7 @@ public class UsingFindLongestMatch {
       this.termMap.put("cancer","Span");
       this.termMap.put("non-Hodgkins lymphoma","Span");
     }
-    public TermInfo lookup(String originalTerm) {
+    public TermInfo<String> lookup(String originalTerm) {
       String normTerm = Normalization.normalizeLiteString(originalTerm);
       if (this.termMap.containsKey(originalTerm)) {
 	return new InMemoryTermInfo(originalTerm,
@@ -173,9 +173,9 @@ public class UsingFindLongestMatch {
 
 
   public void process(Properties properties, String text) {
-    List<MMLEntity> entityList = new ArrayList<MMLEntity>();
+    List<MMLEntity<TermInfo<String>>> entityList = new ArrayList<MMLEntity<TermInfo<String>>>();
     // tokenize removing whitespace tokens
-    DictionaryLookup<TermInfo> lookupImpl = new InMemoryLookup();
+    DictionaryLookup<TermInfo<String>> lookupImpl = new InMemoryLookup();
     SentenceAnnotator sentenceAnnotator = new OpenNLPPoSTagger(properties);
     SentenceExtractor sentenceExtractor = new OpenNLPSentenceExtractor(properties);
     for (Sentence sent: sentenceExtractor.createSentenceList(text, 0)) {
@@ -185,7 +185,7 @@ public class UsingFindLongestMatch {
 							    null, // contextInfo is null
 							    lookupImpl));
     }
-    for (MMLEntity t: entityList) {
+    for (MMLEntity<TermInfo<String>> t: entityList) {
       System.out.println(t);
     }
   }
@@ -201,7 +201,7 @@ public class UsingFindLongestMatch {
   public static final void main(final String[] args)
     throws FileNotFoundException, IOException
   {
-    String propertiesFilename = "metamaplite.properties";
+    String propertiesFilename = "config/metamaplite.properties";
     Properties properties = new Properties();
     ClassLoader loader = UsingFindLongestMatch.class.getClassLoader();
     if(loader==null)
@@ -221,8 +221,8 @@ public class UsingFindLongestMatch {
 				   Charset.forName("utf-8")));
       instance.process(properties, inputText);
     } else {
-      System.err.println("examples.UsingFindLongestMatch filename");
-      System.err.println(" file to be processed?");
+      System.err.println("usage: examples.UsingFindLongestMatch filename");
+      System.err.println(" filename: file to be processed");
     }
   }
 }
