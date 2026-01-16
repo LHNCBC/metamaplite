@@ -39,10 +39,10 @@ import gov.nih.nlm.nls.metamap.lite.types.MMLEntity;
 
 /**
  * UsingFindLongestMatchDiskIndex - An example of using
- * FindLongestMatch.findLongestMatch method with custom in-memory
- * dataset.
+ * FindLongestMatch.findLongestMatch method with disk-based inverted
+ * file dataset.
  *
- * Created: Mon Dec 17 16:29:45 2018
+ * Created: Fri Jan 16 16:29:45 2026
  *
  * @author <a href="mailto:wjrogers@mail.nih.gov">Willie Rogers</a>
  * @version 1.0
