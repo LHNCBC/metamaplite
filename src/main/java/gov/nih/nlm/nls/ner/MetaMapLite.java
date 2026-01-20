@@ -540,8 +540,8 @@ public class MetaMapLite {
 	passageWithSentsAndAbbrevs.addRelation(rel);
       }
     }
-    logger.info("passage relations: " + passageWithSentsAndAbbrevs.getRelations());
-    logger.info("passage annotations: " + passageWithSentsAndAbbrevs.getAnnotations());
+    logger.debug("passage relations: " + passageWithSentsAndAbbrevs.getRelations());
+    logger.debug("passage annotations: " + passageWithSentsAndAbbrevs.getAnnotations());
     // BioCPassage newPassage = processSentences(passageWithSentsAndAbbrevs);
     String docid = (passage.getInfon("docid") != null) ? passage.getInfon("docid") : "00000000";
     List<Entity> entityList =
@@ -865,20 +865,20 @@ public class MetaMapLite {
     try {
       localConfiguration.load(url.openStream());
     } catch(Exception e) {
-      logger.info("Could not load configuration file from classpath: " + propertiesFilename);
+      logger.warn("Could not load configuration file from classpath: " + propertiesFilename);
     }
 
     // check filesystem 
     File localConfigurationFile = new File(propertiesFilename);
     if (localConfigurationFile.exists()) {
-      logger.info("loading local configuration from " + localConfigurationFile);
+      logger.debug("loading local configuration from " + localConfigurationFile);
       if (verbose) {
 	System.out.println("loading local configuration from " + localConfigurationFile);
       }
       FileReader fr = new FileReader(localConfigurationFile);
       localConfiguration.load(fr);
       fr.close();
-      logger.info("loaded " + localConfiguration.size() + " records from local configuration");
+      logger.debug("loaded " + localConfiguration.size() + " records from local configuration");
       if (verbose) {
 	System.out.println("loaded " + localConfiguration.size() + " records from local configuration");
       }
@@ -913,13 +913,14 @@ public class MetaMapLite {
     // process documents
     List<Entity> entityList = this.processDocumentList(documentList);
 
-    logger.info("outputing results to standard output." );
+    logger.debug("outputing results to standard output." );
     // format output
     ResultFormatter formatter = ResultFormatterRegistry.get(outputFormatOption);
     if (formatter != null) {
       formatter.initProperties(this.properties);
       formatter.entityListFormatter(pw, entityList);
     } else {
+      logger.error("! Couldn't find formatter for output format option: " + outputFormatOption);
       System.out.println("! Couldn't find formatter for output format option: " + outputFormatOption);
     }
     pw.flush();
@@ -958,7 +959,7 @@ public class MetaMapLite {
     throws IOException
   {
     this.sentenceAnnotator = new OpenNLPPoSTagger(properties);
-    logger.info("outputing results to Standard Output");
+    logger.debug("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
 							    Charset.forName("utf-8")));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -975,7 +976,7 @@ public class MetaMapLite {
   void listChunks(List<BioCDocument> documentList)
     throws IOException
   {
-    logger.info("outputing results to Standard Output");
+    logger.debug("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
 							    Charset.forName("utf-8")));
     listChunks(pw, documentList);
@@ -985,7 +986,7 @@ public class MetaMapLite {
   void listEntities(List<BioCDocument> documentList, String outputFormatOption)
     throws IllegalAccessException, InvocationTargetException, IOException, Exception
   {
-    logger.info("outputing results to standard output." );
+    logger.debug("outputing results to standard output." );
 
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
@@ -1044,7 +1045,7 @@ public class MetaMapLite {
     String basename = getBasename(filename);
     String outputFilename = basename + ".sentences";
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -1084,7 +1085,7 @@ public class MetaMapLite {
     String basename = getBasename(filename);
     String outputFilename = basename + ".sentences_postags";
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -1233,8 +1234,8 @@ public class MetaMapLite {
    * log information about caches.
    */
   void logCacheInfo() {
-    logger.info("string -> normalized string cache size: " +
-		gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
+    logger.debug("string -> normalized string cache size: " +
+		 gov.nih.nlm.nls.metamap.lite.NormalizedStringCache.normalizeStringCache.size());
   }
 
   /**
@@ -1554,7 +1555,7 @@ public class MetaMapLite {
       }
       if (inputFromStdin) {
 	if (verbose) {
-	  logger.info("Reading and processing documents from standard input");
+	  logger.debug("Reading and processing documents from standard input");
 	}
 	List<BioCDocument> documentList =
 	  docLoader.readAsBioCDocumentList(new InputStreamReader(System.in,
@@ -1575,7 +1576,7 @@ public class MetaMapLite {
 	  System.out.flush();
 	}
       } else if (fromScheduler) {
-	logger.info("Loading and processing " + filenameList.get(0));
+	logger.debug("Loading and processing " + filenameList.get(0));
 	if (filenameList.size() > 1) {
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filenameList.get(0));
 	  metaMapLiteInst.listEntities(filenameList.get(1), documentList,
@@ -1584,12 +1585,12 @@ public class MetaMapLite {
 	  System.out.println("missing input or output filename arguments, check invocation.");
 	}
       } else {
-	logger.info("Loading and processing documents");
+	logger.debug("Loading and processing documents");
 	for (String filename: filenameList) {
 	  if (verbose) {
 	    System.out.println("Loading and processing " + filename);
 	  }
-	  logger.info("Loading and processing " + filename);
+	  logger.debug("Loading and processing " + filename);
 	  List<BioCDocument> documentList = docLoader.loadFileAsBioCDocumentList(filename);
 	  if (listSentencesOption) {
 	    metaMapLiteInst.listSentences(filename, documentList, overwritefile);
