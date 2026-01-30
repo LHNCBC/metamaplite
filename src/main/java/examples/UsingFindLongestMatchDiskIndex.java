@@ -2,6 +2,7 @@ package examples;
 
 import java.io.Reader;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +12,9 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 
+import java.net.URL;
+
+import java.util.Enumeration;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
@@ -208,21 +212,29 @@ public class UsingFindLongestMatchDiskIndex {
     List<MMLEntity<TermInfo<List<String>>>> entityList =
       new ArrayList<MMLEntity<TermInfo<List<String>>>>();
     // tokenize removing whitespace tokensp
-
-    DictionaryLookup<TermInfo<List<String>>> lookupImpl = new DiskIndexLookup(this.indexLookup);
-    String propertiesFilename = "config/metamaplite.properties";
-    Properties properties = new Properties();
-    try {
-      BufferedReader reader = new BufferedReader
-	(new InputStreamReader
-	 (new FileInputStream(propertiesFilename),
-	  Charset.forName("utf-8")));
-      properties.load(reader);
-      reader.close();
-    } catch(Exception e) {
-      System.err.println("Could not load configuration file from classpath: " + propertiesFilename);
+    ClassLoader loader = UsingFindLongestMatch.class.getClassLoader();
+    if (loader == null) {
+      // use system class loader if class loader is null
+      loader = ClassLoader.getSystemClassLoader();
     }
 
+    DictionaryLookup<TermInfo<List<String>>> lookupImpl =
+      new DiskIndexLookup(this.indexLookup);
+    String propertiesFilename = "config/metamaplite.properties";
+    Properties properties = new Properties();
+    URL url = loader.getResource(propertiesFilename);
+    try {
+      properties.load(url.openStream());
+    } catch(Exception e) {
+      System.err.println("Could not load configuration file from classpath: " +
+			 propertiesFilename);
+    }
+
+    // Initialize sentence detector and part-of-speech models
+    //
+    // this is the equivalent of:
+    //   SentenceAnnotator sentenceAnnotator = new OpenNLPPoSTagger(properties);
+    //   SentenceExtractor sentenceExtractor = new OpenNLPSentenceExtractor(properties);
 
     InputStream modelIn = null;
     InputStream posModelIn = null;
@@ -230,15 +242,36 @@ public class UsingFindLongestMatchDiskIndex {
       // initialize sentence detector/seqmenter
       String modelFilename = properties.getProperty("en-sent.bin.path",
 						    "data/models/en-sent.bin");
-      modelIn = new FileInputStream(modelFilename);
+      // look for model based on en-sent.bin.path property
+      File modelFile = new File(modelFilename);
+      if (modelFile.exists()) {
+	modelIn = new FileInputStream(modelFile);
+      } else {
+	// otherwise, look for model on classpath
+	for (Enumeration<URL> urlEnum = loader.getResources("en-sent.bin");
+	     urlEnum.hasMoreElements();) {
+		modelIn = urlEnum.nextElement().openStream();
+		break;
+	}
+      }
       SentenceModel sentenceModel = new SentenceModel(modelIn);
       SentenceDetectorME sentenceDetector = new SentenceDetectorME(sentenceModel);
 
       // initialize part of speech tagger
-      String posModelFname = properties.getProperty("en-pos.bin.path",
-						    "data/models/en-pos-maxent.bin");
-
-      posModelIn = new FileInputStream(posModelFname);
+      String posModelFilename = properties.getProperty("en-pos.bin.path",
+						       "data/models/en-pos-maxent.bin");
+      // look for model based on en-pos.bin.path property
+      File posModelFile = new File(posModelFilename);
+      if (posModelFile.exists()) {
+	posModelIn = new FileInputStream(posModelFile);
+      } else {
+	// otherwise, look for model on classpath
+	for (Enumeration<URL> urlEnum = loader.getResources("en-sent.bin");
+	     urlEnum.hasMoreElements();) {
+		posModelIn = urlEnum.nextElement().openStream();
+		break;
+	}
+      }
       POSModel posModel = new POSModel(posModelIn);
       POSTaggerME posTagger = new POSTaggerME(posModel);
 

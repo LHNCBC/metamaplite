@@ -204,15 +204,16 @@ public class UsingFindLongestMatch {
     String propertiesFilename = "config/metamaplite.properties";
     Properties properties = new Properties();
     ClassLoader loader = UsingFindLongestMatch.class.getClassLoader();
-    if(loader==null)
-      loader = ClassLoader.getSystemClassLoader(); // use system class loader if class loader is null
+    // use system class loader if class loader is null
+    if(loader == null)
+      loader = ClassLoader.getSystemClassLoader();
     java.net.URL url = loader.getResource(propertiesFilename);
     try {
       properties.load(url.openStream());
     } catch(Exception e) {
-      System.err.println("Could not load configuration file from classpath: " + propertiesFilename);
+      System.err.println("Could not load configuration file from classpath: " +
+			 propertiesFilename);
     }
-
     if (args.length > 0) {
       String filename = args[0];
       UsingFindLongestMatch instance = new UsingFindLongestMatch();

@@ -1,8 +1,11 @@
 package gov.nih.nlm.nls.metamap.lite;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.List;
@@ -29,29 +32,78 @@ public class OpenNLPChunker implements ChunkerMethod {
 
   ChunkerME chunker;
 
-  /**
-   * Creates a new <code>OpenNLPChunker</code> instance.
+  /** 
+   * Instantiate phrase chunker using input stream, most likely from
+   * getResourceAsStream from classpath or ServletContext.
    *
+   * @param modelIn inputstream of model file
    */
-  public OpenNLPChunker() {
-    InputStream modelIn = null;
+  public OpenNLPChunker(InputStream modelIn) {
     ChunkerModel model = null;
     try {
-      modelIn = new FileInputStream(System.getProperty("opennlp.en-chunker.bin.path", 
-						       "data/models/en-chunker.bin"));
       model = new ChunkerModel(modelIn);
-    } catch (IOException e) {
+      this.chunker = new ChunkerME(model);
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+    } catch (Exception e) {
       // Model loading failed, handle the error
       e.printStackTrace();
     } finally {
       if (modelIn != null) {
 	try {
 	  modelIn.close();
-	} catch (IOException e) {
+	} catch (IOException ioe) {
+	  System.err.println
+	    ("Error when closing Phrase Chunker model input stream: " +
+	     ioe);
 	}
       }
     }
-    this.chunker = new ChunkerME(model);
+  }
+
+  public void setModel(String modelFilename) {
+    InputStream modelIn = null;
+    try {
+      // look for model based on parameter modelFilename
+      File modelFile = new File(modelFilename);
+      if (modelFile.exists()) {
+	modelIn = new FileInputStream(modelFile);
+      } else {
+	// otherwise, look for model on classpath
+	ClassLoader loader = OpenNLPPoSTagger.class.getClassLoader();
+	for (Enumeration<URL> urlEnum = loader.getResources("en-chunker.bin"); urlEnum
+	       .hasMoreElements();) {
+	  URL url = urlEnum.nextElement();
+	  modelIn = url.openStream();
+	  break;
+	}
+      }
+      ChunkerModel model = new ChunkerModel(modelIn);
+      this.chunker = new ChunkerME(model);
+    } catch (IOException e) {
+      // Model loading failed, handle the error
+      System.err.println("Error opening Phrase Chunker model file from input stream.");
+      logger.error("Error opening Phrase Chunker model file from input stream.");
+      logger.error(e.toString());
+      e.printStackTrace();
+    } catch (Exception e) {
+      // Model loading failed, handle the error
+      System.err.println("Error opening Phrase Chunker model file from input stream.");
+      logger.error("Error opening Phrase Chunker model file from input stream.");
+      logger.error(e.toString());
+      e.printStackTrace();
+    } finally {
+      if (modelIn != null) {
+	try {
+	  modelIn.close();
+	}
+	catch (IOException ioe) {
+	  System.err.println
+	    ("Error when closing Phrase Chunker model input stream: " +
+	     ioe);
+	}
+      }
+    }
   }
 
 
@@ -59,25 +111,18 @@ public class OpenNLPChunker implements ChunkerMethod {
    * Creates a new <code>OpenNLPChunker</code> instance.
    *
    */
+  public OpenNLPChunker() {
+    this.setModel(System.getProperty("opennlp.en-chunker.bin.path", 
+				     "data/models/en-chunker.bin"));
+  }
+
+  /**
+   * Creates a new <code>OpenNLPChunker</code> instance.
+   *
+   */
   public OpenNLPChunker(Properties properties) {
-    InputStream modelIn = null;
-    ChunkerModel model = null;
-    try {
-      modelIn = new FileInputStream(properties.getProperty("opennlp.en-chunker.bin.path", 
-							   "data/models/en-chunker.bin"));
-      model = new ChunkerModel(modelIn);
-    } catch (IOException e) {
-      // Model loading failed, handle the error
-      e.printStackTrace();
-    } finally {
-      if (modelIn != null) {
-	try {
-	  modelIn.close();
-	} catch (IOException e) {
-	}
-      }
-    }
-    this.chunker = new ChunkerME(model);
+    this.setModel(properties.getProperty("opennlp.en-chunker.bin.path", 
+					 "data/models/en-chunker.bin"));
   }
 
   /**

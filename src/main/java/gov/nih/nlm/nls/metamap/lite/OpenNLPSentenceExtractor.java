@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.File;
 
+import java.net.URL;
+
+import java.util.Enumeration;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,25 +42,26 @@ public class OpenNLPSentenceExtractor implements SentenceExtractor
   SentenceModel sentenceModel;
   SentenceDetectorME sentenceDetector;
 
-  public OpenNLPSentenceExtractor() {
-    if (new File(System.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin")).exists()) {
-      this.setModel(System.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
-    }
-  }
-
-  public OpenNLPSentenceExtractor(Properties properties) { 
-    if (new File(properties.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin")).exists()) {
-      this.setModel(properties.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
-    }
-  }
-  
   public void setModel(String modelFilename)
   {
     InputStream modelIn = null;
     try {
-      modelIn = new FileInputStream(modelFilename);
-      sentenceModel = new SentenceModel(modelIn);
-      sentenceDetector = new SentenceDetectorME(sentenceModel);
+      // look for model based on parameter modelFilename
+      File modelFile = new File(modelFilename);
+      if (modelFile.exists()) {
+	modelIn = new FileInputStream(modelFile);
+      } else {
+	// otherwise, look for model on classpath
+	ClassLoader loader = OpenNLPSentenceExtractor.class.getClassLoader();
+	for (Enumeration<URL> urlEnum = loader.getResources("en-sent.bin");
+	     urlEnum.hasMoreElements();) {
+	  URL url = urlEnum.nextElement();
+	  modelIn = url.openStream();
+	  break;
+	}
+      }
+      this.sentenceModel = new SentenceModel(modelIn);
+      this.sentenceDetector = new SentenceDetectorME(sentenceModel);
     } catch (IOException ioe) {
       ioe.printStackTrace();
     } 
@@ -70,6 +74,14 @@ public class OpenNLPSentenceExtractor implements SentenceExtractor
 	} 
       }
     }
+  }
+
+  public OpenNLPSentenceExtractor() {
+    this.setModel(System.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
+  }
+
+  public OpenNLPSentenceExtractor(Properties properties) { 
+    this.setModel(properties.getProperty("opennlp.en-sent.bin.path", "data/models/en-sent.bin"));
   }
 
   public static class SentenceImpl implements Sentence {

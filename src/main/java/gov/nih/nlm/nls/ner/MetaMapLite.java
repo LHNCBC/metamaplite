@@ -439,7 +439,7 @@ public class MetaMapLite {
     logger.debug("enter processSentences");
     List<BioCSentence> resultList = new ArrayList<BioCSentence>();
     for (BioCSentence sentence: passage.getSentences()) {
-      logger.info("Processing: " + sentence.getText());
+      logger.debug("Processing: " + sentence.getText());
       resultList.add(this.processSentence(sentence, passage));
     }
     /*passage.setSentences(resultList);*/
@@ -933,7 +933,7 @@ public class MetaMapLite {
   {
     // output results for file
     // create output filename
-    logger.info("outputing results to Standard Output");
+    logger.debug("outputing results to Standard Output");
     PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out,
 							    Charset.forName("utf-8")));
     for (Sentence sent: this.getSentenceList(documentList)) {
@@ -1142,7 +1142,7 @@ public class MetaMapLite {
     String basename = getBasename(filename);
     String outputFilename = basename + ".chunks";
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
     listChunks(pw, documentList);
@@ -1160,7 +1160,7 @@ public class MetaMapLite {
     String basename = getBasename(filename);
     String outputFilename = basename + outputExtension;
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     // output results for file
     PrintWriter pw = new PrintWriter(new BufferedWriter
 				     (new FileWriter(outputFile)));
@@ -1180,7 +1180,7 @@ public class MetaMapLite {
     String basename = getBasename(filename);
     String outputFilename = basename + outputExtension;
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     
     // output results for file
     PrintWriter pw = new PrintWriter(new BufferedWriter
@@ -1201,7 +1201,7 @@ public class MetaMapLite {
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
     File outputFile = abortIfFileExists(outputFilename, overwritefile);
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter
@@ -1220,7 +1220,7 @@ public class MetaMapLite {
 		    String outputFormatOption)
     throws IOException, IllegalAccessException, InvocationTargetException, Exception
   {
-    logger.info("outputing results to " + outputFilename);
+    logger.debug("outputing results to " + outputFilename);
     
     // output results for file
     PrintWriter pw = new PrintWriter(new OutputStreamWriter
