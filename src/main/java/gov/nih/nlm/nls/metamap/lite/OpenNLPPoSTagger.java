@@ -3,9 +3,12 @@
 package gov.nih.nlm.nls.metamap.lite;
 
 import java.io.IOException;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -49,76 +52,6 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 
   static AbbrConverter abbrConverter = new AbbrConverter();
 
-  public OpenNLPPoSTagger()
-  {
-    InputStream modelIn = null;
-    String posModelFname = System.getProperty("opennlp.en-pos.bin.path",
-					      "data/models/en-pos-maxent.bin");
-    try {
-      modelIn = new FileInputStream(posModelFname);
-      this.posModel = new POSModel(modelIn);
-      this.posTagger = new POSTaggerME(this.posModel);
-    }
-    catch (IOException e) {
-      // Model loading failed, handle the error
-      System.err.println("Error opening Part of Speech model file " +
-			 posModelFname);
-      logger.error("Error opening Part of Speech model file ",
-		   posModelFname);
-      logger.error(e.toString());
-      e.printStackTrace();
-    }
-    finally {
-      if (modelIn != null) {
-	try {
-	  modelIn.close();
-	}
-	catch (IOException ioe) {
-	  System.err.println("Error closing Part of Speech model file " +
-			 posModelFname);
-	  System.err.println
-	    ("Error when closing Part of Speech model file " + posModelFname +
-	     "after reading: " +
-	     ioe);
-	}
-      }
-    }
-  }
-
-  public OpenNLPPoSTagger(Properties properties)
-  {
-    InputStream modelIn = null;
-    String posModelFname = properties.getProperty("opennlp.en-pos.bin.path",
-						  "data/models/en-pos-maxent.bin");
-    try {
-      modelIn = new FileInputStream(posModelFname);
-      this.posModel = new POSModel(modelIn);
-      this.posTagger = new POSTaggerME(this.posModel);
-    }
-    catch (IOException e) {
-      // Model loading failed, handle the error
-      System.err.println("Error opening Part of Speech model file " +
-			 posModelFname);
-      logger.error("Error opening Part of Speech model file " + 
-			 posModelFname + ".");
-      logger.error(e.toString());
-      e.printStackTrace();
-    }
-    finally {
-      if (modelIn != null) {
-	try {
-	  modelIn.close();
-	}
-	catch (IOException ioe) {
-	  System.err.println
-	    ("Error when closing Part of Speech model file " + posModelFname +
-	     "after reading: " +
-	     ioe);
-	}
-      }
-    }
-  }
-
   /** 
    * Instantiate tagger using input stream, most likely from
    * getResourceAsStream from classpath or ServletContext.
@@ -130,15 +63,13 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
     try {
       this.posModel = new POSModel(modelIn);
       this.posTagger = new POSTaggerME(this.posModel);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       // Model loading failed, handle the error
       System.err.println("Error opening Part of Speech model file from input stream.");
       logger.error("Error opening Part of Speech model file from input stream.");
       logger.error(e.toString());
       e.printStackTrace();
-    }
-    finally {
+    } finally {
       if (modelIn != null) {
 	try {
 	  modelIn.close();
@@ -150,6 +81,66 @@ public class OpenNLPPoSTagger implements SentenceAnnotator {
 	}
       }
     }
+  }
+
+  public void setModel(String modelFilename) {
+    InputStream modelIn = null;
+    try {
+      // look for model based on parameter modelFilename
+      File modelFile = new File(modelFilename);
+      if (modelFile.exists()) {
+	modelIn = new FileInputStream(modelFile);
+      } else {
+	// otherwise, look for model on classpath
+	ClassLoader loader = OpenNLPPoSTagger.class.getClassLoader();
+	for (Enumeration<URL> urlEnum = loader.getResources("en-pos-maxent.bin"); urlEnum
+	       .hasMoreElements();) {
+	  URL url = urlEnum.nextElement();
+	  modelIn = url.openStream();
+	  break;
+	}
+      }
+      this.posModel = new POSModel(modelIn);
+      this.posTagger = new POSTaggerME(this.posModel);
+    } catch (IOException e) {
+      // Model loading failed, handle the error
+      System.err.println("Error opening Part of Speech model file from input stream.");
+      logger.error("Error opening Part of Speech model file from input stream.");
+      logger.error(e.toString());
+      e.printStackTrace();
+    } catch (Exception e) {
+      // Model loading failed, handle the error
+      System.err.println("Error opening Part of Speech model file from input stream.");
+      logger.error("Error opening Part of Speech model file from input stream.");
+      logger.error(e.toString());
+      e.printStackTrace();
+    } finally {
+      if (modelIn != null) {
+	try {
+	  modelIn.close();
+	}
+	catch (IOException ioe) {
+	  System.err.println
+	    ("Error when closing Part of Speech model input stream: " +
+	     ioe);
+	}
+      }
+    }
+  }
+
+  public OpenNLPPoSTagger()
+  {
+
+    String posModelFname = System.getProperty("opennlp.en-pos.bin.path",
+					      "data/models/en-pos-maxent.bin");
+    this.setModel(posModelFname);
+  }
+
+  public OpenNLPPoSTagger(Properties properties)
+  {
+    String posModelFname = properties.getProperty("opennlp.en-pos.bin.path",
+						  "data/models/en-pos-maxent.bin");
+    this.setModel(posModelFname);
   }
   
   /**
