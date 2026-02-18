@@ -90,7 +90,11 @@ public class BioCDocumentLoaderRegistry {
   public static List<String> listInfo() {
     List<String> descriptionList = new ArrayList<String>();
     for (Map.Entry<String,BioCDocumentLoader> entry: bioCDocumentLoaderMap.entrySet()) {
-      descriptionList.add(entry.getKey() + ": " + entry.getValue());
+      if (descriptionMap.get(entry.getKey()).trim() != "") {
+	descriptionList.add(entry.getKey() + ": " + descriptionMap.get(entry.getKey()));
+      } else {
+	descriptionList.add(entry.getKey());
+      }
     }
     return descriptionList;
   }
