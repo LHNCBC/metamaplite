@@ -4,7 +4,7 @@
   <groupId>gov.nih.nlm.nls</groupId>
   <artifactId>metamaplite</artifactId>
   <packaging>jar</packaging>
-  <version>3.6.2rc8</version>
+  <version>3.6.2</version>
   <name>metamaplite</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -90,10 +90,10 @@
       <id>central</id>
       <url>http://central.maven.org/maven2/</url>
     </repository -->
-    <repository>
+    <!-- repository>
       <id>metamap maven</id>
       <url>https://metamap.nlm.nih.gov/maven2/</url>
-    </repository>
+    </repository -->
   </repositories>
   <dependencies>
     <dependency>
@@ -104,7 +104,7 @@
     <dependency>
       <groupId>org.apache.opennlp</groupId>
       <artifactId>opennlp-tools</artifactId>
-      <version>1.9.3</version>
+      <version>2.5.7</version>
     </dependency>
     <dependency>
       <groupId>org.apache.opennlp</groupId>
