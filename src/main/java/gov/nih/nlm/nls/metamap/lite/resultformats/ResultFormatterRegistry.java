@@ -73,7 +73,7 @@ public class ResultFormatterRegistry {
       formatterMap.put(name, instance);
     }
     synchronized(descriptionMap) {
-      descriptionMap.put(name,description);
+      descriptionMap.put(name, description);
     }
   }
 
@@ -88,7 +88,11 @@ public class ResultFormatterRegistry {
   public static List<String> listInfo() {
     List<String> descriptionList = new ArrayList<String>();
     for (Map.Entry<String,ResultFormatter> entry: formatterMap.entrySet()) {
-      descriptionList.add(entry.getKey() + ": " + entry.getValue());
+      if (descriptionMap.get(entry.getKey()).trim() != "") {
+	descriptionList.add(entry.getKey() + ": " + descriptionMap.get(entry.getKey()));
+      } else {
+	descriptionList.add(entry.getKey());
+      }
     }
     return descriptionList;
   }

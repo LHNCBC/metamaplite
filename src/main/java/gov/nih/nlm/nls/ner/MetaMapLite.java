@@ -694,7 +694,7 @@ public class MetaMapLite {
     System.err.println("  --freetext (default)");
     System.err.println("  --inputformat=<document type>");
     System.err.println("    Available document types:");
-    for (String name: BioCDocumentLoaderRegistry.listNameSet()) {
+    for (String name: BioCDocumentLoaderRegistry.listInfo()) {
       System.err.println("      " + name);
     }
     System.err.println("output options:");
@@ -705,7 +705,7 @@ public class MetaMapLite {
     //    System.err.println("  --luceneresultlen");
     System.err.println("  --outputformat=<format type>");
     System.err.println("    Available format types:");  
-    for (String name: ResultFormatterRegistry.listNameSet()) {
+    for (String name: ResultFormatterRegistry.listInfo()) {
       System.err.println("      " + name);
     }
     System.err.println("processing options:");
@@ -1455,11 +1455,14 @@ public class MetaMapLite {
 	    } else if (args[i].equals("--verbose")) {
 	      verbose = true;
 	    } else if (args[i].equals("--help")) {
+
 	      Properties properties = setConfiguration(propertiesFilename,
 						       defaultConfiguration,
 						       System.getProperties(),
 						       optionsConfiguration,
 						       verbose);
+	      // instantiate MetaMap to get full list of plugins (document, output)
+	      MetaMapLite metaMapLiteInst = new MetaMapLite(properties);
 	      BioCDocumentLoaderRegistry.register(properties);
 	      ResultFormatterRegistry.register(properties);
 	      displayHelp();
