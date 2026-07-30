@@ -1,7 +1,7 @@
 package gov.nih.nlm.nls.metamap.lite.types;
 
 import java.util.List;
-import java.util.ArrayList;
+import gov.nih.nlm.nls.types.Span;
 
 import gov.nih.nlm.nls.types.Span;
 
@@ -30,7 +30,7 @@ public class MMLEntity<T> {
     this.info = relatedInfo;    
   }
 
-  List<Span> getSpanList() { return this.spanList; }
-  T getInfo() { return this.info; }
+  public List<Span> getSpanList() { return this.spanList; }
+  public T getInfo() { return this.info; }
   public String toString() { return this.spanList + ":" + this.info; }
 }
