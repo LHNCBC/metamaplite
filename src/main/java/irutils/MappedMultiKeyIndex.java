@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.lang.Math;
 
 /**
  * Dictionary and Postings (example records)
@@ -84,6 +85,10 @@ public class MappedMultiKeyIndex {
   /**
    * Open index using basename as name of index.
    * @param indexDirectoryName name of directory containing index.
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
    */
   public MappedMultiKeyIndex(String indexDirectoryName)
     throws FileNotFoundException, IOException
@@ -94,9 +99,9 @@ public class MappedMultiKeyIndex {
     FileInputStream postingsInputStream =
       new FileInputStream(new File (indexDirectoryName + "/postings"));
     FileChannel postingsFileChannel = postingsInputStream.getChannel();
-    int sz = (int)postingsFileChannel.size();
+    long sz = postingsFileChannel.size();
     this.postingsRaf = 
-      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Math.min(sz,Integer.MAX_VALUE - 1));
     postingsInputStream.close();
   }
 
@@ -104,6 +109,8 @@ public class MappedMultiKeyIndex {
    * Open index using basename as name of index.
    * @param indexDirectoryName name of directory containing index.
    * @param charset character encoding of terms and postings in index.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public MappedMultiKeyIndex(String indexDirectoryName, Charset charset)
     throws FileNotFoundException, IOException
@@ -115,9 +122,9 @@ public class MappedMultiKeyIndex {
     FileInputStream postingsInputStream =
       new FileInputStream(new File (indexDirectoryName + "/postings"));
     FileChannel postingsFileChannel = postingsInputStream.getChannel();
-    int sz = (int)postingsFileChannel.size();
+    long sz = postingsFileChannel.size();
     this.postingsRaf = 
-      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Math.min(sz,Integer.MAX_VALUE - 1));
     postingsInputStream.close();
   }
 
@@ -125,6 +132,8 @@ public class MappedMultiKeyIndex {
    * Open index using basename and use supplied name as name of index.
    * @param workingDirectoryName name of directory containing index.
    * @param indexname name of index.
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
    */
   public MappedMultiKeyIndex(String workingDirectoryName, String indexname)
     throws FileNotFoundException, IOException
@@ -135,9 +144,9 @@ public class MappedMultiKeyIndex {
     FileInputStream postingsInputStream =
       new FileInputStream(new File (indexDirectoryName + "/postings"));
     FileChannel postingsFileChannel = postingsInputStream.getChannel();
-    int sz = (int)postingsFileChannel.size();
+    long sz = postingsFileChannel.size();
     this.postingsRaf = 
-      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Math.min(sz,Integer.MAX_VALUE - 1));
     postingsInputStream.close();
   }
 
@@ -146,6 +155,8 @@ public class MappedMultiKeyIndex {
    * @param workingDirectoryName name of directory containing index.
    * @param indexname name of index.
    * @param charset character encoding of terms and postings in index.
+   * @throws FileNotFoundException file not found exception
+   * @throws IOException i/o exception
    */
   public MappedMultiKeyIndex(String workingDirectoryName, String indexname, Charset charset)
     throws FileNotFoundException, IOException
@@ -157,9 +168,9 @@ public class MappedMultiKeyIndex {
     FileInputStream postingsInputStream =
       new FileInputStream(new File (indexDirectoryName + "/postings"));
     FileChannel postingsFileChannel = postingsInputStream.getChannel();
-    int sz = (int)postingsFileChannel.size();
+    long sz = postingsFileChannel.size();
     this.postingsRaf = 
-      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
+      postingsFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Math.min(sz,Integer.MAX_VALUE - 1));
     postingsInputStream.close();
   }
 
@@ -172,6 +183,8 @@ public class MappedMultiKeyIndex {
    *
    * @param filename of file to be mapped
    * @return memory mapped buffer of file.
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
    */
   public MappedByteBuffer openMappedByteBuffer(String filename) 
     throws FileNotFoundException, IOException
@@ -184,7 +197,7 @@ public class MappedMultiKeyIndex {
       if (file.exists()) {
 	FileChannel fileChannel = 
 	  (new FileInputStream(file)).getChannel();
-	int sz = (int)fileChannel.size();
+        long sz = fileChannel.size();
 	byteBuffer = 
 	  fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, sz);
 	byteBufCache.put(filename, byteBuffer);
@@ -292,6 +305,8 @@ public class MappedMultiKeyIndex {
    * @param columnString table column index to use
    * @param termLengthString length of search term
    * @return Map of statistics keyed by type of statistic.
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
    */
   public Map<String,String> getStatsMap(String columnString, String termLengthString)
     throws FileNotFoundException, IOException
@@ -312,6 +327,8 @@ public class MappedMultiKeyIndex {
    * @param column  table column index to use
    * @param term search term
    * @return list of results matching term.
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
    */
   public List<String> lookup(int column, String term)
     throws IOException, FileNotFoundException
@@ -319,7 +336,7 @@ public class MappedMultiKeyIndex {
     List<String> resultList = new ArrayList<String>();
     // byte length of utf-8 string
     int bytelength = term.getBytes(this.charset).length;
-    String termLengthString = Integer.toString(bytelength);
+    String termLengthString = Long.toString(bytelength);
     String columnString = Integer.toString(column);
     String partitionKey = columnString + "|" + termLengthString;
     MappedByteBuffer termDictionaryRaf = this.getTermDictionaryFile(columnString, termLengthString);
@@ -340,7 +357,9 @@ public class MappedMultiKeyIndex {
   /**
    * Generate SHA1 digest of input string.
    * @param input input string
+   * @param charset charset to use usually ASCII or UTF-8
    * @return SHA1 digest generated from input string.
+   * @throws NoSuchAlgorithmException thrown if algorithm is not available
    */
   public static String sha1(String input, Charset charset) throws NoSuchAlgorithmException {
     MessageDigest mDigest = MessageDigest.getInstance("SHA1");
@@ -371,10 +390,11 @@ public class MappedMultiKeyIndex {
   /**
    * Load Table
    * @param tablefilename name of file containing table of records with pipe-separated fields.
+   * @param charset charset to use usually ASCII or UTF-8
    * @return list of records instances.
-   * @throws FileNotFoundException
-   * @throws IOException
-   * @throws NoSuchAlgorithmException 
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
+   * @throws NoSuchAlgorithmException thrown if algorithm is not available
    */
   public static List<Record> loadTable(String tablefilename, Charset charset) 
     throws FileNotFoundException, IOException, NoSuchAlgorithmException {
@@ -388,6 +408,7 @@ public class MappedMultiKeyIndex {
       String digest = sha1(line, charset);
       newList.add(new Record(line, fields, digest));
     }
+    br.close();
     return newList;
   }
 
@@ -406,8 +427,11 @@ public class MappedMultiKeyIndex {
    * @param bsfp       file pointer for binary search table
    * @param word       search word
    * @param wordlen    wordlength
+   * @param datalen    length of data associated with word
    * @param numrecs    number of records in table
+   * @param charset charset to use usually ASCII or UTF-8
    * @return long containing address of posting, -1 if not found.
+   * @throws IOException general i/o exception
    */
   public static DictionaryEntry
     dictionaryBinarySearch(MappedByteBuffer bsfp, String word, 
@@ -468,6 +492,9 @@ public class MappedMultiKeyIndex {
     for (int i = 0; i < entry.getNumberOfPostings(); i++) {
       long offset = extentsRaf.getLong();
       long length = extentsRaf.getLong();
+      if (offset > Integer.MAX_VALUE) {
+	throw new RuntimeException("postings offset " + offset + " greater than Integer.MAX_VALUE: " + Integer.MAX_VALUE);
+      }
       postingsRaf.position((int)offset);
       // Read encoded UTF-8 string 
       byte[] buf = new byte[(int)length];

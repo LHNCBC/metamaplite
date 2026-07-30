@@ -105,8 +105,9 @@ public class MultiKeyIndexGeneration {
   /**
    * Write postings to posting pool file while filling digest -&gt; posting extent map that is returned at end of processing.
    * @param workingdir working directory
+   * @param indexname name of index
    * @return map of string -&gt; start, offset pairs (extents)
-   * @throws IOException 
+   * @throws IOException general i/o exception
    */
   public Map<String, Extent> writePostings(String workingdir, String indexname) 
     throws IOException { 
@@ -125,6 +126,7 @@ public class MultiKeyIndexGeneration {
       }
       digestExtentMap.put(digestEntry.getKey(), new Extent(start, byteData.length));
     }
+    raf.close();
     return digestExtentMap;
   }
 
@@ -137,8 +139,8 @@ public class MultiKeyIndexGeneration {
    * @param workingDir working directory
    * @param indexname name of index
    * @param digestExtentMap map of digest -&gt; start length pairs (extents)
-   * @throws IOException
-   * @throws FileNotFoundException
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
    */
   public void writePartitions(String workingDir, String indexname, Map<String, Extent> digestExtentMap) 
     throws FileNotFoundException, IOException
@@ -190,7 +192,15 @@ public class MultiKeyIndexGeneration {
     }
   }
 
-  /** For testing indexes only */
+  /** For testing indexes only 
+   * @param workingDir working directory
+   * @param indexname name of index
+   * @param term term
+   * @param column column in table to search
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
+   * @return list of strings containing results of lookup
+   */
   public List<String> lookup(String workingDir, String indexname,  String term, int column)
     throws IOException, FileNotFoundException
   {
@@ -253,10 +263,10 @@ public class MultiKeyIndexGeneration {
   /**
    * The main program
    * @param args Arguments passed from the command line
-   * @throws IOException
-   * @throws FileNotFoundException
-   * @throws NoSuchAlgorithmException
-   **/
+   * @throws FileNotFoundException thrown if file or directory is not found
+   * @throws IOException general i/o exception
+   * @throws NoSuchAlgorithmException thrown if algorithm is not available
+   */
   public static void main(String[] args)
     throws FileNotFoundException, IOException, NoSuchAlgorithmException
   {
