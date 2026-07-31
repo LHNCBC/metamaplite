@@ -249,6 +249,7 @@ public class TestMultiKeyIndexGeneration {
 	  System.out.println("TestMultiKeyIndexGeneration: test1: term: " + term);
 	  dirRaf.skipBytes(datalength);
 	}
+	dirRaf.close();
 	System.out.println("---");
       }
       org.junit.Assert.assertTrue(true);	
