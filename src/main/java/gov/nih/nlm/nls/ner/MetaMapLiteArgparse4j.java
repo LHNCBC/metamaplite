@@ -78,7 +78,7 @@ public class MetaMapLiteArgparse4j {
     if (nsAttrs.containsKey("inputformat")) {
       optionsConfiguration.setProperty("metamaplite.document.inputtype", ns.getString("inputformat"));
     }
-    if (nsAttrs.containsKey("restrict_to_semantic_types")) {
+    if (nsAttrs.containsKey("restrict_to_sts")) {
       optionsConfiguration.setProperty("metamaplite.semanticgroup", ns.getString("restrict_to_sts"));
     }
     if (nsAttrs.containsKey("restrict_to_sources")) {
