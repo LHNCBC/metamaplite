@@ -200,17 +200,18 @@
       <artifactId>jackson-dataformat-yaml</artifactId>
       <version>2.16.1</version>
     </dependency>
-
-    <!-- dependency>
+    <!-- 
+    <dependency>
       <groupId>context</groupId>
-      <artifactId>context</artifactId>
-      <version>2012</version>
-    </dependency>
+       <artifactId>context</artifactId>
+       <version>2012</version>
+       </dependency>
     <dependency>
       <groupId>bioc</groupId>
       <artifactId>bioc</artifactId>
       <version>1.0.1</version>
-    </dependency -->
+    </dependency>
+    -->
     <dependency>
       <groupId>com.github.willjrogers</groupId>
       <artifactId>ConText-2012-Mirror</artifactId>
