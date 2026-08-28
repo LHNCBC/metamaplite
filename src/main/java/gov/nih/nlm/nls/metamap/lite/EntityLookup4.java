@@ -103,6 +103,7 @@ public class EntityLookup4 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("NNS");
     this.allowedPartOfSpeechSet.add("NNP");
     this.allowedPartOfSpeechSet.add("NNPS");
+    this.allowedPartOfSpeechSet.add("NOUN");
     this.allowedPartOfSpeechSet.add("JJ");
     this.allowedPartOfSpeechSet.add("JJR");
     this.allowedPartOfSpeechSet.add("JJS");
