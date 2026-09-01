@@ -73,6 +73,7 @@ public class EntityLookup3 implements EntityLookup {
   SentenceAnnotator sentenceAnnotator;
 
   public void defaultAllowedPartOfSpeech() {
+    this.allowedPartOfSpeechSet.add("ADJ");
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
     this.allowedPartOfSpeechSet.add("NN");
     this.allowedPartOfSpeechSet.add("NNS");
@@ -82,6 +83,7 @@ public class EntityLookup3 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("JJ");
     this.allowedPartOfSpeechSet.add("JJR");
     this.allowedPartOfSpeechSet.add("JJS");
+    this.allowedPartOfSpeechSet.add("PROPN");
   }
 
   public EntityLookup3() 
