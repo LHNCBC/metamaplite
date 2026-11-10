@@ -111,6 +111,7 @@ public class EntityLookup5 implements EntityLookup {
   Set<Character> additionalTokenStartChars = new HashSet<Character>();
 
   public void defaultAllowedPartOfSpeech() {
+    this.allowedPartOfSpeechSet.add("ADJ");
     this.allowedPartOfSpeechSet.add("CD"); // cardinal number (need this for chemicals)
     this.allowedPartOfSpeechSet.add("FW"); // foreign word
     this.allowedPartOfSpeechSet.add("RB"); // should this be here?
@@ -119,10 +120,12 @@ public class EntityLookup5 implements EntityLookup {
     this.allowedPartOfSpeechSet.add("NNS");
     this.allowedPartOfSpeechSet.add("NNP");
     this.allowedPartOfSpeechSet.add("NNPS");
+    this.allowedPartOfSpeechSet.add("NOUN");
     this.allowedPartOfSpeechSet.add("JJ");
     this.allowedPartOfSpeechSet.add("JJR");
     this.allowedPartOfSpeechSet.add("JJS");
     this.allowedPartOfSpeechSet.add("LS"); // list item marker (need this for chemicals)
+    this.allowedPartOfSpeechSet.add("PROPN");
     // this.allowedPartOfSpeechSet.add("VB");
     // this.allowedPartOfSpeechSet.add("."); // abbreviation? period?
     this.allowedPartOfSpeechSet.add(""); // empty if not part-of-speech tagged (accept everything)

@@ -94,6 +94,10 @@
       <id>metamap maven</id>
       <url>https://metamap.nlm.nih.gov/maven2/</url>
     </repository -->
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
@@ -104,7 +108,7 @@
     <dependency>
       <groupId>org.apache.opennlp</groupId>
       <artifactId>opennlp-tools</artifactId>
-      <version>2.5.7</version>
+      <version>2.5.9</version>
     </dependency>
     <dependency>
       <groupId>org.apache.opennlp</groupId>
@@ -191,18 +195,28 @@
       <artifactId>jackson-dataformat-yaml</artifactId>
       <version>2.16.1</version>
     </dependency>
-    <!-- https://metamap.nlm.nih.gov/maven2 -->
-    <dependency>
+
+    <!-- dependency>
       <groupId>context</groupId>
       <artifactId>context</artifactId>
       <version>2012</version>
     </dependency>
-    <!-- https://metamap.nlm.nih.gov/maven2 -->
     <dependency>
       <groupId>bioc</groupId>
       <artifactId>bioc</artifactId>
       <version>1.0.1</version>
+    </dependency -->
+    <dependency>
+      <groupId>com.github.willjrogers</groupId>
+      <artifactId>ConText-2012-Mirror</artifactId>
+      <version>7617e67</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.willjrogers</groupId>
+      <artifactId>BioC_Java</artifactId>
+      <version>1ec85ea</version>
+    </dependency>
+
     <dependency>
       <groupId>net.sf.opencsv</groupId>
       <artifactId>opencsv</artifactId>
@@ -214,11 +228,11 @@
       <version>1.4</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.uima/uimaj-core -->
-    <dependency>
+    <!-- dependency>
       <groupId>org.apache.uima</groupId>
       <artifactId>uimaj-core</artifactId>
       <version>3.5.0</version>
-    </dependency>
+    </dependency -->
     
     <!-- 2019.0: https://mvnrepository.com/artifact/gov.nih.nlm.nls.lvg/lvgdist -->
     <!-- 2020.0: https://metamap.nlm.nih.gov/maven2 -->
@@ -232,7 +246,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20231013</version>
+      <version>20260719</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.argparse4j</groupId>
